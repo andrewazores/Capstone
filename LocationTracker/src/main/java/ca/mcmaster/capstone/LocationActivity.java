@@ -12,10 +12,10 @@ import android.widget.TextView;
 
 public class LocationActivity extends Activity {
 
-    TextView latitude;
-    TextView longitude;
-    LocationManager manager;
-    String locationProvider;
+    protected TextView latitude;
+    protected TextView longitude;
+    protected LocationManager manager;
+    protected String locationProvider;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -53,7 +53,7 @@ public class LocationActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private class TextViewLocationUpdateListener implements LocationListener {
+    protected class TextViewLocationUpdateListener implements LocationListener {
         @Override
         public void onLocationChanged(final Location newLocation) {
             // Called when a new location is found by the network location provider.
