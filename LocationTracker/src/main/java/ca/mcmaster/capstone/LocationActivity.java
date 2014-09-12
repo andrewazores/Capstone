@@ -10,7 +10,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-
 public class LocationActivity extends Activity {
 
     TextView latitude;
@@ -19,37 +18,21 @@ public class LocationActivity extends Activity {
     String locationProvider;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location);
-
-        manager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location newLocation) {
-                // Called when a new location is found by the network location provider.
-
-                latitude.setText(Double.toString(newLocation.getLatitude()));
-                longitude.setText(Double.toString(newLocation.getLongitude()));
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-            public void onProviderEnabled(String provider) {}
-
-            public void onProviderDisabled(String provider) {}
-        };
-
-        manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        locationProvider = LocationManager.GPS_PROVIDER;
-
-        Location location = manager.getLastKnownLocation(locationProvider);
 
         latitude = (TextView) findViewById(R.id.latitude);
         longitude = (TextView) findViewById(R.id.longitude);
 
-        latitude.setText(Double.toString(location.getLatitude()));
-        longitude.setText(Double.toString(location.getLongitude()));
+        manager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        final LocationListener locationListener = new TextViewLocationUpdateListener();
+        manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        locationProvider = LocationManager.GPS_PROVIDER;
+
+        final Location location = manager.getLastKnownLocation(locationProvider);
+        locationListener.onLocationChanged(location);
     }
 
 
@@ -68,5 +51,24 @@ public class LocationActivity extends Activity {
         int id = item.getItemId();
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private class TextViewLocationUpdateListener implements LocationListener {
+        @Override
+        public void onLocationChanged(final Location newLocation) {
+            // Called when a new location is found by the network location provider.
+
+            latitude.setText(Double.toString(newLocation.getLatitude()));
+            longitude.setText(Double.toString(newLocation.getLongitude()));
+        }
+
+        @Override
+        public void onStatusChanged(final String provider, final int status, final Bundle extras) {}
+
+        @Override
+        public void onProviderEnabled(final String provider) {}
+
+        @Override
+        public void onProviderDisabled(final String provider) {}
     }
 }
