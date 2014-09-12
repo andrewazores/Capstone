@@ -8,9 +8,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 
@@ -19,7 +16,7 @@ public class LocationActivity extends Activity {
     TextView latitude;
     TextView longitude;
     LocationManager manager;
-    String locationProvidor;
+    String locationProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +41,9 @@ public class LocationActivity extends Activity {
         };
 
         manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        locationProvidor = LocationManager.GPS_PROVIDER;
+        locationProvider = LocationManager.GPS_PROVIDER;
 
-        Location location = manager.getLastKnownLocation(locationProvidor);
+        Location location = manager.getLastKnownLocation(locationProvider);
 
         latitude = (TextView) findViewById(R.id.latitude);
         longitude = (TextView) findViewById(R.id.longitude);
