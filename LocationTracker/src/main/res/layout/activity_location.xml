@@ -1,0 +1,36 @@
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MyActivity">
+
+    <TextView
+        android:text="Latitude: "
+        android:layout_y="150dp"
+        android:layout_x="10dp"
+        android:layout_width="100dp"
+        android:layout_height="50dp" />
+
+    <TextView
+        android:id="@+id/latitude"
+        android:layout_y="150dp"
+        android:layout_x="100dp"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp" />
+
+
+    <TextView
+        android:text="Longitude: "
+        android:layout_y="200dp"
+        android:layout_x="10dp"
+        android:layout_width="100dp"
+        android:layout_height="50dp" />
+
+    <TextView
+        android:id="@+id/longitude"
+        android:layout_y="200dp"
+        android:layout_x="100dp"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp" />
+
+</AbsoluteLayout>
