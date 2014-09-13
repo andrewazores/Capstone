@@ -6,13 +6,10 @@ package ca.mcmaster.capstone;
 public class DeviceInfo {
 
     private final String ip;
-    private final double latitude, longitude, altitude, accuracy;
+    private final DeviceLocation location;
 
-    public DeviceInfo(final String ip, final double latitude, final double longitude, final double altitude, final double accuracy) {
+    public DeviceInfo(final String ip, final DeviceLocation location) {
         this.ip = ip;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.altitude = altitude;
-        this.accuracy = accuracy;
+        this.location = location;
     }
 }

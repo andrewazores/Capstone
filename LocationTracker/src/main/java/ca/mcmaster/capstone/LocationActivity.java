@@ -91,7 +91,6 @@ public class LocationActivity extends Activity {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
         altitude = location.getAltitude();
-        accuracy = location.getAccuracy();
 
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         timeTextView.setText(simpleDateFormat.format(new Date()));
@@ -104,7 +103,7 @@ public class LocationActivity extends Activity {
         altitudeTextView.setText(Double.toString(altitude));
 
         final Gson gson = new Gson();
-        final DeviceInfo info = new DeviceInfo(ip, latitude, longitude, altitude, accuracy);
+        final DeviceInfo info = new DeviceInfo(ip, new DeviceLocation(location));
         jsonTextView.setText(gson.toJson(info));
     }
 
