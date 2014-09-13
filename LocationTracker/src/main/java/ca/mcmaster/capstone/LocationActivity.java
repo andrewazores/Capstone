@@ -66,7 +66,7 @@ public class LocationActivity extends Activity {
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
 
         locationListener = new TextViewLocationUpdateListener();
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
         refreshButton = (Button) findViewById(R.id.refreshButton);
         refreshButton.setOnClickListener(new RefreshButtonClickListener());
