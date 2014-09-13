@@ -3,8 +3,6 @@ package ca.mcmaster.capstone;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -16,14 +14,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import com.google.gson.Gson;
 
-import java.security.PublicKey;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -31,13 +26,32 @@ public class LocationActivity extends Activity {
 
     protected TextView timeTextView, ipTextView, latitudeTextView, longitudeTextView, altitudeTextView, jsonTextView;
     protected TableLayout tableLayout;
-    protected LocationManager locationManager;
-    protected WifiManager wifiManager;
-    protected SensorManager sensorManager;
-    protected LocationListener locationListener;
-    protected Sensor barometer;
+    protected final LocationManager locationManager;
+    protected final WifiManager wifiManager;
+    protected final SensorManager sensorManager;
+    protected final LocationListener locationListener;
+    protected final Sensor barometer;
     protected Button refreshButton;
     protected double barometerPressure;
+    protected final BarometerListener barometerListener;
+
+    public LocationActivity() {
+        timeTextView = new TextView(this);
+        ipTextView = new TextView(this);
+        latitudeTextView = new TextView(this);
+        longitudeTextView = new TextView(this);
+        altitudeTextView = new TextView(this);
+
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+
+        locationListener = new LocationUpdateListener(this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+        barometerListener = new BarometerListener(this);
+        sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
+        barometer = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+    }
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -46,19 +60,14 @@ public class LocationActivity extends Activity {
 
         final TextView timeLabel = new TextView(this);
         timeLabel.setText("Last updated");
-        timeTextView = new TextView(this);
         final TextView ipLabel = new TextView(this);
         ipLabel.setText("Device IP");
-        ipTextView = new TextView(this);
         final TextView latitudeLabel = new TextView(this);
         latitudeLabel.setText("Latitude");
-        latitudeTextView = new TextView(this);
         final TextView longitudeLabel = new TextView(this);
         longitudeLabel.setText("Longitude");
-        longitudeTextView = new TextView(this);
         final TextView altitudeLabel = new TextView(this);
         altitudeLabel.setText("Altitude");
-        altitudeTextView = new TextView(this);
 
         tableLayout = (TableLayout) findViewById(R.id.tableLayout);
         jsonTextView = (TextView) findViewById(R.id.jsonTextView);
@@ -69,15 +78,7 @@ public class LocationActivity extends Activity {
         addNewRow(longitudeLabel, longitudeTextView);
         addNewRow(altitudeLabel, altitudeTextView);
 
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-
-        locationListener = new TextViewLocationUpdateListener();
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-
-        sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
-        barometer = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-        sensorManager.registerListener(new BarometerListener(), barometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(barometerListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
 
         refreshButton = (Button) findViewById(R.id.refreshButton);
         refreshButton.setOnClickListener(new RefreshButtonClickListener());
@@ -93,12 +94,24 @@ public class LocationActivity extends Activity {
         tableLayout.addView(newRow);
     }
 
-    private void updateUi() {
+    @Override
+    public void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(barometerListener);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        sensorManager.registerListener(barometerListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    void updateUi() {
         updateUi(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
     }
 
-    private void updateUi(final Location location) {
-        final double latitude, longitude, altitude, accuracy;
+    void updateUi(final Location location) {
+        final double latitude, longitude, altitude;
         latitude = location.getLatitude();
         longitude = location.getLongitude();
         altitude = location.getAltitude();
@@ -126,30 +139,13 @@ public class LocationActivity extends Activity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         return super.onOptionsItemSelected(item);
-    }
-
-    protected class TextViewLocationUpdateListener implements LocationListener {
-        @Override
-        public void onLocationChanged(final Location newLocation) {
-            // Called when a new location is found by the network location provider.
-            updateUi(newLocation);
-        }
-
-        @Override
-        public void onStatusChanged(final String provider, final int status, final Bundle extras) {}
-
-        @Override
-        public void onProviderEnabled(final String provider) {}
-
-        @Override
-        public void onProviderDisabled(final String provider) {}
     }
 
     protected class RefreshButtonClickListener implements View.OnClickListener {
@@ -159,15 +155,4 @@ public class LocationActivity extends Activity {
         }
     }
 
-    protected class BarometerListener implements SensorEventListener {
-        @Override
-        public void onSensorChanged(final SensorEvent event) {
-            barometerPressure = event.values[0];
-        }
-
-        @Override
-        public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
-
-        }
-    }
 }
