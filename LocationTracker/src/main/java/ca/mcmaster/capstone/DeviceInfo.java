@@ -12,4 +12,13 @@ public class DeviceInfo {
         this.ip = ip;
         this.location = location;
     }
+
+    public DeviceLocation getLocation() {
+        return location;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
 }

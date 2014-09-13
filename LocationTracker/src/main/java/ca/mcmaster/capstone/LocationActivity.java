@@ -2,6 +2,10 @@ package ca.mcmaster.capstone;
 
 import android.app.Activity;
 import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -29,8 +33,11 @@ public class LocationActivity extends Activity {
     protected TableLayout tableLayout;
     protected LocationManager locationManager;
     protected WifiManager wifiManager;
+    protected SensorManager sensorManager;
     protected LocationListener locationListener;
+    protected Sensor barometer;
     protected Button refreshButton;
+    protected double barometerPressure;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -68,6 +75,10 @@ public class LocationActivity extends Activity {
         locationListener = new TextViewLocationUpdateListener();
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
+        sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
+        barometer = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+        sensorManager.registerListener(new BarometerListener(), barometer, SensorManager.SENSOR_DELAY_NORMAL);
+
         refreshButton = (Button) findViewById(R.id.refreshButton);
         refreshButton.setOnClickListener(new RefreshButtonClickListener());
 
@@ -103,7 +114,7 @@ public class LocationActivity extends Activity {
         altitudeTextView.setText(Double.toString(altitude));
 
         final Gson gson = new Gson();
-        final DeviceInfo info = new DeviceInfo(ip, new DeviceLocation(location));
+        final DeviceInfo info = new DeviceInfo(ip, new DeviceLocation(location, barometerPressure));
         jsonTextView.setText(gson.toJson(info));
     }
 
@@ -145,6 +156,18 @@ public class LocationActivity extends Activity {
         @Override
         public void onClick(final View v) {
             updateUi();
+        }
+    }
+
+    protected class BarometerListener implements SensorEventListener {
+        @Override
+        public void onSensorChanged(final SensorEvent event) {
+            barometerPressure = event.values[0];
+        }
+
+        @Override
+        public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
+
         }
     }
 }
