@@ -7,6 +7,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.text.format.Formatter;
@@ -20,22 +21,30 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class LocationActivity extends Activity {
 
     protected TextView timeTextView, ipTextView, latitudeTextView, longitudeTextView, altitudeTextView, jsonTextView;
     protected TableLayout tableLayout;
-    protected final LocationManager locationManager;
-    protected final WifiManager wifiManager;
-    protected final SensorManager sensorManager;
-    protected final LocationListener locationListener;
-    protected final Sensor barometer;
+    protected LocationManager locationManager;
+    protected WifiManager wifiManager;
+    protected SensorManager sensorManager;
+    protected LocationListener locationListener;
+    protected Sensor barometer;
     protected Button refreshButton;
     protected double barometerPressure;
-    protected final BarometerListener barometerListener;
+    protected BarometerListener barometerListener;
+    protected String locationProvider = LocationManager.GPS_PROVIDER;
 
-    public LocationActivity() {
+    @Override
+    protected void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_location);
+
         timeTextView = new TextView(this);
         ipTextView = new TextView(this);
         latitudeTextView = new TextView(this);
@@ -46,44 +55,53 @@ public class LocationActivity extends Activity {
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
 
         locationListener = new LocationUpdateListener(this);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
 
         barometerListener = new BarometerListener(this);
         sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
         barometer = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-    }
-
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_location);
-
-        final TextView timeLabel = new TextView(this);
-        timeLabel.setText("Last updated");
-        final TextView ipLabel = new TextView(this);
-        ipLabel.setText("Device IP");
-        final TextView latitudeLabel = new TextView(this);
-        latitudeLabel.setText("Latitude");
-        final TextView longitudeLabel = new TextView(this);
-        longitudeLabel.setText("Longitude");
-        final TextView altitudeLabel = new TextView(this);
-        altitudeLabel.setText("Altitude");
 
         tableLayout = (TableLayout) findViewById(R.id.tableLayout);
         jsonTextView = (TextView) findViewById(R.id.jsonTextView);
 
-        addNewRow(timeLabel, timeTextView);
-        addNewRow(ipLabel, ipTextView);
-        addNewRow(latitudeLabel, latitudeTextView);
-        addNewRow(longitudeLabel, longitudeTextView);
-        addNewRow(altitudeLabel, altitudeTextView);
+        addNewRowWithLabel("Last Updated", timeTextView);
+        addNewRowWithLabel("Device IP", ipTextView);
+        addNewRowWithLabel("Latitude", latitudeTextView);
+        addNewRowWithLabel("Longitude", longitudeTextView);
+        addNewRowWithLabel("Altitude", altitudeTextView);
 
-        sensorManager.registerListener(barometerListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
+        addStaticRow(locationProvider +" Altitude-enabled?", Boolean.toString(locationManager.getProvider(LocationManager.GPS_PROVIDER).supportsAltitude()));
+        addStaticRow("Barometer detected?", Boolean.toString(barometer != null));
+
+        if (barometer != null) {
+            sensorManager.registerListener(barometerListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
 
         refreshButton = (Button) findViewById(R.id.refreshButton);
         refreshButton.setOnClickListener(new RefreshButtonClickListener());
 
         updateUi();
+    }
+
+    private void addStaticRow(final String ... strings) {
+        final List<View> views = new ArrayList<>();
+        for (final String string : strings) {
+            final TextView textView = new TextView(this);
+            textView.setText(string);
+            views.add(textView);
+        }
+        addNewRow(views.toArray(new View[views.size()]));
+    }
+
+    private void addNewRowWithLabel(final String label, final View ... views) {
+        final TableRow row = new TableRow(this);
+        final TextView labelText = new TextView(this);
+        labelText.setText(label);
+        row.addView(labelText);
+        for (final View view : views) {
+            row.addView(view);
+        }
+        tableLayout.addView(row);
     }
 
     private void addNewRow(final View ... items) {
@@ -97,13 +115,19 @@ public class LocationActivity extends Activity {
     @Override
     public void onPause() {
         super.onPause();
-        sensorManager.unregisterListener(barometerListener);
+        locationManager.removeUpdates(locationListener);
+        if (barometer != null) {
+            sensorManager.unregisterListener(barometerListener);
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        sensorManager.registerListener(barometerListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        if (barometer != null) {
+            sensorManager.registerListener(barometerListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     void updateUi() {
