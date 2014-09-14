@@ -7,23 +7,17 @@
 
     <ScrollView
             android:layout_width="fill_parent"
-            android:layout_height="240dp"
+            android:layout_height="221dp"
             android:id="@+id/scrollView" android:layout_x="0dp" android:layout_y="0dp">
         <TableLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content" android:id="@+id/tableLayout" android:showDividers="middle|beginning|end">
         </TableLayout>
     </ScrollView>
-    <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/refreshButtonText"
-            android:id="@+id/refreshButton" android:layout_x="105dp" android:layout_y="459dp"/>
     <TextView
             android:layout_width="match_parent"
-            android:layout_height="227dp"
-            android:text="New Text"
-            android:id="@+id/jsonTextView" android:layout_x="0dp" android:layout_y="237dp"/>
+            android:layout_height="321dp"
+            android:text="Waiting for location ..."
+            android:id="@+id/jsonTextView" android:layout_x="2dp" android:layout_y="189dp"/>
 
 </AbsoluteLayout>

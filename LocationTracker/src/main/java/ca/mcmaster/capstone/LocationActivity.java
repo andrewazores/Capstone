@@ -34,7 +34,6 @@ public class LocationActivity extends Activity {
     protected SensorManager sensorManager;
     protected LocationListener locationListener;
     protected Sensor barometer;
-    protected Button refreshButton;
     protected double barometerPressure;
     protected BarometerListener barometerListener;
     protected String locationProviderName = LocationManager.GPS_PROVIDER;
@@ -53,6 +52,7 @@ public class LocationActivity extends Activity {
 
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        gpsProvider = locationManager.getProvider(locationProviderName);
 
         locationListener = new LocationUpdateListener(this);
         locationManager.requestLocationUpdates(locationProviderName, 0, 0, locationListener);
@@ -76,11 +76,6 @@ public class LocationActivity extends Activity {
         if (barometer != null) {
             sensorManager.registerListener(barometerListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
         }
-
-        refreshButton = (Button) findViewById(R.id.refreshButton);
-        refreshButton.setOnClickListener(new RefreshButtonClickListener());
-
-        updateUi();
     }
 
     private void addStaticRow(final String ... strings) {
@@ -130,11 +125,10 @@ public class LocationActivity extends Activity {
         }
     }
 
-    void updateUi() {
-        updateUi(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
-    }
-
     void updateUi(final Location location) {
+        if (location == null) {
+            return;
+        }
         final double latitude, longitude, altitude;
         latitude = location.getLatitude();
         longitude = location.getLongitude();
@@ -170,13 +164,6 @@ public class LocationActivity extends Activity {
         int id = item.getItemId();
 
         return super.onOptionsItemSelected(item);
-    }
-
-    protected class RefreshButtonClickListener implements View.OnClickListener {
-        @Override
-        public void onClick(final View v) {
-            updateUi();
-        }
     }
 
 }

@@ -17,7 +17,6 @@ class BarometerListener implements SensorEventListener {
     @Override
     public void onSensorChanged(final SensorEvent event) {
         locationActivity.barometerPressure = event.values[0];
-        locationActivity.updateUi();
     }
 
     @Override
