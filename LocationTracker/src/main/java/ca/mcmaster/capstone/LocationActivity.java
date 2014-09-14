@@ -22,7 +22,6 @@ import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -38,7 +37,8 @@ public class LocationActivity extends Activity {
     protected Button refreshButton;
     protected double barometerPressure;
     protected BarometerListener barometerListener;
-    protected String locationProvider = LocationManager.GPS_PROVIDER;
+    protected String locationProviderName = LocationManager.GPS_PROVIDER;
+    protected LocationProvider gpsProvider;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -55,7 +55,7 @@ public class LocationActivity extends Activity {
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
 
         locationListener = new LocationUpdateListener(this);
-        locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
+        locationManager.requestLocationUpdates(locationProviderName, 0, 0, locationListener);
 
         barometerListener = new BarometerListener(this);
         sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
@@ -70,7 +70,7 @@ public class LocationActivity extends Activity {
         addNewRowWithLabel("Longitude", longitudeTextView);
         addNewRowWithLabel("Altitude", altitudeTextView);
 
-        addStaticRow(locationProvider +" Altitude-enabled?", Boolean.toString(locationManager.getProvider(LocationManager.GPS_PROVIDER).supportsAltitude()));
+        addStaticRow(gpsProvider.getName() +" Altitude-enabled?", Boolean.toString(gpsProvider.supportsAltitude()));
         addStaticRow("Barometer detected?", Boolean.toString(barometer != null));
 
         if (barometer != null) {
@@ -124,7 +124,7 @@ public class LocationActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        locationManager.requestLocationUpdates(locationProviderName, 0, 0, locationListener);
         if (barometer != null) {
             sensorManager.registerListener(barometerListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
         }
