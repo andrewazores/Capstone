@@ -37,6 +37,7 @@ public class CapstoneLocationActivity extends Activity {
     protected TextView jsonTextView;
     private CapstoneLocationService capstoneLocationService;
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
+    public static final Intent SERVICE_INTENT = new Intent("ca.mcmaster.capstone.CapstoneLocationService");
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -50,19 +51,46 @@ public class CapstoneLocationActivity extends Activity {
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
+                reconnect();
                 updateUi();
             }
         });
 
+        final Button stopButton = (Button) findViewById(R.id.stopButton);
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View view) {
+                stopLocationService();
+            }
+        });
+
+        reconnect();
+    }
+
+    private void reconnect() {
+        if (capstoneLocationService != null) {
+            return;
+        }
         final Intent startSticky = new Intent(this, CapstoneLocationService.class);
         startService(startSticky);
+        bindService(SERVICE_INTENT, serviceConnection, BIND_AUTO_CREATE);
+    }
+
+    private void stopLocationService() {
+        if (capstoneLocationService == null) {
+            Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        stopService(new Intent(this, CapstoneLocationService.class));
+        unbindService(serviceConnection);
+        capstoneLocationService = null;
+        Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        final Intent serviceIntent = new Intent("ca.mcmaster.capstone.CapstoneLocationService");
-        bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
+        reconnect();
     }
 
     @Override
@@ -74,7 +102,7 @@ public class CapstoneLocationActivity extends Activity {
         }
     }
 
-    void updateUi() {
+    private void updateUi() {
         if (capstoneLocationService == null) {
             Toast.makeText(this, "Service connection not established", Toast.LENGTH_LONG).show();
             Log.v("CapstoneActivity", "Service connection not established");
@@ -82,11 +110,6 @@ public class CapstoneLocationActivity extends Activity {
         }
         jsonTextView.setText(capstoneLocationService.getStatusAsJson());
         Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
     }
 
     private class LocationServiceConnection implements ServiceConnection {

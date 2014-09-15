@@ -6,7 +6,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Waiting for data..."
+        android:text="@string/jsonWaitingText"
         android:id="@+id/jsonTextView"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
@@ -16,6 +16,15 @@
         android:layout_height="wrap_content"
         android:text="@string/refreshButtonLabel"
         android:id="@+id/refreshButton"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/jsonTextView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="92dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stopButtonLabel"
+        android:id="@+id/stopButton"
+        android:layout_below="@+id/refreshButton"
         android:layout_centerHorizontal="true" />
 </RelativeLayout>

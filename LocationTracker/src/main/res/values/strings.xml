@@ -4,5 +4,7 @@
     <string name="app_name">Capstone</string>
     <string name="title_activity_maps">Capstone</string>
     <string name="refreshButtonLabel">Refresh</string>
+    <string name="stopButtonLabel">Stop service</string>
+    <string name="jsonWaitingText">Waiting for data...</string>
 
 </resources>
