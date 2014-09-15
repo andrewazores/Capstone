@@ -7,7 +7,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="ca.mcmaster.capstone.LocationActivity"
+            android:name=".CapstoneLocationActivity"
             android:label="@string/title_activity_maps" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -15,6 +15,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:enabled="true"
+            android:name=".CapstoneLocationService">
+            <intent-filter>
+                <action android:name="ca.mcmaster.capstone.CapstoneLocationService" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="com.google.android.gms.version"

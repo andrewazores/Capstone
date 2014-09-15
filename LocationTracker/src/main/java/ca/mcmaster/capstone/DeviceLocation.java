@@ -7,13 +7,13 @@ import android.location.Location;
  */
 public class DeviceLocation {
 
-    private final double latitude, longitude, gpsAltitude, barometerPressure, bearing, accuracy, speed;
+    private final double latitude, longitude, altitude, barometerPressure, bearing, accuracy, speed;
 
-    public DeviceLocation(final double latitude, final double longitude, final double gpsAltitude, final double barometerPressure,
+    public DeviceLocation(final double latitude, final double longitude, final double altitude, final double barometerPressure,
                           final double bearing, final double accuracy, final double speed) {
         this.latitude = latitude;
         this.longitude = longitude;
-        this.gpsAltitude = gpsAltitude;
+        this.altitude = altitude;
         this.barometerPressure = barometerPressure;
         this.bearing = bearing;
         this.accuracy = accuracy;
@@ -33,8 +33,8 @@ public class DeviceLocation {
         return longitude;
     }
 
-    public double getGpsAltitude() {
-        return gpsAltitude;
+    public double getAltitude() {
+        return altitude;
     }
 
     public double getBarometerPressure() {

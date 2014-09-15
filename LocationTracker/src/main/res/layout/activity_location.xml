@@ -1,23 +1,21 @@
-<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MyActivity">
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-
-    <ScrollView
-            android:layout_width="fill_parent"
-            android:layout_height="221dp"
-            android:id="@+id/scrollView" android:layout_x="0dp" android:layout_y="0dp">
-        <TableLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" android:id="@+id/tableLayout" android:showDividers="middle|beginning|end">
-        </TableLayout>
-    </ScrollView>
     <TextView
-            android:layout_width="match_parent"
-            android:layout_height="321dp"
-            android:text="Waiting for location ..."
-            android:id="@+id/jsonTextView" android:layout_x="2dp" android:layout_y="189dp"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Waiting for data..."
+        android:id="@+id/jsonTextView"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 
-</AbsoluteLayout>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/refreshButtonLabel"
+        android:id="@+id/refreshButton"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+</RelativeLayout>
