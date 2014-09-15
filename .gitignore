@@ -1,5 +1,3 @@
-LocationTracker/build
-
 #built application files
 *.apk
 *.ap_
@@ -11,9 +9,10 @@ LocationTracker/build
 *.class
 
 # generated files
-LocationTracker/bin
-LocationTracker/build
-LocationTracker/gen
+LocationTracker/bin/
+LocationTracker/build/
+LocationTracker/gen/
+build/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -27,3 +26,4 @@ Thumbs.db
 # Android Studio/IntelliJ
 .gradle
 .idea/workspace.xml
+LocationTracker/.idea/
