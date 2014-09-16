@@ -33,6 +33,8 @@ import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.Map;
 
 public final  class CapstoneLocationService extends Service {
 
@@ -123,12 +125,11 @@ public final  class CapstoneLocationService extends Service {
     }
 
     public void requestUpdate(final CapstoneLocationActivity capstoneLocationActivity, final String url) {
-        final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-            new Response.Listener<String>() {
+        final GsonRequest<DeviceInfo> request = new GsonRequest<>(url, DeviceInfo.class, Collections.<String, String>emptyMap(),
+            new Response.Listener<DeviceInfo>() {
                 @Override
-                public void onResponse(final String s) {
+                public void onResponse(final DeviceInfo deviceInfo) {
                     try {
-                        final DeviceInfo deviceInfo = gson.fromJson(s, DeviceInfo.class);
                         capstoneLocationActivity.update(deviceInfo);
                     } catch (final JsonSyntaxException jse) {
                         Toast.makeText(CapstoneLocationService.this, "Error updating peer info", Toast.LENGTH_LONG).show();
@@ -141,7 +142,7 @@ public final  class CapstoneLocationService extends Service {
                     Toast.makeText(CapstoneLocationService.this, "Error updating peer info", Toast.LENGTH_LONG).show();
                 }
             });
-        volleyRequestQueue.add(stringRequest);
+        volleyRequestQueue.add(request);
     }
 
     public class CapstoneLocationServiceBinder extends Binder {
