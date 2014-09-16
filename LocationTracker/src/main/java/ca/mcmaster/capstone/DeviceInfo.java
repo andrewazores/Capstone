@@ -6,10 +6,12 @@ package ca.mcmaster.capstone;
 public class DeviceInfo {
 
     private final String ip;
+    private final int port;
     private final DeviceLocation location;
 
-    public DeviceInfo(final String ip, final DeviceLocation location) {
+    public DeviceInfo(final String ip, final int port, final DeviceLocation location) {
         this.ip = ip;
+        this.port = port;
         this.location = location;
     }
 

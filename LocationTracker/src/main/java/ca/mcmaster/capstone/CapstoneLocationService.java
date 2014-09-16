@@ -113,7 +113,8 @@ public final  class CapstoneLocationService extends Service {
             location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         }
         final DeviceLocation deviceLocation = new DeviceLocation(location, barometerPressure);
-        return new DeviceInfo(Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress()), deviceLocation);
+        return new DeviceInfo(Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress()),
+                                     locationServer.getListeningPort(), deviceLocation);
     }
 
     public String getStatusAsJson() {
