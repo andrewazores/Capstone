@@ -47,6 +47,10 @@ public class CapstoneLocationActivity extends Activity implements UpdateCallback
         pingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
+                if (capstoneLocationService == null) {
+                    Toast.makeText(CapstoneLocationActivity.this, "Service connection not established", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 capstoneLocationService.requestUpdate(CapstoneLocationActivity.this, hostnameTextField.getText().toString());
                 updateSelfInfo();
             }
