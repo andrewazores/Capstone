@@ -6,5 +6,8 @@
     <string name="refreshButtonLabel">Refresh</string>
     <string name="stopButtonLabel">Stop service</string>
     <string name="jsonWaitingText">Waiting for data...</string>
+    <string name="pingButtonLabel">Ping</string>
+    <string name="peerViewInitialText">Enter a hostname below, then hit Ping</string>
+    <string name="hostnameInitialText">hostname</string>
 
 </resources>

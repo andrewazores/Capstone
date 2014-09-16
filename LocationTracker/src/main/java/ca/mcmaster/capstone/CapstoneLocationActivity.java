@@ -2,42 +2,27 @@ package ca.mcmaster.capstone;
 
 import android.app.Activity;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationProvider;
-import android.net.wifi.WifiManager;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.format.Formatter;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TableLayout;
-import android.widget.TableRow;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.gson.Gson;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+public class CapstoneLocationActivity extends Activity implements UpdateCallbackReceiver<DeviceInfo> {
 
-public class CapstoneLocationActivity extends Activity {
-
-    protected TextView jsonTextView;
+    protected TextView jsonTextView, peerTextView;
+    protected EditText hostnameTextField;
     private CapstoneLocationService capstoneLocationService;
+    private final Gson gson = new Gson();
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
     public static final Intent SERVICE_INTENT = new Intent("ca.mcmaster.capstone.CapstoneLocationService");
+    private DeviceInfo peerInfo;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -46,13 +31,24 @@ public class CapstoneLocationActivity extends Activity {
         setContentView(R.layout.activity_location);
 
         jsonTextView = (TextView) findViewById(R.id.jsonTextView);
+        peerTextView = (TextView) findViewById(R.id.peerInfo);
+        hostnameTextField = (EditText) findViewById(R.id.hostnameTextField);
 
         final Button refreshButton = (Button) findViewById(R.id.refreshButton);
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 reconnect();
-                updateUi();
+                updateSelfInfo();
+            }
+        });
+
+        final Button pingButton = (Button) findViewById(R.id.pingButton);
+        pingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                capstoneLocationService.requestUpdate(CapstoneLocationActivity.this, hostnameTextField.getText().toString());
+                updateSelfInfo();
             }
         });
 
@@ -65,6 +61,12 @@ public class CapstoneLocationActivity extends Activity {
         });
 
         reconnect();
+    }
+
+    @Override
+    public void update(final DeviceInfo deviceInfo) {
+        this.peerInfo = deviceInfo;
+        updatePeerInfo();
     }
 
     private void reconnect() {
@@ -102,13 +104,23 @@ public class CapstoneLocationActivity extends Activity {
         }
     }
 
-    private void updateUi() {
+    private void updateSelfInfo() {
         if (capstoneLocationService == null) {
             Toast.makeText(this, "Service connection not established", Toast.LENGTH_LONG).show();
             log("Service connection not established");
             return;
         }
         jsonTextView.setText(capstoneLocationService.getStatusAsJson());
+        Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updatePeerInfo() {
+        if (capstoneLocationService == null) {
+            Toast.makeText(this, "Service connection not established", Toast.LENGTH_LONG).show();
+            log("Service connection not established");
+            return;
+        }
+        peerTextView.setText(gson.toJson(peerInfo));
         Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
     }
 
@@ -124,7 +136,7 @@ public class CapstoneLocationActivity extends Activity {
 
             if (capstoneLocationService == null) {
                 capstoneLocationService = ((CapstoneLocationService.CapstoneLocationServiceBinder) service).getService();
-                updateUi();
+                updateSelfInfo();
             }
         }
 

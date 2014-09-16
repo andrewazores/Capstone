@@ -1,5 +1,6 @@
 package ca.mcmaster.capstone;
 
+import android.app.DownloadManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -19,12 +20,19 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.text.format.Formatter;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
+import java.net.URL;
 
 public final  class CapstoneLocationService extends Service {
 
@@ -111,6 +119,28 @@ public final  class CapstoneLocationService extends Service {
     public String getStatusAsJson() {
         final DeviceInfo deviceInfo = getStatus();
         return gson.toJson(deviceInfo);
+    }
+
+    public void requestUpdate(final CapstoneLocationActivity capstoneLocationActivity, final String url) {
+        final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+            new Response.Listener<String>() {
+                @Override
+                public void onResponse(final String s) {
+                    try {
+                        final DeviceInfo deviceInfo = gson.fromJson(s, DeviceInfo.class);
+                        capstoneLocationActivity.update(deviceInfo);
+                    } catch (final JsonSyntaxException jse) {
+                        Toast.makeText(CapstoneLocationService.this, "Error updating peer info", Toast.LENGTH_LONG).show();
+                    }
+                }
+            },
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(final VolleyError error) {
+                    Toast.makeText(CapstoneLocationService.this, "Error updating peer info", Toast.LENGTH_LONG).show();
+                }
+            });
+        volleyRequestQueue.add(stringRequest);
     }
 
     public class CapstoneLocationServiceBinder extends Binder {
