@@ -42,7 +42,7 @@ public class CapstoneLocationActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v("CapstoneActivity", "Starting");
+        log("Starting");
         setContentView(R.layout.activity_location);
 
         jsonTextView = (TextView) findViewById(R.id.jsonTextView);
@@ -105,18 +105,22 @@ public class CapstoneLocationActivity extends Activity {
     private void updateUi() {
         if (capstoneLocationService == null) {
             Toast.makeText(this, "Service connection not established", Toast.LENGTH_LONG).show();
-            Log.v("CapstoneActivity", "Service connection not established");
+            log("Service connection not established");
             return;
         }
         jsonTextView.setText(capstoneLocationService.getStatusAsJson());
         Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
     }
 
+    private static void log(final String message) {
+        Log.v("CapstoneActivity", message);
+    }
+
     private class LocationServiceConnection implements ServiceConnection {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             Toast.makeText(CapstoneLocationActivity.this, "Service connected", Toast.LENGTH_LONG).show();
-            Log.v("CapstoneActivity", "Service connected");
+            log("Service connected");
 
             if (capstoneLocationService == null) {
                 capstoneLocationService = ((CapstoneLocationService.CapstoneLocationServiceBinder) service).getService();
@@ -127,7 +131,7 @@ public class CapstoneLocationActivity extends Activity {
         @Override
         public void onServiceDisconnected(final ComponentName name) {
             Toast.makeText(CapstoneLocationActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
-            Log.v("CapstoneActivity", "Service disconnected");
+            log("Service disconnected");
 
             capstoneLocationService = null;
         }

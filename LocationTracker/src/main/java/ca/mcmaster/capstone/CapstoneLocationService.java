@@ -20,25 +20,33 @@ import android.os.IBinder;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.widget.Toast;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 
-public class CapstoneLocationService extends Service {
+import java.io.IOException;
 
-    protected LocationManager locationManager;
-    protected WifiManager wifiManager;
-    protected SensorManager sensorManager;
-    protected Sensor barometer;
-    protected LocationProvider gpsProvider;
-    protected double barometerPressure;
+public final  class CapstoneLocationService extends Service {
 
-    protected Location lastLocation;
+    private LocationManager locationManager;
+    private WifiManager wifiManager;
+    private SensorManager sensorManager;
+    private Sensor barometer;
+    private LocationProvider gpsProvider;
+    private double barometerPressure;
+
+    private Location lastLocation;
     private final CapstoneLocationServiceBinder serviceBinder = new CapstoneLocationServiceBinder();
     private CapstoneSensorEventListener sensorEventListener;
     private CapstoneLocationListener locationListener;
 
+    private final Gson gson = new Gson();
+    private RequestQueue volleyRequestQueue;
+    private CapstoneLocationServer locationServer;
+
     @Override
     public void onCreate() {
-        Log.v("CapstoneService", "Created");
+        log("Created");
         final Notification notification = new Notification(0, "Capstone Location",
                                                             System.currentTimeMillis());
         final Intent notificationIntent = new Intent(this, CapstoneLocationActivity.class);
@@ -59,8 +67,16 @@ public class CapstoneLocationService extends Service {
         sensorEventListener = new CapstoneSensorEventListener();
         sensorManager.registerListener(sensorEventListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
 
+        volleyRequestQueue = Volley.newRequestQueue(this);
+        locationServer = new CapstoneLocationServer(this);
+        try {
+            locationServer.start();
+        } catch (final IOException ioe) {
+            Log.e("CapstoneService", "Error starting NanoHTTPD server", ioe);
+        }
+
         Toast.makeText(this, "Capstone Location Service starting", Toast.LENGTH_LONG).show();
-        Log.v("CapstoneService", "Capstone Location Service starting");
+        log("Capstone Location Service starting");
     }
 
     @Override
@@ -78,7 +94,7 @@ public class CapstoneLocationService extends Service {
         Toast.makeText(this, "Capstone Location Service stopping", Toast.LENGTH_LONG).show();
         locationManager.removeUpdates(locationListener);
         sensorManager.unregisterListener(sensorEventListener);
-        Log.v("CapstoneService", "Capstone Location Service stopping");
+        log("Capstone Location Service stopping");
     }
 
     public DeviceInfo getStatus() {
@@ -94,7 +110,6 @@ public class CapstoneLocationService extends Service {
 
     public String getStatusAsJson() {
         final DeviceInfo deviceInfo = getStatus();
-        final Gson gson = new Gson();
         return gson.toJson(deviceInfo);
     }
 
@@ -102,6 +117,10 @@ public class CapstoneLocationService extends Service {
         public CapstoneLocationService getService() {
             return CapstoneLocationService.this;
         }
+    }
+
+    private static void log(final String message) {
+        Log.v("CapstoneService", message);
     }
 
     private class CapstoneLocationListener implements LocationListener {
@@ -137,4 +156,5 @@ public class CapstoneLocationService extends Service {
 
         }
     }
+
 }
