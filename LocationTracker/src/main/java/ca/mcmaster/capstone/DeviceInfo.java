@@ -1,10 +1,14 @@
 package ca.mcmaster.capstone;
 
+import android.os.Build;
+import android.provider.ContactsContract;
+
 /**
  * Created by andrew on 9/13/14.
  */
 public class DeviceInfo {
 
+    private final String serial = Build.SERIAL;
     private final String ip;
     private final int port;
     private final DeviceLocation location;
@@ -15,12 +19,20 @@ public class DeviceInfo {
         this.location = location;
     }
 
+    public int getPort() {
+        return port;
+    }
+
     public DeviceLocation getLocation() {
         return location;
     }
 
     public String getIp() {
         return ip;
+    }
+
+    public String getSerial() {
+        return serial;
     }
 
 }

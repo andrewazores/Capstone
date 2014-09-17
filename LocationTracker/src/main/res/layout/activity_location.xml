@@ -19,38 +19,20 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
-    <Button
+    <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/pingButtonLabel"
-        android:id="@+id/pingButton"
-        android:layout_above="@+id/stopButton"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/refreshButtonLabel"
-        android:id="@+id/refreshButton"
-        android:layout_above="@+id/pingButton"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/peerViewInitialText"
-        android:id="@+id/peerInfo"
-        android:layout_marginTop="83dp"
-        android:layout_below="@+id/jsonTextView"
-        android:layout_centerHorizontal="true" />
-
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/hostnameTextField"
-        android:layout_above="@+id/refreshButton"
+        android:id="@+id/listView"
         android:layout_centerHorizontal="true"
-        android:text="@string/hostnameInitialText"
-        android:inputType="textUri" />
+        android:layout_below="@+id/jsonTextView"
+        android:layout_above="@+id/reconnectButton" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/reconnectButtonLabel"
+        android:layout_above="@+id/stopButton"
+        android:id="@+id/reconnectButton"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

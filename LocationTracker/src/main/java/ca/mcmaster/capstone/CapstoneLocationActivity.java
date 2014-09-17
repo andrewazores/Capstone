@@ -1,28 +1,42 @@
 package ca.mcmaster.capstone;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.gson.Gson;
 
-public class CapstoneLocationActivity extends Activity implements UpdateCallbackReceiver<DeviceInfo> {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-    protected TextView jsonTextView, peerTextView;
-    protected EditText hostnameTextField;
-    private CapstoneLocationService capstoneLocationService;
+public class CapstoneLocationActivity extends Activity implements LocalUpdateCallbackReceiver<DeviceInfo>,
+                                                                NsdUpdateCallbackReceiver,
+                                                                PeerUpdateCallbackReceiver<DeviceInfo> {
+
     private final Gson gson = new Gson();
+
+    protected TextView jsonTextView;
+    protected ListView listView;
+    private CapstoneLocationService capstoneLocationService;
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
     public static final Intent SERVICE_INTENT = new Intent("ca.mcmaster.capstone.CapstoneLocationService");
-    private DeviceInfo peerInfo;
+    private List<String> peerNames = new ArrayList<>();
+    private volatile boolean serviceBound;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -30,28 +44,24 @@ public class CapstoneLocationActivity extends Activity implements UpdateCallback
         log("Starting");
         setContentView(R.layout.activity_location);
 
-        jsonTextView = (TextView) findViewById(R.id.jsonTextView);
-        peerTextView = (TextView) findViewById(R.id.peerInfo);
-        hostnameTextField = (EditText) findViewById(R.id.hostnameTextField);
-
-        final Button refreshButton = (Button) findViewById(R.id.refreshButton);
-        refreshButton.setOnClickListener(new View.OnClickListener() {
+        listView = (ListView) findViewById(R.id.listView);
+        listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, peerNames));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(final View v) {
-                reconnect();
-                updateSelfInfo();
+            public void onItemClick(final AdapterView<?> adapterView, final View view, final int i, final long l) {
+                final String targetDevice = ((TextView)view).getText().toString();
+                final String targetUrl = "http://" + targetDevice;
+                getPeerUpdate(targetUrl);
             }
         });
 
-        final Button pingButton = (Button) findViewById(R.id.pingButton);
-        pingButton.setOnClickListener(new View.OnClickListener() {
+        jsonTextView = (TextView) findViewById(R.id.jsonTextView);
+
+        final Button reconnectButton = (Button) findViewById(R.id.reconnectButton);
+        reconnectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                if (capstoneLocationService == null) {
-                    Toast.makeText(CapstoneLocationActivity.this, "Service connection not established", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                capstoneLocationService.requestUpdate(CapstoneLocationActivity.this, hostnameTextField.getText().toString());
+                reconnect();
                 updateSelfInfo();
             }
         });
@@ -63,33 +73,55 @@ public class CapstoneLocationActivity extends Activity implements UpdateCallback
                 stopLocationService();
             }
         });
+    }
 
-        reconnect();
+    private void getPeerUpdate(final String targetUrl) {
+        capstoneLocationService.requestUpdateFromPeer(this, targetUrl);
     }
 
     @Override
-    public void update(final DeviceInfo deviceInfo) {
-        this.peerInfo = deviceInfo;
-        updatePeerInfo();
+    public void update(final DeviceInfo peerInfo) {
+        updateSelfInfo();
     }
 
-    private void reconnect() {
-        if (capstoneLocationService != null) {
+    @Override
+    public void nsdUpdate(final Collection<NsdServiceInfo> nsdPeers) {
+        final Handler mainHandler = new Handler(this.getMainLooper());
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                peerNames.clear();
+                for (final NsdServiceInfo nsdServiceInfo : nsdPeers) {
+                    final String name = nsdServiceInfo.getHost().getHostAddress() + ":" + nsdServiceInfo.getPort();
+                    if (!peerNames.contains(name)) {
+                        peerNames.add(name);
+                    }
+                }
+                ((ArrayAdapter<DeviceInfo>) listView.getAdapter()).notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Override
+    public void peerUpdate(final DeviceInfo deviceInfo) {
+        if (deviceInfo == null) {
             return;
         }
-        final Intent startSticky = new Intent(this, CapstoneLocationService.class);
-        startService(startSticky);
-        bindService(SERVICE_INTENT, serviceConnection, BIND_AUTO_CREATE);
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle(deviceInfo.getIp() + ":" + deviceInfo.getPort())
+                .setMessage(gson.toJson(deviceInfo))
+                .create().show();
     }
 
     private void stopLocationService() {
-        if (capstoneLocationService == null) {
+        if (capstoneLocationService == null || !serviceBound) {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
             return;
         }
+        jsonTextView.setText("Not connected to Capstone Service");
+        nsdUpdate(Collections.<NsdServiceInfo>emptySet());
+        disconnect();
         stopService(new Intent(this, CapstoneLocationService.class));
-        unbindService(serviceConnection);
-        capstoneLocationService = null;
         Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();
     }
 
@@ -102,10 +134,28 @@ public class CapstoneLocationActivity extends Activity implements UpdateCallback
     @Override
     public void onPause() {
         super.onPause();
-        if (capstoneLocationService != null) {
-            unbindService(serviceConnection);
-            capstoneLocationService = null;
+        disconnect();
+    }
+
+    private void reconnect() {
+        if (serviceBound) {
+            log("Already bound, cannot reconnect");
+            return;
         }
+        final Intent startSticky = new Intent(this, CapstoneLocationService.class);
+        startService(startSticky);
+        bindService(SERVICE_INTENT, serviceConnection, BIND_AUTO_CREATE);
+    }
+
+    private void disconnect() {
+        if (capstoneLocationService == null || !serviceBound) {
+            log("Not bound, cannot disconnect");
+            return;
+        }
+        serviceBound = false;
+        unbindService(serviceConnection);
+        capstoneLocationService.unregisterLocationUpdateCallback(this);
+        capstoneLocationService.unregisterNsdUpdateCallback(this);
     }
 
     private void updateSelfInfo() {
@@ -114,18 +164,13 @@ public class CapstoneLocationActivity extends Activity implements UpdateCallback
             log("Service connection not established");
             return;
         }
-        jsonTextView.setText(capstoneLocationService.getStatusAsJson());
-        Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
-    }
-
-    private void updatePeerInfo() {
-        if (capstoneLocationService == null) {
-            Toast.makeText(this, "Service connection not established", Toast.LENGTH_LONG).show();
-            log("Service connection not established");
-            return;
-        }
-        peerTextView.setText(gson.toJson(peerInfo));
-        Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
+        final Handler mainHandler = new Handler(this.getMainLooper());
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                jsonTextView.setText(capstoneLocationService.getStatusAsJson());
+            }
+        });
     }
 
     private static void log(final String message) {
@@ -140,8 +185,11 @@ public class CapstoneLocationActivity extends Activity implements UpdateCallback
 
             if (capstoneLocationService == null) {
                 capstoneLocationService = ((CapstoneLocationService.CapstoneLocationServiceBinder) service).getService();
+                capstoneLocationService.registerLocationUpdateCallback(CapstoneLocationActivity.this);
+                capstoneLocationService.registerNsdUpdateCallback(CapstoneLocationActivity.this);
                 updateSelfInfo();
             }
+            serviceBound = true;
         }
 
         @Override
@@ -149,7 +197,7 @@ public class CapstoneLocationActivity extends Activity implements UpdateCallback
             Toast.makeText(CapstoneLocationActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
             log("Service disconnected");
 
-            capstoneLocationService = null;
+            serviceBound = false;
         }
     }
 }

@@ -1,13 +1,16 @@
 package ca.mcmaster.capstone;
 
+import android.webkit.WebView;
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import fi.iki.elonen.NanoHTTPD;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
@@ -26,9 +29,9 @@ public class GsonRequest<T> extends Request<T> {
      * @param clazz Relevant class object, for Gson's reflection
      * @param headers Map of request headers
      */
-    public GsonRequest(final String url, final Class<T> clazz, final Map<String, String> headers,
+    public GsonRequest(final int method, final String url, final Class<T> clazz, final Map<String, String> headers,
                        final Response.Listener<T> listener, final Response.ErrorListener errorListener) {
-        super(Method.GET, url, errorListener);
+        super(method, url, errorListener);
         this.clazz = clazz;
         this.headers = headers;
         this.listener = listener;
@@ -46,6 +49,9 @@ public class GsonRequest<T> extends Request<T> {
 
     @Override
     protected Response<T> parseNetworkResponse(final NetworkResponse response) {
+        if (response.statusCode != NanoHTTPD.Response.Status.OK.getRequestStatus()) {
+            return Response.error(new VolleyError(response));
+        }
         try {
             final String json = new String(
                 response.data,

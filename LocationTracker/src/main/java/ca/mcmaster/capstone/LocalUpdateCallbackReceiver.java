@@ -1,6 +1,6 @@
 package ca.mcmaster.capstone;
 
-public interface UpdateCallbackReceiver<T> {
+public interface LocalUpdateCallbackReceiver<T> {
 
     public void update(final T t);
 
