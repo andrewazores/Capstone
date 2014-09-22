@@ -22,7 +22,9 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class CapstoneLocationActivity extends Activity implements LocalUpdateCallbackReceiver<DeviceInfo>,
                                                                 NsdUpdateCallbackReceiver,
@@ -35,7 +37,7 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
     private CapstoneLocationService capstoneLocationService;
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
     public static final Intent SERVICE_INTENT = new Intent("ca.mcmaster.capstone.CapstoneLocationService");
-    private List<String> peerNames = new ArrayList<>();
+    private List<HashableNsdServiceInfo> nsdPeers = new ArrayList<>();
     private volatile boolean serviceBound;
 
     @Override
@@ -45,13 +47,11 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
         setContentView(R.layout.activity_location);
 
         listView = (ListView) findViewById(R.id.listView);
-        listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, peerNames));
+        listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nsdPeers));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(final AdapterView<?> adapterView, final View view, final int i, final long l) {
-                final String targetDevice = ((TextView)view).getText().toString();
-                final String targetUrl = "http://" + targetDevice;
-                getPeerUpdate(targetUrl);
+                getPeerUpdate((HashableNsdServiceInfo)listView.getItemAtPosition(i));
             }
         });
 
@@ -63,6 +63,8 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
             public void onClick(final View v) {
                 reconnect();
                 updateSelfInfo();
+                ((ArrayAdapter<DeviceInfo>) listView.getAdapter()).notifyDataSetChanged();
+                log("Known peers: " + nsdPeers);
             }
         });
 
@@ -75,8 +77,9 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
         });
     }
 
-    private void getPeerUpdate(final String targetUrl) {
-        capstoneLocationService.requestUpdateFromPeer(this, targetUrl);
+    private void getPeerUpdate(final HashableNsdServiceInfo peer) {
+        capstoneLocationService.identifySelfToPeer(peer);
+        capstoneLocationService.requestUpdateFromPeer(this, peer);
     }
 
     @Override
@@ -85,18 +88,13 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
     }
 
     @Override
-    public void nsdUpdate(final Collection<NsdServiceInfo> nsdPeers) {
+    public void nsdUpdate(final Collection<HashableNsdServiceInfo> nsdPeers) {
         final Handler mainHandler = new Handler(this.getMainLooper());
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
-                peerNames.clear();
-                for (final NsdServiceInfo nsdServiceInfo : nsdPeers) {
-                    final String name = nsdServiceInfo.getHost().getHostAddress() + ":" + nsdServiceInfo.getPort();
-                    if (!peerNames.contains(name)) {
-                        peerNames.add(name);
-                    }
-                }
+                CapstoneLocationActivity.this.nsdPeers.clear();
+                CapstoneLocationActivity.this.nsdPeers.addAll(nsdPeers);
                 ((ArrayAdapter<DeviceInfo>) listView.getAdapter()).notifyDataSetChanged();
             }
         });
@@ -119,7 +117,7 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
             return;
         }
         jsonTextView.setText("Not connected to Capstone Service");
-        nsdUpdate(Collections.<NsdServiceInfo>emptySet());
+        nsdUpdate(Collections.<HashableNsdServiceInfo>emptySet());
         disconnect();
         stopService(new Intent(this, CapstoneLocationService.class));
         Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();

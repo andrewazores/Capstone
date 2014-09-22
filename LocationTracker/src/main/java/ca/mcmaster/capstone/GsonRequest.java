@@ -1,6 +1,5 @@
 package ca.mcmaster.capstone;
 
-import android.webkit.WebView;
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
@@ -20,7 +19,9 @@ public class GsonRequest<T> extends Request<T> {
     private final Gson gson = new Gson();
     private final Class<T> clazz;
     private final Map<String, String> headers;
+    private final Map<String, String> params;
     private final Response.Listener<T> listener;
+    private final String contentBody;
 
     /**
      * Make a GET request and return a parsed object from JSON.
@@ -29,17 +30,30 @@ public class GsonRequest<T> extends Request<T> {
      * @param clazz Relevant class object, for Gson's reflection
      * @param headers Map of request headers
      */
-    public GsonRequest(final int method, final String url, final Class<T> clazz, final Map<String, String> headers,
+    public GsonRequest(final int method, final String url, final Class<T> clazz,
+                       final Map<String, String> headers, final Map<String, String> params, final String contentBody,
                        final Response.Listener<T> listener, final Response.ErrorListener errorListener) {
         super(method, url, errorListener);
         this.clazz = clazz;
         this.headers = headers;
+        this.params = params;
+        this.contentBody = contentBody;
         this.listener = listener;
     }
 
     @Override
     public Map<String, String> getHeaders() throws AuthFailureError {
         return headers != null ? headers : super.getHeaders();
+    }
+
+    @Override
+    public Map<String, String> getParams() throws AuthFailureError {
+        return params != null ? params : super.getParams();
+    }
+
+    @Override
+    public byte[] getBody() {
+        return this.contentBody.getBytes();
     }
 
     @Override
@@ -59,9 +73,9 @@ public class GsonRequest<T> extends Request<T> {
             return Response.success(
                 gson.fromJson(json, clazz),
                 HttpHeaderParser.parseCacheHeaders(response));
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             return Response.error(new ParseError(e));
-        } catch (JsonSyntaxException e) {
+        } catch (final JsonSyntaxException e) {
             return Response.error(new ParseError(e));
         }
     }

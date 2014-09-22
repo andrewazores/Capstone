@@ -9,8 +9,23 @@ public class DeviceLocation {
 
     private final double latitude, longitude, altitude, barometerPressure, bearing, accuracy, speed;
 
-    public DeviceLocation(final double latitude, final double longitude, final double altitude, final double barometerPressure,
-                          final double bearing, final double accuracy, final double speed) {
+    public DeviceLocation(final Location location, final double barometerPressure) {
+        final double latitude, longitude, altitude, bearing, accuracy, speed;
+        if (location == null) {
+            latitude = 0;
+            longitude = 0;
+            altitude = 0;
+            bearing = 0;
+            accuracy = 0;
+            speed = 0;
+        } else {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+            altitude = location.getAltitude();
+            bearing = location.getBearing();
+            accuracy = location.getAccuracy();
+            speed = location.getSpeed();
+        }
         this.latitude = latitude;
         this.longitude = longitude;
         this.altitude = altitude;
@@ -18,11 +33,6 @@ public class DeviceLocation {
         this.bearing = bearing;
         this.accuracy = accuracy;
         this.speed = speed;
-    }
-
-    public DeviceLocation(final Location location, final double barometerPressure) {
-        this(location.getLatitude(), location.getLongitude(), location.getAltitude(), barometerPressure,
-                    location.getBearing(), location.getAccuracy(), location.getSpeed());
     }
 
     public double getLatitude() {
