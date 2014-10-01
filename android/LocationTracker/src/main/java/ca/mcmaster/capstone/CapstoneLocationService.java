@@ -25,8 +25,6 @@ import android.util.Log;
 import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
@@ -38,14 +36,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 public final  class CapstoneLocationService extends Service {
 
@@ -74,14 +69,14 @@ public final  class CapstoneLocationService extends Service {
     private volatile NsdManager nsdManager;
 
     private final Set<HashableNsdServiceInfo> nsdPeers =
-            Collections.synchronizedSet(new HashSet<HashableNsdServiceInfo>());
+            Collections.synchronizedSet(new HashSet<>());
 
     private final Set<LocalUpdateCallbackReceiver<DeviceInfo>> locationUpdateCallbackReceivers =
-            Collections.synchronizedSet(new HashSet<LocalUpdateCallbackReceiver<DeviceInfo>>());
+            Collections.synchronizedSet(new HashSet<>());
     private final Set<PeerUpdateCallbackReceiver<NsdServiceInfo>> peerUpdateCallbackReceivers =
-            Collections.synchronizedSet(new HashSet<PeerUpdateCallbackReceiver<NsdServiceInfo>>());
+            Collections.synchronizedSet(new HashSet<>());
     private final Set<NsdUpdateCallbackReceiver> nsdUpdateCallbackReceivers =
-            Collections.synchronizedSet(new HashSet<NsdUpdateCallbackReceiver>());
+            Collections.synchronizedSet(new HashSet<>());
     private volatile boolean nsdBound;
 
     @Override
@@ -202,7 +197,10 @@ public final  class CapstoneLocationService extends Service {
             @Override
             public void onServiceLost(final NsdServiceInfo nsdServiceInfo) {
                 logv("NSD Service lost: " + nsdServiceInfo);
-                nsdPeers.remove(nsdServiceInfo);
+                if (nsdServiceInfo.getHost() == null) {
+                    return; // useless data, we don't store these anyway
+                }
+                nsdPeers.remove(HashableNsdServiceInfo.get(nsdServiceInfo));
                 updateNsdCallbackListeners();
             }
         };
@@ -234,7 +232,7 @@ public final  class CapstoneLocationService extends Service {
             public void onServiceResolved(final NsdServiceInfo nsdServiceInfo) {
                 logd("NSD resolve succeeded for: " + nsdServiceInfo);
 
-                if (nsdServiceInfo.getHost().getHostAddress().equals(getIpAddress())
+                if (nsdServiceInfo.getHost().getHostAddress().equals(getIpAddress().getHostAddress())
                         || nsdServiceInfo.getServiceName().contains(getLocalNsdServiceName())) {
                     logv("NSD resolve found localhost");
                     return;
@@ -270,6 +268,7 @@ public final  class CapstoneLocationService extends Service {
                     try {
                         Thread.sleep(100);
                     } catch (final InterruptedException ie) {
+                        // ignore
                     }
                 }
                 nsdRegister();
@@ -382,13 +381,7 @@ public final  class CapstoneLocationService extends Service {
     }
 
     public DeviceInfo getStatus() {
-        final Location location;
-        if (lastLocation != null) {
-            location = lastLocation;
-        } else {
-            location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-        }
-        final DeviceLocation deviceLocation = new DeviceLocation(location, barometerPressure);
+        final DeviceLocation deviceLocation = new DeviceLocation(lastLocation, barometerPressure);
         return new DeviceInfo(getLocalNsdServiceInfo().getHost().getHostAddress(),
                                      locationServer.getListeningPort(), deviceLocation);
     }
@@ -423,19 +416,11 @@ public final  class CapstoneLocationService extends Service {
         final String peerUrl = "http://" + nsdPeer.getHost().getHostAddress() + ":" + nsdPeer.getPort();
         try {
             final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, peerUrl, new JSONObject(contentBody),
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(final JSONObject jsonObject) {
-                        final NsdServiceInfo nsdServiceInfo = gson.fromJson(jsonObject.toString(), NsdServiceInfo.class);
-                        nsdDiscoveryListener.onServiceFound(nsdServiceInfo);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(final VolleyError volleyError) {
-                        nsdDiscoveryListener.onServiceLost(nsdPeer.getNsdServiceInfo());
-                    }
-                }){
+                   jsonObject -> {
+                       final NsdServiceInfo nsdServiceInfo = gson.fromJson(jsonObject.toString(), NsdServiceInfo.class);
+                       nsdDiscoveryListener.onServiceFound(nsdServiceInfo);
+                   },
+                   volleyError -> nsdDiscoveryListener.onServiceLost(nsdPeer.getNsdServiceInfo())) {
                 @Override
                 public Map<String, String> getHeaders() {
                     final Map<String, String> headers = new HashMap<>();
@@ -470,23 +455,15 @@ public final  class CapstoneLocationService extends Service {
         }
         final String url = "http://" + nsdServiceInfo.getHost().getHostAddress() + ":" + nsdServiceInfo.getPort();
         final Request request = new JsonObjectRequest(Request.Method.GET, url, null,
-            new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(final JSONObject jsonObject) {
-                    try {
-                        final DeviceInfo deviceInfo = gson.fromJson(jsonObject.toString(), DeviceInfo.class);
-                        capstoneLocationActivity.peerUpdate(deviceInfo);
-                    } catch (final JsonSyntaxException jse) {
-                        logv("Bad JSON syntax in peer response, got: " + jsonObject);
-                    }
-                }
-            },
-            new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(final VolleyError volleyError) {
-                    logv("Volley GET update error: " + volleyError);
-                }
-        }) {
+             jsonObject -> {
+                 try {
+                     final DeviceInfo deviceInfo = gson.fromJson(jsonObject.toString(), DeviceInfo.class);
+                     capstoneLocationActivity.peerUpdate(deviceInfo);
+                 } catch (final JsonSyntaxException jse) {
+                     logv("Bad JSON syntax in peer response, got: " + jsonObject);
+                 }
+             },
+             volleyError -> logv("Volley GET update error: " + volleyError)) {
             @Override
             public Map<String, String> getHeaders() {
                 final Map<String, String> headers = new HashMap<>();
@@ -561,7 +538,7 @@ public final  class CapstoneLocationService extends Service {
         @Override
         public void onLocationChanged(final Location location) {
             lastLocation = location;
-            for (final LocalUpdateCallbackReceiver localUpdateCallbackReceiver : locationUpdateCallbackReceivers) {
+            for (final LocalUpdateCallbackReceiver<DeviceInfo> localUpdateCallbackReceiver : locationUpdateCallbackReceivers) {
                 localUpdateCallbackReceiver.update(getStatus());
             }
         }

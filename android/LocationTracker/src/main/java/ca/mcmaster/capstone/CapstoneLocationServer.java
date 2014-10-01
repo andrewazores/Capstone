@@ -1,6 +1,5 @@
 package ca.mcmaster.capstone;
 
-import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 import com.google.gson.Gson;
 import fi.iki.elonen.NanoHTTPD;

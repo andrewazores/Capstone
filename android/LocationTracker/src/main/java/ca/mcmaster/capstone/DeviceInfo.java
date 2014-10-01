@@ -1,11 +1,7 @@
 package ca.mcmaster.capstone;
 
 import android.os.Build;
-import android.provider.ContactsContract;
 
-/**
- * Created by andrew on 9/13/14.
- */
 public class DeviceInfo {
 
     private final String serial = Build.SERIAL;

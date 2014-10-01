@@ -2,15 +2,14 @@ package ca.mcmaster.capstone;
 
 import android.location.Location;
 
-/**
- * Created by andrew on 9/13/14.
- */
 public class DeviceLocation {
 
-    private final double latitude, longitude, altitude, barometerPressure, bearing, accuracy, speed;
+    private final double latitude, longitude, altitude, barometerPressure, speed;
+    private final float bearing, accuracy;
 
     public DeviceLocation(final Location location, final double barometerPressure) {
-        final double latitude, longitude, altitude, bearing, accuracy, speed;
+        final double latitude, longitude, altitude, speed;
+        final float bearing, accuracy;
         if (location == null) {
             latitude = 0;
             longitude = 0;
@@ -51,11 +50,11 @@ public class DeviceLocation {
         return barometerPressure;
     }
 
-    public double getBearing() {
+    public float getBearing() {
         return bearing;
     }
 
-    public double getAccuracy() {
+    public float getAccuracy() {
         return accuracy;
     }
 

@@ -3,15 +3,14 @@ package ca.mcmaster.capstone;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Parcel;
 import android.os.Parcelable;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.net.InetAddress;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/**
- * Created by andrew on 9/19/14.
- */
 public class HashableNsdServiceInfo implements Parcelable {
 
     private static final ConcurrentMap<Identifier, HashableNsdServiceInfo> cache = new ConcurrentHashMap<>();
@@ -86,21 +85,21 @@ public class HashableNsdServiceInfo implements Parcelable {
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
-        if (o == null || ! (o instanceof HashableNsdServiceInfo)) return false;
+        if (! (o instanceof HashableNsdServiceInfo)) return false;
 
         final HashableNsdServiceInfo that = (HashableNsdServiceInfo) o;
 
-        if (nsdServiceInfo.getHost().getHostAddress().contains(that.getHost().getHostAddress())
-                || that.getHost().getHostAddress().contains(nsdServiceInfo.getHost().getHostAddress())
-                && nsdServiceInfo.getPort() == that.getPort()) {
-            return true;
-        }
-        return false;
+        return (nsdServiceInfo.getHost().getHostAddress().contains(that.getHost().getHostAddress())
+                        || that.getHost().getHostAddress().contains(nsdServiceInfo.getHost().getHostAddress()))
+                       && nsdServiceInfo.getPort() == that.getPort();
     }
 
     @Override
     public int hashCode() {
-        return nsdServiceInfo.hashCode();
+        return new HashCodeBuilder()
+                .append(getHost())
+                .append(getPort())
+                .toHashCode();
     }
 
     private static class Identifier {
@@ -128,17 +127,18 @@ public class HashableNsdServiceInfo implements Parcelable {
 
             final Identifier that = (Identifier) o;
 
-            if (port != that.port) return false;
-            if (!host.equals(that.host)) return false;
-
-            return true;
+            return new EqualsBuilder()
+                    .append(port, that.port)
+                    .append(host, that.getHost())
+                    .isEquals();
         }
 
         @Override
         public int hashCode() {
-            int result = host.hashCode();
-            result = 31 * result + port;
-            return result;
+            return new HashCodeBuilder()
+                    .append(getHost())
+                    .append(getPort())
+                    .toHashCode();
         }
     }
 
