@@ -1,0 +1,6 @@
+This is a copy of the code written by Menna Mostafa and is provided to us to
+work from while writting out own implementation in Java.
+
+To build:
+    From Debug/ or Release/ run 'make'
+
