@@ -242,7 +242,7 @@ public final  class CapstoneLocationService extends Service {
                 final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(nsdServiceInfo);
                 boolean newPeer = nsdPeers.add(hashableNsdServiceInfo);
                 if (newPeer) {
-                    identifySelfToPeer(hashableNsdServiceInfo);
+                    sendHandshakeToPeer(hashableNsdServiceInfo);
                 }
                 updateNsdCallbackListeners();
             }
@@ -407,20 +407,31 @@ public final  class CapstoneLocationService extends Service {
         this.nsdUpdateCallbackReceivers.remove(capstoneLocationActivity);
     }
 
-    public void identifySelfToPeer(final HashableNsdServiceInfo nsdPeer) {
-        if (nsdPeer == null || nsdPeer.getHost() == null) {
+    public void sendHandshakeToPeer(final HashableNsdServiceInfo nsdPeer) {
+        final Set<HashableNsdServiceInfo> peersPlusSelf = new HashSet<>();
+        peersPlusSelf.addAll(nsdPeers);
+        peersPlusSelf.add(HashableNsdServiceInfo.get(getLocalNsdServiceInfo()));
+        peersPlusSelf.remove(nsdPeer);
+
+        for (final HashableNsdServiceInfo nsdServiceInfo : peersPlusSelf) {
+            sendNsdInfoToPeer(nsdServiceInfo, nsdPeer);
+        }
+    }
+
+    private void sendNsdInfoToPeer(final HashableNsdServiceInfo info, final HashableNsdServiceInfo destination) {
+        if (destination == null || destination.getHost() == null) {
             return;
         }
 
-        final String contentBody = gson.toJson(HashableNsdServiceInfo.get(getLocalNsdServiceInfo()));
-        final String peerUrl = "http://" + nsdPeer.getHost().getHostAddress() + ":" + nsdPeer.getPort();
+        final String contentBody = gson.toJson(info);
+        final String peerUrl = "http://" + destination.getHost().getHostAddress() + ":" + destination.getPort();
         try {
             final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, peerUrl, new JSONObject(contentBody),
                    jsonObject -> {
                        final NsdServiceInfo nsdServiceInfo = gson.fromJson(jsonObject.toString(), NsdServiceInfo.class);
                        nsdDiscoveryListener.onServiceFound(nsdServiceInfo);
                    },
-                   volleyError -> nsdDiscoveryListener.onServiceLost(nsdPeer.getNsdServiceInfo())) {
+                   volleyError -> nsdDiscoveryListener.onServiceLost(destination.getNsdServiceInfo())) {
                 @Override
                 public Map<String, String> getHeaders() {
                     final Map<String, String> headers = new HashMap<>();

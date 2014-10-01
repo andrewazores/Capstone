@@ -62,7 +62,7 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
 
     private void getPeerUpdate(final HashableNsdServiceInfo peer) {
         if (serviceBound && capstoneLocationService != null) {
-            capstoneLocationService.identifySelfToPeer(peer);
+            capstoneLocationService.sendHandshakeToPeer(peer);
             capstoneLocationService.requestUpdateFromPeer(this, peer);
         }
     }
