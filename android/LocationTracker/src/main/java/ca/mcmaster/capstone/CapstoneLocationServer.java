@@ -10,11 +10,32 @@ import java.util.Map;
 
 public class CapstoneLocationServer extends NanoHTTPD {
 
-    public static final String KEY_REQUEST_MIME_TYPE_APPLICATION_JSON = "application/json; charset=utf-8";
+    public enum RequestMethod {
+        UPDATE,
+        IDENTIFY;
+    }
+
+    public enum MimeType {
+        APPLICATION_JSON("application/json; charset=utf-8"),
+        TEXT_PLAIN("text/plain; charset=utf-8");
+
+        private final String contentType;
+
+        private MimeType(final String contentType) {
+            this.contentType = contentType;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        @Override
+        public String toString() {
+            return getContentType();
+        }
+    }
+
     public static final String KEY_REQUEST_METHOD = "request_method";
-    public static final String REQUEST_METHOD_UPDATE = "update";
-    public static final String REQUEST_METHOD_IDENTIFY = "identify";
-    public static final String KEY_REQUEST_MIME_TYPE_TEXT_PLAIN = "text/plain; charset=utf-8";
     private final Gson gson = new Gson();
     private final CapstoneLocationService capstoneLocationService;
 
@@ -34,11 +55,11 @@ public class CapstoneLocationServer extends NanoHTTPD {
     public Response serve(final IHTTPSession session) {
         log("Got " + session.getMethod() + " request on " + session.getUri());
         if (!(session.getMethod().equals(Method.GET) || session.getMethod().equals(Method.POST) )) {
-            return new Response(Response.Status.METHOD_NOT_ALLOWED, KEY_REQUEST_MIME_TYPE_TEXT_PLAIN, "Only GET and POST requests are supported");
+            return new Response(Response.Status.METHOD_NOT_ALLOWED, MimeType.TEXT_PLAIN.getContentType(), "Only GET and POST requests are supported");
         }
 
         final Map<String, String> headers = session.getHeaders();
-        final String method = headers.get(KEY_REQUEST_METHOD);
+        final RequestMethod method = RequestMethod.valueOf(headers.get(KEY_REQUEST_METHOD));
         final Map<String, String> contentBody = new HashMap<>();
         try {
             session.parseBody(contentBody);
@@ -50,12 +71,12 @@ public class CapstoneLocationServer extends NanoHTTPD {
         log("Content Body: " + contentBody);
 
         if (session.getMethod().equals(Method.GET)) {
-            if (method != null && method.equals(REQUEST_METHOD_UPDATE)) {
+            if (method != null && method.equals(RequestMethod.UPDATE)) {
                 log("Responding with OK and current DeviceInfo");
                 return serveGetRequest();
             }
         } else if (session.getMethod().equals(Method.POST)) {
-            if (method != null && method.equals(REQUEST_METHOD_IDENTIFY)) {
+            if (method != null && method.equals(RequestMethod.IDENTIFY)) {
                 final String postData = contentBody.get("postData");
                 final HashableNsdServiceInfo peerNsdServiceInfo = gson.fromJson(postData, HashableNsdServiceInfo.class);
                 log("Parsed POST data as: " + peerNsdServiceInfo);
@@ -71,16 +92,16 @@ public class CapstoneLocationServer extends NanoHTTPD {
     }
 
     private Response serveGetRequest() {
-        return new Response(Response.Status.OK, KEY_REQUEST_MIME_TYPE_APPLICATION_JSON, capstoneLocationService.getStatusAsJson());
+        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), capstoneLocationService.getStatusAsJson());
     }
 
     private Response servePostIdentify(final HashableNsdServiceInfo peerNsdServiceInfo) {
         capstoneLocationService.addSelfIdentifiedPeer(peerNsdServiceInfo);
-        return new Response(Response.Status.OK, KEY_REQUEST_MIME_TYPE_APPLICATION_JSON, gson.toJson(capstoneLocationService.getLocalNsdServiceInfo()));
+        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), gson.toJson(capstoneLocationService.getLocalNsdServiceInfo()));
     }
 
     private Response genericError(final String errorMessage) {
-        return new Response(Response.Status.BAD_REQUEST, KEY_REQUEST_MIME_TYPE_TEXT_PLAIN, errorMessage);
+        return new Response(Response.Status.BAD_REQUEST, MimeType.TEXT_PLAIN.getContentType(), errorMessage);
     }
 
     private Response genericError() {

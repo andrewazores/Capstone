@@ -435,7 +435,7 @@ public final  class CapstoneLocationService extends Service {
                 @Override
                 public Map<String, String> getHeaders() {
                     final Map<String, String> headers = new HashMap<>();
-                    headers.put(CapstoneLocationServer.KEY_REQUEST_METHOD, CapstoneLocationServer.REQUEST_METHOD_IDENTIFY);
+                    headers.put(CapstoneLocationServer.KEY_REQUEST_METHOD, CapstoneLocationServer.RequestMethod.IDENTIFY.toString());
                     return headers;
                 }
             };
@@ -478,7 +478,7 @@ public final  class CapstoneLocationService extends Service {
             @Override
             public Map<String, String> getHeaders() {
                 final Map<String, String> headers = new HashMap<>();
-                headers.put(CapstoneLocationServer.KEY_REQUEST_METHOD, CapstoneLocationServer.REQUEST_METHOD_UPDATE);
+                headers.put(CapstoneLocationServer.KEY_REQUEST_METHOD, CapstoneLocationServer.RequestMethod.UPDATE.toString());
                 return headers;
             }
         };
