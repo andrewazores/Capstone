@@ -1,6 +1,6 @@
-package ca.mcmaster.capstone;
+package ca.mcmaster.capstone.util;
 
-import android.net.nsd.NsdServiceInfo;
+import ca.mcmaster.capstone.structures.HashableNsdServiceInfo;
 
 import java.util.Collection;
 

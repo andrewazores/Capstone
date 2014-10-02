@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone;
+package ca.mcmaster.capstone.util;
 
 public interface PeerUpdateCallbackReceiver<T> {
 

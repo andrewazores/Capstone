@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone;
+package ca.mcmaster.capstone.structures;
 
 import android.location.Location;
 

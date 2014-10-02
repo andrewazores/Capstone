@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone;
+package ca.mcmaster.capstone.core;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -14,6 +14,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.structures.DeviceInfo;
+import ca.mcmaster.capstone.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.util.LocalUpdateCallbackReceiver;
+import ca.mcmaster.capstone.util.NsdUpdateCallbackReceiver;
+import ca.mcmaster.capstone.util.PeerUpdateCallbackReceiver;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -21,9 +27,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class CapstoneLocationActivity extends Activity implements LocalUpdateCallbackReceiver<DeviceInfo>,
-                                                                NsdUpdateCallbackReceiver,
-                                                                PeerUpdateCallbackReceiver<DeviceInfo> {
+public class CapstoneActivity extends Activity implements LocalUpdateCallbackReceiver<DeviceInfo>,
+                                                                          NsdUpdateCallbackReceiver,
+                                                                          PeerUpdateCallbackReceiver<DeviceInfo> {
 
     private final Gson gson = new Gson();
 
@@ -32,7 +38,7 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
     private CapstoneLocationService capstoneLocationService;
     private volatile boolean serviceBound;
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
-    public static final Intent SERVICE_INTENT = new Intent("ca.mcmaster.capstone.CapstoneLocationService");
+    public static final Intent SERVICE_INTENT = new Intent("ca.mcmaster.capstone.core.CapstoneLocationService");
     private final List<HashableNsdServiceInfo> nsdPeers = new ArrayList<>();
 
     @Override
@@ -76,8 +82,8 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
     public void nsdUpdate(final Collection<HashableNsdServiceInfo> nsdPeers) {
         final Handler mainHandler = new Handler(this.getMainLooper());
         mainHandler.post(() -> {
-            CapstoneLocationActivity.this.nsdPeers.clear();
-            CapstoneLocationActivity.this.nsdPeers.addAll(nsdPeers);
+            CapstoneActivity.this.nsdPeers.clear();
+            CapstoneActivity.this.nsdPeers.addAll(nsdPeers);
             ((ArrayAdapter<DeviceInfo>) listView.getAdapter()).notifyDataSetChanged();
         });
     }
@@ -133,8 +139,8 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
             log("Service not bound, cannot disconnect again");
             return;
         }
-        capstoneLocationService.unregisterLocationUpdateCallback(CapstoneLocationActivity.this);
-        capstoneLocationService.unregisterNsdUpdateCallback(CapstoneLocationActivity.this);
+        capstoneLocationService.unregisterLocationUpdateCallback(CapstoneActivity.this);
+        capstoneLocationService.unregisterNsdUpdateCallback(CapstoneActivity.this);
         unbindService(serviceConnection);
     }
 
@@ -155,13 +161,13 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
     private class LocationServiceConnection implements ServiceConnection {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Toast.makeText(CapstoneLocationActivity.this, "Service connected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CapstoneActivity.this, "Service connected", Toast.LENGTH_LONG).show();
             log("Service connected");
 
             if (capstoneLocationService == null) {
                 capstoneLocationService = ((CapstoneLocationService.CapstoneLocationServiceBinder) service).getService();
-                capstoneLocationService.registerLocationUpdateCallback(CapstoneLocationActivity.this);
-                capstoneLocationService.registerNsdUpdateCallback(CapstoneLocationActivity.this);
+                capstoneLocationService.registerLocationUpdateCallback(CapstoneActivity.this);
+                capstoneLocationService.registerNsdUpdateCallback(CapstoneActivity.this);
                 updateSelfInfo();
             }
             serviceBound = true;
@@ -169,7 +175,7 @@ public class CapstoneLocationActivity extends Activity implements LocalUpdateCal
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
-            Toast.makeText(CapstoneLocationActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CapstoneActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
             log("Service disconnected");
             capstoneLocationService = null;
             serviceBound = false;

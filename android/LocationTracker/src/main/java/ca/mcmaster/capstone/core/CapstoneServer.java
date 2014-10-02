@@ -1,6 +1,7 @@
-package ca.mcmaster.capstone;
+package ca.mcmaster.capstone.core;
 
 import android.util.Log;
+import ca.mcmaster.capstone.structures.HashableNsdServiceInfo;
 import com.google.gson.Gson;
 import fi.iki.elonen.NanoHTTPD;
 
@@ -8,7 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CapstoneLocationServer extends NanoHTTPD {
+public class CapstoneServer extends NanoHTTPD {
 
     public enum RequestMethod {
         UPDATE,
@@ -39,7 +40,7 @@ public class CapstoneLocationServer extends NanoHTTPD {
     private final Gson gson = new Gson();
     private final CapstoneLocationService capstoneLocationService;
 
-    public CapstoneLocationServer(final CapstoneLocationService capstoneLocationService) {
+    public CapstoneServer(final CapstoneLocationService capstoneLocationService) {
         super(0);
         this.capstoneLocationService = capstoneLocationService;
         log("Created");

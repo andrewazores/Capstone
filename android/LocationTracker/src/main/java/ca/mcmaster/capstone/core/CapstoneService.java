@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone;
+package ca.mcmaster.capstone.core;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -23,6 +23,12 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
+import ca.mcmaster.capstone.structures.DeviceInfo;
+import ca.mcmaster.capstone.structures.DeviceLocation;
+import ca.mcmaster.capstone.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.util.LocalUpdateCallbackReceiver;
+import ca.mcmaster.capstone.util.NsdUpdateCallbackReceiver;
+import ca.mcmaster.capstone.util.PeerUpdateCallbackReceiver;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -42,7 +48,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public final  class CapstoneLocationService extends Service {
+public final  class CapstoneService extends Service {
 
     private static final String NSD_LOCATION_SERVICE_NAME = "CapstoneLocationNSD";
     private static final String NSD_LOCATION_SERVICE_TYPE = "_http._tcp.";
@@ -61,7 +67,7 @@ public final  class CapstoneLocationService extends Service {
 
     private final Gson gson = new Gson();
     private RequestQueue volleyRequestQueue;
-    private CapstoneLocationServer locationServer;
+    private CapstoneServer locationServer;
 
     private volatile NsdManager.RegistrationListener nsdRegistrationListener;
     private volatile NsdManager.DiscoveryListener nsdDiscoveryListener;
@@ -290,7 +296,7 @@ public final  class CapstoneLocationService extends Service {
         if (locationServer != null && locationServer.wasStarted()) {
             locationServer.stop();
         }
-        locationServer = new CapstoneLocationServer(this);
+        locationServer = new CapstoneServer(this);
         try {
             locationServer.start();
         } catch (final IOException ioe) {
@@ -323,7 +329,7 @@ public final  class CapstoneLocationService extends Service {
         logv("Creating persistent notification...");
         final Notification notification = new Notification(0, "Capstone Location",
                                                                   System.currentTimeMillis());
-        final Intent notificationIntent = new Intent(this, CapstoneLocationActivity.class);
+        final Intent notificationIntent = new Intent(this, CapstoneActivity.class);
         final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         notification.setLatestEventInfo(this, "Capstone Location Service",
                                                "GPS Tracking", pendingIntent);
@@ -391,20 +397,20 @@ public final  class CapstoneLocationService extends Service {
         return gson.toJson(deviceInfo);
     }
 
-    public void registerLocationUpdateCallback(final CapstoneLocationActivity capstoneLocationActivity) {
-        this.locationUpdateCallbackReceivers.add(capstoneLocationActivity);
+    public void registerLocationUpdateCallback(final CapstoneActivity capstoneActivity) {
+        this.locationUpdateCallbackReceivers.add(capstoneActivity);
     }
 
-    public void unregisterLocationUpdateCallback(final CapstoneLocationActivity capstoneLocationActivity) {
-        this.locationUpdateCallbackReceivers.remove(capstoneLocationActivity);
+    public void unregisterLocationUpdateCallback(final CapstoneActivity capstoneActivity) {
+        this.locationUpdateCallbackReceivers.remove(capstoneActivity);
     }
 
-    public void registerNsdUpdateCallback(final CapstoneLocationActivity capstoneLocationActivity) {
-        this.nsdUpdateCallbackReceivers.add(capstoneLocationActivity);
+    public void registerNsdUpdateCallback(final CapstoneActivity capstoneActivity) {
+        this.nsdUpdateCallbackReceivers.add(capstoneActivity);
     }
 
-    public void unregisterNsdUpdateCallback(final CapstoneLocationActivity capstoneLocationActivity) {
-        this.nsdUpdateCallbackReceivers.remove(capstoneLocationActivity);
+    public void unregisterNsdUpdateCallback(final CapstoneActivity capstoneActivity) {
+        this.nsdUpdateCallbackReceivers.remove(capstoneActivity);
     }
 
     public void sendHandshakeToPeer(final HashableNsdServiceInfo nsdPeer) {
@@ -435,13 +441,13 @@ public final  class CapstoneLocationService extends Service {
                 @Override
                 public Map<String, String> getHeaders() {
                     final Map<String, String> headers = new HashMap<>();
-                    headers.put(CapstoneLocationServer.KEY_REQUEST_METHOD, CapstoneLocationServer.RequestMethod.IDENTIFY.toString());
+                    headers.put(CapstoneServer.KEY_REQUEST_METHOD, CapstoneServer.RequestMethod.IDENTIFY.toString());
                     return headers;
                 }
             };
             volleyRequestQueue.add(request);
         } catch (final JSONException jse) {
-            Log.e("CapstoneLocationService", "Could not POST request", jse);
+            Log.e("CapstoneService", "Could not POST request", jse);
         }
     }
 
@@ -459,8 +465,8 @@ public final  class CapstoneLocationService extends Service {
         updateNsdCallbackListeners();
     }
 
-    public void requestUpdateFromPeer(final CapstoneLocationActivity capstoneLocationActivity, final HashableNsdServiceInfo nsdServiceInfo) {
-        if (capstoneLocationActivity == null || nsdServiceInfo == null || nsdServiceInfo.getHost() == null) {
+    public void requestUpdateFromPeer(final CapstoneActivity capstoneActivity, final HashableNsdServiceInfo nsdServiceInfo) {
+        if (capstoneActivity == null || nsdServiceInfo == null || nsdServiceInfo.getHost() == null) {
             logd("Requested peer update from invalid NsdServiceInfo: " + nsdServiceInfo);
             return;
         }
@@ -469,7 +475,7 @@ public final  class CapstoneLocationService extends Service {
              jsonObject -> {
                  try {
                      final DeviceInfo deviceInfo = gson.fromJson(jsonObject.toString(), DeviceInfo.class);
-                     capstoneLocationActivity.peerUpdate(deviceInfo);
+                     capstoneActivity.peerUpdate(deviceInfo);
                  } catch (final JsonSyntaxException jse) {
                      logv("Bad JSON syntax in peer response, got: " + jsonObject);
                  }
@@ -478,7 +484,7 @@ public final  class CapstoneLocationService extends Service {
             @Override
             public Map<String, String> getHeaders() {
                 final Map<String, String> headers = new HashMap<>();
-                headers.put(CapstoneLocationServer.KEY_REQUEST_METHOD, CapstoneLocationServer.RequestMethod.UPDATE.toString());
+                headers.put(CapstoneServer.KEY_REQUEST_METHOD, CapstoneServer.RequestMethod.UPDATE.toString());
                 return headers;
             }
         };
@@ -512,7 +518,7 @@ public final  class CapstoneLocationService extends Service {
             }
             return myAddr;
         } catch (final SocketException se) {
-            Log.e("CapstoneLocationService", "Error when attempting to determine local IP", se);
+            Log.e("CapstoneService", "Error when attempting to determine local IP", se);
         }
         return null;
     }
@@ -528,8 +534,8 @@ public final  class CapstoneLocationService extends Service {
     public class CapstoneLocationServiceBinder extends Binder {
         private int clients;
 
-        public CapstoneLocationService getService() {
-            return CapstoneLocationService.this;
+        public CapstoneService getService() {
+            return CapstoneService.this;
         }
 
         public void increment() {
