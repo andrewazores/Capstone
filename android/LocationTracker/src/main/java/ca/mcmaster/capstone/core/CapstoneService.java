@@ -20,6 +20,7 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -361,9 +362,6 @@ public final  class CapstoneService extends Service {
     @Override
     public boolean onUnbind(final Intent intent) {
         serviceBinder.decrement();
-//        if (serviceBinder.getClients() == 0) {
-//            nsdTeardown();
-//        }
         return false;
     }
 
@@ -376,13 +374,21 @@ public final  class CapstoneService extends Service {
         nsdBound = false;
     }
 
+    public void stopLocationService() {
+        stopSelf();
+    }
+
     @Override
     public void onDestroy() {
         Toast.makeText(getApplicationContext(), "Capstone Location Service stopping", Toast.LENGTH_LONG).show();
         locationManager.removeUpdates(locationListener);
         sensorManager.unregisterListener(sensorEventListener);
+        locationUpdateCallbackReceivers.clear();
+        peerUpdateCallbackReceivers.clear();
+        nsdUpdateCallbackReceivers.clear();
         nsdTeardown();
         locationServer.stop();
+        stopLocationService();
         logv("Capstone Location Service stopping");
     }
 

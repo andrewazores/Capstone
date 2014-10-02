@@ -2,6 +2,7 @@ package ca.mcmaster.capstone.core;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -35,17 +36,17 @@ public class CapstoneActivity extends Activity implements LocalUpdateCallbackRec
 
     protected TextView jsonTextView;
     protected ListView listView;
-    private CapstoneLocationService capstoneLocationService;
-    private volatile boolean serviceBound;
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
-    public static final Intent SERVICE_INTENT = new Intent("ca.mcmaster.capstone.core.CapstoneLocationService");
     private final List<HashableNsdServiceInfo> nsdPeers = new ArrayList<>();
+    private Intent serviceIntent;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         log("Starting");
         setContentView(R.layout.activity_location);
+
+        serviceIntent = new Intent(this, CapstoneService.class);
 
         listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nsdPeers));
@@ -67,9 +68,9 @@ public class CapstoneActivity extends Activity implements LocalUpdateCallbackRec
     }
 
     private void getPeerUpdate(final HashableNsdServiceInfo peer) {
-        if (serviceBound && capstoneLocationService != null) {
-            capstoneLocationService.sendHandshakeToPeer(peer);
-            capstoneLocationService.requestUpdateFromPeer(this, peer);
+        if (serviceConnection.isBound()) {
+            serviceConnection.getService().sendHandshakeToPeer(peer);
+            serviceConnection.getService().requestUpdateFromPeer(this, peer);
         }
     }
 
@@ -100,15 +101,14 @@ public class CapstoneActivity extends Activity implements LocalUpdateCallbackRec
     }
 
     private void stopLocationService() {
-        if (!serviceBound || capstoneLocationService == null) {
+        if (!serviceConnection.isBound()) {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show();
             return;
         }
-        serviceBound = false;
         jsonTextView.setText("Not connected to Capstone Service");
         nsdUpdate(Collections.<HashableNsdServiceInfo>emptySet());
+        stopService(serviceIntent);
         disconnect();
-        stopService(new Intent(this, CapstoneLocationService.class));
         Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();
     }
 
@@ -125,33 +125,28 @@ public class CapstoneActivity extends Activity implements LocalUpdateCallbackRec
     }
 
     private void reconnect() {
-        if (serviceBound) {
-            log("Already bound, cannot reconnect");
-            return;
-        }
-        final Intent startSticky = new Intent(this, CapstoneLocationService.class);
-        startService(startSticky);
-        bindService(SERVICE_INTENT, serviceConnection, BIND_AUTO_CREATE);
+        startService(serviceIntent);
+        getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
     }
 
     private void disconnect() {
-        if (!serviceBound || capstoneLocationService == null) {
+        if (!serviceConnection.isBound()) {
             log("Service not bound, cannot disconnect again");
             return;
         }
-        capstoneLocationService.unregisterLocationUpdateCallback(CapstoneActivity.this);
-        capstoneLocationService.unregisterNsdUpdateCallback(CapstoneActivity.this);
-        unbindService(serviceConnection);
+        serviceConnection.getService().unregisterLocationUpdateCallback(CapstoneActivity.this);
+        serviceConnection.getService().unregisterNsdUpdateCallback(CapstoneActivity.this);
+        getApplicationContext().unbindService(serviceConnection);
     }
 
     private void updateSelfInfo() {
-        if (!serviceBound || capstoneLocationService == null) {
+        if (!serviceConnection.isBound()) {
             Toast.makeText(this, "Service connection not established", Toast.LENGTH_LONG).show();
             log("Service connection not established");
             return;
         }
         final Handler mainHandler = new Handler(this.getMainLooper());
-        mainHandler.post(() -> jsonTextView.setText(capstoneLocationService.getStatusAsJson()));
+        mainHandler.post(() -> jsonTextView.setText(serviceConnection.getService().getStatusAsJson()));
     }
 
     private static void log(final String message) {
@@ -159,26 +154,35 @@ public class CapstoneActivity extends Activity implements LocalUpdateCallbackRec
     }
 
     private class LocationServiceConnection implements ServiceConnection {
+
+        private CapstoneService service;
+        private CapstoneService.CapstoneLocationServiceBinder binder;
+
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             Toast.makeText(CapstoneActivity.this, "Service connected", Toast.LENGTH_LONG).show();
             log("Service connected");
 
-            if (capstoneLocationService == null) {
-                capstoneLocationService = ((CapstoneLocationService.CapstoneLocationServiceBinder) service).getService();
-                capstoneLocationService.registerLocationUpdateCallback(CapstoneActivity.this);
-                capstoneLocationService.registerNsdUpdateCallback(CapstoneActivity.this);
-                updateSelfInfo();
-            }
-            serviceBound = true;
+            this.binder = (CapstoneService.CapstoneLocationServiceBinder) service;
+            this.service = ((CapstoneService.CapstoneLocationServiceBinder) service).getService();
+            this.service.registerLocationUpdateCallback(CapstoneActivity.this);
+            this.service.registerNsdUpdateCallback(CapstoneActivity.this);
+            updateSelfInfo();
         }
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
             Toast.makeText(CapstoneActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
             log("Service disconnected");
-            capstoneLocationService = null;
-            serviceBound = false;
+            this.service = null;
+        }
+
+        public boolean isBound() {
+            return this.service != null && binder.getClients() > 0;
+        }
+
+        public CapstoneService getService() {
+            return service;
         }
     }
 }

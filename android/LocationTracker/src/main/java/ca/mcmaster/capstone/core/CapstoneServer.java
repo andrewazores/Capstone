@@ -38,11 +38,11 @@ public class CapstoneServer extends NanoHTTPD {
 
     public static final String KEY_REQUEST_METHOD = "request_method";
     private final Gson gson = new Gson();
-    private final CapstoneLocationService capstoneLocationService;
+    private final CapstoneService capstoneService;
 
-    public CapstoneServer(final CapstoneLocationService capstoneLocationService) {
+    public CapstoneServer(final CapstoneService capstoneService) {
         super(0);
-        this.capstoneLocationService = capstoneLocationService;
+        this.capstoneService = capstoneService;
         log("Created");
     }
 
@@ -93,12 +93,12 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private Response serveGetRequest() {
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), capstoneLocationService.getStatusAsJson());
+        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), capstoneService.getStatusAsJson());
     }
 
     private Response servePostIdentify(final HashableNsdServiceInfo peerNsdServiceInfo) {
-        capstoneLocationService.addSelfIdentifiedPeer(peerNsdServiceInfo);
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), gson.toJson(capstoneLocationService.getLocalNsdServiceInfo()));
+        capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
+        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), gson.toJson(capstoneService.getLocalNsdServiceInfo()));
     }
 
     private Response genericError(final String errorMessage) {
