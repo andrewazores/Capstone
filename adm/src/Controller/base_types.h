@@ -118,7 +118,8 @@ typedef struct
 	int parent_process_rank;
 	int unique_id;
 	int target_event_id;
-	int owner_globalstate_id;
+	int ownnock;
+    int _globalstate_id;
 	int start_timestamp;
 	int end_timestamp;
 	int events_till_evaluation;

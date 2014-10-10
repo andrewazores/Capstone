@@ -488,8 +488,7 @@ void send_termination_signal()
 	{
 		MPI_Request send_request;
 		LOG_PRINT("P%i: sending termination signal to:P%i",rank,j);
-		MPI_Isend(&b, 1, MPI_CHAR, j,1,
-				MPI_COMM_WORLD ,&send_request );
+		MPI_Isend(&b, 1, MPI_CHAR, j,1, MPI_COMM_WORLD ,&send_request );
 		process_messages_sent++;
 	}
 
