@@ -1,15 +1,12 @@
 
-
 #define MAX_VEHICLES_COUNT 30
 
-typedef struct
-{
+typedef struct {
 	double x;
 	double y;
-}Vector;
+} Vector;
 
-typedef struct
-{
+typedef struct {
 	Vector location;
 	Vector velocity;
 	long timestamp;
@@ -18,10 +15,9 @@ typedef struct
 	double distance_left;
 	double distance_right;
 
-}VehicleState;
+} VehicleState;
 
-typedef struct
-{
+typedef struct {
 	int direction;
 	int front_switched;
 	int left_switched;
@@ -29,35 +25,31 @@ typedef struct
 	int behind_switched;
 	int me_switched;
 	int unique_identifier;
-}DirectionSwitch;
+} DirectionSwitch;
 
-typedef struct
-{
+typedef struct {
 	int direction;
 	int unique_identifier;
-}LeaderMessage;
+} LeaderMessage;
 
-typedef struct
-{
+typedef struct {
 	int vector_clock[MAX_VEHICLES_COUNT];
 	Vector locations[MAX_VEHICLES_COUNT];
 	LeaderMessage message;
 	int count;
-}KnowledgeVector;
- typedef struct
- {
-	 int buffer_id;
-	 Vector *buffer_pointer ;
-	 key_t buffer_key;
-	 int buffer_size;
+} KnowledgeVector;
+typedef struct {
+	int buffer_id;
+	Vector *buffer_pointer;
+	key_t buffer_key;
+	int buffer_size;
 
- }SharedMemory;
-
+} SharedMemory;
 
 long get_time_now();
 const char* getfield(char* line, int num);
 void update_location(VehicleState* vehicle_state);
 void update_acceleration(VehicleState* vehicle_state, Vector* acceleration);
 
-int* load_leader_switch_probs(char* file,int* count,int*,int);
-Vector* load_mission_file(char* file,int* count);
+int* load_leader_switch_probs(char* file, int* count, int*, int);
+Vector* load_mission_file(char* file, int* count);

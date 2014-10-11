@@ -15,37 +15,30 @@
 //#define MAX_PROCESS_STATES_LEN ((MAX_STATES_PER_PROCESS*MAX_PROCESS_STATE_NAME_LEN)+MAX_STATES_PER_PROCESS); //including the &
 //#define MAX_AUTOMATON_PRED_LEN ((MAX_STATES_PER_PROCESS*MAX_PROCESSES_COUNT*MAX_PROCESS_STATE_NAME_LEN)+(MAX_STATES_PER_PROCESS*MAX_PROCESSES_COUNT))
 
-typedef struct
-{
+typedef struct {
 	char conjunct_name[MAX_CONJUCATE_LEN];
 	int owner_processes[MAX_PROCESSES_COUNT];
 	int owner_processes_count;
-}Conjunct;
+} Conjunct;
 
-typedef struct
-{
-	Conjunct  conjuncts[MAX_CONJUNCTS_PER_PREDICATE];
+typedef struct {
+	Conjunct conjuncts[MAX_CONJUNCTS_PER_PREDICATE];
 	int conjunct_count;
-}Predicate;
+} Predicate;
 
-typedef struct
-{
+typedef struct {
 	char* state_name;
 	int process_rank;
-}VariableProcessMapping;
+} VariableProcessMapping;
 
-
-typedef struct
-{
-	int count;//4
+typedef struct {
+	int count; //4
 	char state_name_array[MAX_VARIABLES_PER_PROCESS][MAX_VARIABLE_NAME_LEN]; //8*32
 	int state_value_array[MAX_VARIABLES_PER_PROCESS]; // assume that values are max 8 bytes //8*8
 
-}VariableValuation;
+} VariableValuation;
 
-
-typedef struct
-{
+typedef struct {
 	int process_rank;
 	int state_id;
 	int timestamp;
@@ -53,47 +46,41 @@ typedef struct
 	VariableValuation variables;
 	int* vector_clock;
 
-}ProcessState;
+} ProcessState;
 
-typedef struct
-{
-	int process_rank;// 4
-	int event_id;// 4
-	int flag;// 4
-	int timestamp;// 4
+typedef struct {
+	int process_rank; // 4
+	int event_id; // 4
+	int flag; // 4
+	int timestamp; // 4
 	VariableValuation variables; //(4+ (8*32*1) + (8*8)
-	int  vector_clock[MAX_PROCESSES_COUNT]; //4*16
-}LocalEvent;
+	int vector_clock[MAX_PROCESSES_COUNT]; //4*16
+} LocalEvent;
 
-typedef struct
-{
+typedef struct {
 	char* from;
 	char* to;
 	Predicate pred;
 	int leader;
 	char* notification_set;
 	int id;
-}AutomatonTransition;
+} AutomatonTransition;
 
-typedef struct
-{
+typedef struct {
 	char* state_name;
 	char* type;
-}AutomatonState;
+} AutomatonState;
 
-typedef struct
-{
+typedef struct {
 	AutomatonState* states;
 	int states_count;
 	AutomatonTransition* transitions;
 	int transitions_count;
 
-}Automaton;
-
+} Automaton;
 
 //This struct size must be static so it can be sent and received easily.
-typedef struct
-{
+typedef struct {
 	int unique_id;
 	int transition_id;
 	int destination;
@@ -105,16 +92,15 @@ typedef struct
 	int events_till_evaluation;
 	int pred_index_in_sendabletoken;
 	int* gcut;
-	char from_state [MAX_AUTOMATON_STATE_NAME_LEN];
+	char from_state[MAX_AUTOMATON_STATE_NAME_LEN];
 	char to_state[MAX_AUTOMATON_STATE_NAME_LEN];
 	Predicate pred;
-	VariableValuation*  target_process_variables;
+	VariableValuation* target_process_variables;
 
-}Token;
-typedef struct
-{
+} Token;
+typedef struct {
 	int destination; //the process that the token should check
-	int target_process_rank;// the rank of the process to send token to, should be equal to the owner when returning back
+	int target_process_rank; // the rank of the process to send token to, should be equal to the owner when returning back
 	int parent_process_rank;
 	int unique_id;
 	int target_event_id;
@@ -128,9 +114,7 @@ typedef struct
 	VariableValuation target_process_variables;
 	Predicate predicates[10];
 
-
-}SendableToken;
-
+} SendableToken;
 
 //
 //typedef struct
@@ -149,8 +133,7 @@ typedef struct
 //	int state; //-1: pending, 0: false, 1:true
 //}Handler;
 
-typedef struct
-{
+typedef struct {
 	int tokens_count;
 	int pending_events_count;
 	int params_count;
@@ -158,12 +141,12 @@ typedef struct
 	int unique_id;
 	int is_done;
 	int* pending_events;
-	ProcessState** processes_states_array;// a global state is an array of localstates for each process
-	AutomatonState*  current_monitor_state;
+	ProcessState** processes_states_array; // a global state is an array of localstates for each process
+	AutomatonState* current_monitor_state;
 	int* gcut;
 	Token** tokens;
 
 	int* automaton_params;
 
-}GlobalState;
+} GlobalState;
 #endif /* BASE_TYPES_H */
