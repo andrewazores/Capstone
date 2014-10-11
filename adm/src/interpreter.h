@@ -11,16 +11,15 @@ int local_state_satisfies_pred(ProcessState local_state, Predicate pred);
 
 void load_conjunct_process_mapping(char* file);
 
-int satisfies(Conjunct* conjunct, VariableValuation* variable,
-		int* unsatisfying_processes_boolean_array, int process_rank);
+int satisfies(Conjunct* conjunct, VariableValuation* variable, int* unsatisfying_processes_boolean_array,
+        int process_rank);
 
-void set_unsatisfying_array_for_shared_conjugates(Conjunct *conjunct,
-		int* unsatisfying_processes_boolean_array, int process_rank);
+void set_unsatisfying_array_for_shared_conjugates(Conjunct *conjunct, int* unsatisfying_processes_boolean_array,
+        int process_rank);
 
 Conjunct* get_conjunct_by_name(char* name, int p);
 
-double get_variable_value(VariableValuation process_variables,
-		char* variable_name);
+double get_variable_value(VariableValuation process_variables, char* variable_name);
 
 void log_variablevaluation(VariableValuation* variables_array, int process_rank);
 
