@@ -7,7 +7,6 @@ C_SRCS += \
 ../src/Controller/automaton.c \
 ../src/Controller/centralizedController.c \
 ../src/Controller/controller.c \
-../src/Controller/controller_helpers.c \
 ../src/Controller/utilities.c \
 ../src/Controller/vector_clocks.c 
 
@@ -15,7 +14,6 @@ OBJS += \
 ./src/Controller/automaton.o \
 ./src/Controller/centralizedController.o \
 ./src/Controller/controller.o \
-./src/Controller/controller_helpers.o \
 ./src/Controller/utilities.o \
 ./src/Controller/vector_clocks.o 
 
@@ -23,7 +21,6 @@ C_DEPS += \
 ./src/Controller/automaton.d \
 ./src/Controller/centralizedController.d \
 ./src/Controller/controller.d \
-./src/Controller/controller_helpers.d \
 ./src/Controller/utilities.d \
 ./src/Controller/vector_clocks.d 
 
