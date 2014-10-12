@@ -133,8 +133,7 @@ void free_process_states(ProcessState** process_states) {
 
 GlobalState* init_global_state() {
     GlobalState* global_state = malloc(sizeof(GlobalState));
-    global_state->tokens = malloc(
-    MAX_TOKENS_PER_GLOBALSTATE_COUNT * (sizeof(Token*)));
+    global_state->tokens = malloc(MAX_TOKENS_PER_GLOBALSTATE_COUNT * (sizeof(Token*)));
     global_state->gcut = malloc(sizeof(int) * processes_count);
     //global_state->processes_states_array=malloc(sizeof(ProcessState)* processes_count);
     //better to be initialized while copying
@@ -145,11 +144,9 @@ GlobalState* init_global_state() {
 }
 
 void start_controller() {
-
     int informed_others_about_termination = 0;
     LOG_PRINT("C%i: start_controller", my_rank);
     while (1) {
-
         merge_similar_global_states();
         process_pending_events_all();
         send_pending_tokens_bulk();
@@ -161,9 +158,8 @@ void start_controller() {
         //LOG_PRINT("C%i: prob done",my_rank);
         if (message_pending == 1) {
             //LOG_PRINT("C%i: received something",my_rank);
-            if (pending_status.MPI_TAG == 1) // message from my process (event update)
-                    {
-
+            // message from my process (event update)
+            if (pending_status.MPI_TAG == 1) {
                 MPI_Status request;
                 char recvMsg[sizeof(LocalEvent)];
                 MPI_Recv(&recvMsg, sizeof(LocalEvent), MPI_CHAR, pending_status.MPI_SOURCE, pending_status.MPI_TAG,
@@ -177,10 +173,8 @@ void start_controller() {
                 events_received++;
                 local_state->requires_processessing = 1;
                 receive_event(local_state);
-
-            } else if (pending_status.MPI_TAG == 4) // message from my process (vector clock update)
-                    {
-
+            } else if (pending_status.MPI_TAG == 4) {
+                // message from my process (vector clock update)
                 MPI_Status request;
                 char recvMsg[sizeof(LocalEvent)];
                 MPI_Recv(&recvMsg, sizeof(LocalEvent), MPI_CHAR, pending_status.MPI_SOURCE, pending_status.MPI_TAG,
@@ -194,9 +188,8 @@ void start_controller() {
 
                 local_state->requires_processessing = 0;
                 receive_event(local_state);
-
-            } else if (pending_status.MPI_TAG == 2) // single token from a fellow controller
-                    {
+            } else if (pending_status.MPI_TAG == 2) {
+                // single token from a fellow controller
                 MPI_Status request;
                 LOG_PRINT("C%i: Received a token from:C%i, size of struct:%i", my_rank,
                         pending_status.MPI_SOURCE - (processes_count), sizeof(SendableToken));
@@ -218,15 +211,14 @@ void start_controller() {
                         (pending_status.MPI_SOURCE - processes_count), received_token->parent_process_rank,
                         received_token->unique_id);
                 receive_token(received_token);
-            } else if (pending_status.MPI_TAG == 7) // bulk tokens from a fellow controller
-                    {
+            } else if (pending_status.MPI_TAG == 7) {
+                // bulk tokens from a fellow controller
                 MPI_Status request;
                 LOG_PRINT("C%i: Received bulk tokens from:C%i", my_rank, pending_status.MPI_SOURCE);
                 char recvMsg[sizeof(SendableToken) * 50];
                 MPI_Recv(&recvMsg, sizeof(SendableToken) * 50, MPI_CHAR, pending_status.MPI_SOURCE,
                         pending_status.MPI_TAG,
                         MPI_COMM_WORLD, &request);
-                int i;
                 int count;
 
                 MPI_Get_count(&request, MPI_CHAR, &count);
@@ -236,15 +228,16 @@ void start_controller() {
                 memcpy(received_tokens, recvMsg, sizeof(SendableToken) * count);
                 LOG_PRINT("C%i: Received %i bulk tokens from C%i", my_rank, count,
                         (pending_status.MPI_SOURCE - processes_count));
-                int k;
-                int count_bulk_received = 0;
 
+                int i;
                 for (i = 0; i < count; i++) {
                     LOG_PRINT("C%i: receive_bulk from C%i:parent:C%i destination:%i,unique ID:%i", my_rank,
                             (pending_status.MPI_SOURCE - processes_count), received_tokens[i].parent_process_rank,
                             received_tokens[i].destination, received_tokens[i].unique_id);
                 }
 
+                int k;
+                int count_bulk_received = 0;
                 for (k = 0; k < count; k++) {
                     if (received_tokens[k].destination != -1) {
                         if (received_tokens[k].target_process_rank == my_rank) {
@@ -266,14 +259,14 @@ void start_controller() {
                     }
                 }
                 //	LOG_PRINT("C%i: Received %i bulk tokens from C%i",my_rank,count_bulk_received,(pending_status.MPI_SOURCE-processes_count));
-            } else if (pending_status.MPI_TAG == 3) // end of program signal not final states signals
-                    {
+            } else if (pending_status.MPI_TAG == 3) {
+                // end of program signal not final states signals
                 MPI_Status request;
                 LOG_PRINT("C%i: Received an end program signal", my_rank);
 
                 LocalEvent recvMsg;
                 MPI_Recv(&recvMsg, sizeof(LocalEvent), MPI_CHAR, pending_status.MPI_SOURCE, pending_status.MPI_TAG,
-                MPI_COMM_WORLD, &request);
+                        MPI_COMM_WORLD, &request);
                 int j;
                 for (j = 0; j < global_states_count; j++) {
                     global_states_array[j]->is_done = 1;
@@ -281,10 +274,8 @@ void start_controller() {
                 LOG_PRINT_RESULT("%i,[prog-over]Messages sent,%i", my_rank, messages_sent);
                 LOG_PRINT_RESULT("%i,all Events received,%i", my_rank, events_received);
                 terminated_controllers[my_rank] = 1;
-            }
-
-            else if (pending_status.MPI_TAG == 5) //another controller is done.
-                    {
+            } else if (pending_status.MPI_TAG == 5) {
+                //another controller is done.
                 int controller_id = pending_status.MPI_SOURCE - (processes_count);
                 terminated_controllers[controller_id] = 1;
                 MPI_Status request;
@@ -312,7 +303,6 @@ void start_controller() {
             } else {
                 LOG_PRINT("C%i: Received unknown signal ", my_rank);
             }
-
         } else {
             //usleep(500);
             //LOG_PRINT("C%i: Nothing to receive",my_rank);
@@ -321,7 +311,6 @@ void start_controller() {
             for (j = 0; j < global_states_count; j++) {
                 if (global_states_array[j]->is_done == 0) {
                     all_done = 0;
-
                     break;
                 }
             }
@@ -375,14 +364,12 @@ void start_controller() {
                     }
                 }
 
-                if (pending_events_exists == 0) //if I have no pending events and the app terminated, return all waiting tokens
-                        {
-
+                //if I have no pending events and the app terminated, return all waiting tokens
+                if (pending_events_exists == 0) {
                     LOG_PRINT("C%i: waiting tokens count:%i", my_rank, g_waiting_tokens_count);
                     for (i = 0; i < g_waiting_tokens_count; i++) {
                         LOG_PRINT("C%i: Processed all events... returning waiting token to C%i", my_rank,
                                 g_waiting_tokens[i]->parent_process_rank);
-
                         int j;
                         for (j = 0; j < g_waiting_tokens[i]->predicates_count; j++) {
                             g_waiting_tokens[i]->predicates_eval[j] = 0;
@@ -469,13 +456,12 @@ void start_controller() {
             free(global_states_array[i]);
         }
     }
-    if (global_states_array)
+    if (global_states_array) {
         free(global_states_array);
-
+    }
 }
 
 ProcessState* convert_local_event_to_local_state(LocalEvent* local_event) {
-
     //LOG_PRINT(  "C%i: convert_local_event_to_local_state",my_rank);
     ProcessState* state = malloc(sizeof(ProcessState));
     state->state_id = local_event->event_id;
@@ -495,9 +481,9 @@ ProcessState* convert_local_event_to_local_state(LocalEvent* local_event) {
     state->timestamp = local_event->timestamp;
     return state;
 }
+
 void process_pending_events_all() {
     int i;
-
     for (i = 0; i < global_states_count; i++) {
         GlobalState* s = global_states_array[i];
 
@@ -505,7 +491,6 @@ void process_pending_events_all() {
             if (s->pending_events_count != 0) {
                 LOG_PRINT("C%i: process_pending_events_all pending events count:%i, calling process_pending_events",
                         my_rank, s->pending_events_count);
-
                 process_pending_events(s);
             }
         } else {
@@ -522,10 +507,10 @@ void process_pending_events_all() {
 //
 //
 //			}
-
         }
     }
 }
+
 void process_waiting_tokens(ProcessState* local_state) {
 
     print_waiting_tokens();
@@ -551,6 +536,7 @@ void process_waiting_tokens(ProcessState* local_state) {
         }
     }
 }
+
 void receive_event(ProcessState* local_state) {
     LOG_PRINT("C%i: receive_event: adding event to local event history", my_rank);
 
@@ -566,11 +552,9 @@ void receive_event(ProcessState* local_state) {
 
     LOG_PRINT("C%i: receive_event: checking global states, global states count:%i", my_rank, global_states_count);
 
-    int i;
     process_waiting_tokens(local_state);
+    int i;
     for (i = 0; i < global_states_count; i++) {
-
-        int j;
         GlobalState* s = global_states_array[i];
         if (s->is_done == 1) {
             continue;
@@ -579,15 +563,14 @@ void receive_event(ProcessState* local_state) {
         LOG_PRINT("C%i: receive_event: checking global state[%i], state:%s tokens count:%i", my_rank, i,
                 global_states_array[i]->current_monitor_state->state_name, s->tokens_count);
 
+        int j;
         for (j = 0; j < s->tokens_count; j++) {
-
             Token* t = (s->tokens[j]);
             if (t->eval == -1) {
                 LOG_PRINT(
                         "C%i: receive_event: token at global_state[%i].token[%i],token_id:%i token eval:%i, transition:%i,target_event_id:%i, target process:%i, s->pending_event_count:%i",
                         my_rank, i, j, t->unique_id, t->eval, t->transition_id, t->target_event_id, t->destination,
                         s->pending_events_count);
-
             }
         }
 
@@ -598,7 +581,6 @@ void receive_event(ProcessState* local_state) {
                 s->pending_events[s->pending_events_count] = g_local_state_history_count - 1;	//last event
                 s->pending_events_count++;
                 process_pending_events(s);
-
             } else {
                 LOG_PRINT("C%i: receive_event: no waiting tokens at other processes, calling process_event", my_rank);
 
@@ -610,7 +592,6 @@ void receive_event(ProcessState* local_state) {
             LOG_PRINT(
                     "C%i: receive_event: tokens waiting at other process: %i, adding event to pending events for global_state[%i], t->pending_events_count:%i",
                     my_rank, s->tokens_count, i, s->pending_events_count);
-
         }
     }
     send_pending_tokens_bulk();
@@ -647,8 +628,8 @@ void process_event(GlobalState* global_state, ProcessState* local_state) {
     check_outgoing_transitions(global_state, local_state->vector_clock);
 
 }
-ProcessState** copy_processes_states_deep(ProcessState** source, int processes_count) {
 
+ProcessState** copy_processes_states_deep(ProcessState** source, int processes_count) {
     ProcessState** destination = malloc(processes_count * sizeof(ProcessState*));
     int i;
     for (i = 0; i < processes_count; i++) {

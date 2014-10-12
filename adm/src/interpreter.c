@@ -114,7 +114,6 @@ void load_conjunct_process_mapping(char* file) {
     g_process_conjuncts_mapping = (Conjunct*) malloc(newline_count * sizeof(Conjunct));
     stream = fopen(file, "r");
     char line[1024];
-    char *ptr; //points to the unparsed parts of the string, ignore
     int i = 0;
     while (fgets(line, 1024, stream)) {
 
