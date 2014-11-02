@@ -2,22 +2,18 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 /* Class to represent an automaton transition.*/
 public class AutomatonTransition {
-    private enum Evaluation {TRUE, FALSE, NONE}
+    public static enum Evaluation {TRUE, FALSE, NONE}
 
     private AutomatonState from;
     private AutomatonState to;
     private BooleanExpressionTree predicate;
     private Evaluation evaluation;
 
-    public Evaluation getEvaluation() {
-        return evaluation;
-    }
-
-    public AutomatonTransition(AutomatonState from, AutomatonState to, BooleanExpressionTree predicate) {
+    public AutomatonTransition(AutomatonState from, AutomatonState to, BooleanExpressionTree predicate, Evaluation eval) {
         this.from = from;
         this.to = to;
         this.predicate = predicate;
-        this.evaluation = Evaluation.NONE;
+        this.evaluation = eval;
     }
 
     public BooleanExpressionTree getPredicate() {
@@ -30,5 +26,13 @@ public class AutomatonTransition {
 
     public AutomatonState getFrom() {
         return from;
+    }
+
+    public Evaluation getEvaluation() {
+        return evaluation;
+    }
+
+    public AutomatonTransition evaluate(Evaluation eval) {
+        return new AutomatonTransition(this.from, this.to, this.predicate, eval);
     }
 }

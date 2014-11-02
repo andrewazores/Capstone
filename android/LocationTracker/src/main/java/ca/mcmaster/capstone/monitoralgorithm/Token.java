@@ -1,31 +1,33 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /* Class to represent the computation slicing tokens.*/
 public class Token {
-    private final String owner;
-    private final String destination;
+    private final int owner;
+    private final int destination;
     private final int targetEventId;
     private final VectorClock cut;
-    private final AutomatonTransition automatonTransition;
-    private final int targetProcessState;
+    private final Set<AutomatonTransition> automatonTransitions;
+    private final ProcessState targetProcessState;
 
-    public Token() {
-        // Place holder initializations fro stub implementation.
-        this.owner = "";
-        this.destination = "";
-        this.targetEventId = 0;
-        this.cut = new VectorClock();
-        this.automatonTransition = new AutomatonTransition(new AutomatonState("", ""),
-                new AutomatonState("", ""),
-                new BooleanExpressionTree(""));
-        this.targetProcessState = 0;
+    public Token(int owner, int dest, int targetEventId, VectorClock cut, Set<AutomatonTransition> trans,
+                 ProcessState state) {
+        // Place holder initializations for stub implementation.
+        this.owner = owner;
+        this.destination = dest;
+        this.targetEventId = targetEventId;
+        this.cut = cut;
+        this.automatonTransitions = trans;
+        this.targetProcessState = state;
     }
 
-    public String getOwner() {
+    public int getOwner() {
         return owner;
     }
 
-    public String getDestination() {
+    public int getDestination() {
         return destination;
     }
 
@@ -37,11 +39,23 @@ public class Token {
         return cut;
     }
 
-    public AutomatonTransition getAutomatonTransition() {
-        return automatonTransition;
+    public Set<AutomatonTransition> getAutomatonTransitions() {
+        return automatonTransitions;
     }
 
-    public int getTargetProcessState() {
+    public ProcessState getTargetProcessState() {
         return targetProcessState;
+    }
+
+    public boolean satisfiesAnyPredicate() {
+        // Place holder
+        return false;
+    }
+
+    ;
+
+    public Token waitForNextEvent() {
+        return new Token(this.owner, this.destination, this.targetEventId + 1, this.cut, this.automatonTransitions,
+                this.targetProcessState);
     }
 }
