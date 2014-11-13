@@ -72,7 +72,10 @@ public class GlobalView {
      * @return True if the GlobalView is consistent, False if not.
      */
     public boolean isConsistent() {
-        // Place holder
-        return false;
+        boolean consistent = true;
+        for (int i = 0; i < cut.size(); ++i) {
+            consistent &= this.states.get(i).getId() == this.cut.process(i);
+        }
+        return consistent;
     }
 }
