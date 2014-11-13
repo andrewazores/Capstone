@@ -443,7 +443,10 @@ public final  class CapstoneService extends Service {
                        final NsdServiceInfo nsdServiceInfo = gson.fromJson(jsonObject.toString(), NsdServiceInfo.class);
                        nsdDiscoveryListener.onServiceFound(nsdServiceInfo);
                    },
-                   volleyError -> nsdDiscoveryListener.onServiceLost(destination.getNsdServiceInfo())) {
+                   volleyError -> {
+                       logv("Volley POST info error: " + volleyError);
+                       nsdDiscoveryListener.onServiceLost(destination.getNsdServiceInfo());
+                   }) {
                 @Override
                 public Map<String, String> getHeaders() {
                     final Map<String, String> headers = new HashMap<>();
@@ -467,7 +470,7 @@ public final  class CapstoneService extends Service {
             logv("Invalid service info: " + peerNsdServiceInfo);
             return;
         }
-        nsdPeers.add(peerNsdServiceInfo);
+        nsdResolveListener.onServiceResolved(peerNsdServiceInfo.getNsdServiceInfo());
         updateNsdCallbackListeners();
     }
 
@@ -486,7 +489,10 @@ public final  class CapstoneService extends Service {
                      logv("Bad JSON syntax in peer response, got: " + jsonObject);
                  }
              },
-             volleyError -> logv("Volley GET update error: " + volleyError)) {
+             volleyError -> {
+                 logv("Volley GET update error: " + volleyError);
+                 nsdDiscoveryListener.onServiceLost(nsdServiceInfo.getNsdServiceInfo());
+             }) {
             @Override
             public Map<String, String> getHeaders() {
                 final Map<String, String> headers = new HashMap<>();

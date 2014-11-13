@@ -26,8 +26,8 @@ public class HashableNsdServiceInfo implements Parcelable {
     }
 
     public static HashableNsdServiceInfo get(final NsdServiceInfo nsdServiceInfo) {
-        final Identifier identifier = new Identifier(nsdServiceInfo.getHost(), nsdServiceInfo.getPort());
-        cache.putIfAbsent(identifier, new HashableNsdServiceInfo(nsdServiceInfo));
+        final Identifier identifier = Identifier.getIdentifier(nsdServiceInfo);
+        cache.put(identifier, new HashableNsdServiceInfo(nsdServiceInfo));
         return cache.get(identifier);
     }
 
@@ -139,6 +139,10 @@ public class HashableNsdServiceInfo implements Parcelable {
                     .append(getHost())
                     .append(getPort())
                     .toHashCode();
+        }
+
+        public static Identifier getIdentifier(final NsdServiceInfo nsdServiceInfo) {
+            return new Identifier(nsdServiceInfo.getHost(), nsdServiceInfo.getPort());
         }
     }
 
