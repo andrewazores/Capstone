@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone.util;
+package ca.mcmaster.capstone.networking.util;
 
 public interface LocalUpdateCallbackReceiver<T> {
 

@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone.core;
+package ca.mcmaster.capstone.networking;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -20,16 +20,15 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
-import ca.mcmaster.capstone.structures.DeviceInfo;
-import ca.mcmaster.capstone.structures.DeviceLocation;
-import ca.mcmaster.capstone.structures.HashableNsdServiceInfo;
-import ca.mcmaster.capstone.util.LocalUpdateCallbackReceiver;
-import ca.mcmaster.capstone.util.NsdUpdateCallbackReceiver;
-import ca.mcmaster.capstone.util.PeerUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.structures.DeviceInfo;
+import ca.mcmaster.capstone.networking.structures.DeviceLocation;
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.util.LocalUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;

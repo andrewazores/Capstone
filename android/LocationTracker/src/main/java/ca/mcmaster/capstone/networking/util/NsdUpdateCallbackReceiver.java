@@ -1,6 +1,6 @@
-package ca.mcmaster.capstone.util;
+package ca.mcmaster.capstone.networking.util;
 
-import ca.mcmaster.capstone.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 import java.util.Collection;
 

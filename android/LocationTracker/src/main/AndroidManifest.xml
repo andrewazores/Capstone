@@ -7,7 +7,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".core.CapstoneActivity"
+            android:name=".networking.CapstoneActivity"
             android:label="@string/title_activity_maps" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -17,7 +17,7 @@
         </activity>
         <service
             android:enabled="true"
-            android:name=".core.CapstoneService">
+            android:name=".networking.CapstoneService">
             <intent-filter>
                 <action android:name="ca.mcmaster.capstone.core.CapstoneService" />
             </intent-filter>

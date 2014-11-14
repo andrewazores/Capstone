@@ -1,7 +1,7 @@
-package ca.mcmaster.capstone.core;
+package ca.mcmaster.capstone.networking;
 
 import android.util.Log;
-import ca.mcmaster.capstone.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import com.google.gson.Gson;
 import fi.iki.elonen.NanoHTTPD;
 

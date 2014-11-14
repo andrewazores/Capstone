@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone.structures;
+package ca.mcmaster.capstone.networking.structures;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;

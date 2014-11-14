@@ -1,8 +1,7 @@
-package ca.mcmaster.capstone.core;
+package ca.mcmaster.capstone.networking;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -16,11 +15,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import ca.mcmaster.capstone.R;
-import ca.mcmaster.capstone.structures.DeviceInfo;
-import ca.mcmaster.capstone.structures.HashableNsdServiceInfo;
-import ca.mcmaster.capstone.util.LocalUpdateCallbackReceiver;
-import ca.mcmaster.capstone.util.NsdUpdateCallbackReceiver;
-import ca.mcmaster.capstone.util.PeerUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.structures.DeviceInfo;
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.util.LocalUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;

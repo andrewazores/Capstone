@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone.structures;
+package ca.mcmaster.capstone.networking.structures;
 
 import android.os.Build;
 
