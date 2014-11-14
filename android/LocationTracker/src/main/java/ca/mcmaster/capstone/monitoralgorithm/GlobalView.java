@@ -2,8 +2,10 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 /* Class to represent the local view of the global state.*/
 public class GlobalView {
@@ -27,7 +29,9 @@ public class GlobalView {
         return states;
     }
 
-    public void setStates(List<ProcessState> states) { this.states = states; }
+    public void setStates(List<ProcessState> states) {
+        this.states = states;
+    }
 
     public VectorClock getCut() {
         return cut;
@@ -41,13 +45,17 @@ public class GlobalView {
         return currentState;
     }
 
-    public void setCurrentState(AutomatonState state) { this.currentState = state; }
+    public void setCurrentState(AutomatonState state) {
+        this.currentState = state;
+    }
 
     public List<Token> getTokens() {
         return tokens;
     }
 
-    public void setTokens(List<Token> tokens) { this.tokens = tokens; }
+    public void setTokens(List<Token> tokens) {
+        this.tokens = tokens;
+    }
 
     public Queue<Event> getPendingEvents() {
         return pendingEvents;
@@ -57,13 +65,21 @@ public class GlobalView {
         return pendingTransitions;
     }
 
-
+    /*
+     * Updates the global view with token.
+     *
+     * @param token The token to use to update the global view.
+     */
     public void update(Token token) {
-
-    }
-
-    public void updateProcessState(int processID, Event event) {
-
+        cut = cut.merge(token.getCut());
+        states.set(token.getTargetProcessState().getId(), token.getTargetProcessState());
+        // If any pending transitions are also in the token, and are evaluated in the token, remove them
+        for (Iterator<AutomatonTransition> it = pendingTransitions.iterator(); it.hasNext();) {
+            AutomatonTransition pending = it.next();
+            if (token.getAutomatonTransitions().contains(pending) && pending.getEvaluation() != AutomatonTransition.Evaluation.NONE) {
+                it.remove();
+            }
+        }
     }
 
     /*

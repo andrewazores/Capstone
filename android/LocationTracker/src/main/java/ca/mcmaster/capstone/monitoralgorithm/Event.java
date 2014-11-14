@@ -3,8 +3,6 @@ package ca.mcmaster.capstone.monitoralgorithm;
 public final class Event {
     private static enum EventType {SEND, RECEIVE, INTERNAL}
 
-    ;
-
     private final int eid;
     private final int pid;
     private final EventType type;

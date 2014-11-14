@@ -95,7 +95,8 @@ public class Monitor {
      */
     public static void processEvent(GlobalView gv, Event event) {
         gv.setCut(gv.getCut().merge(event.getVC()));
-        gv.updateProcessState( monitorID, event);
+        ProcessState state = gv.getStates().get(monitorID);
+        gv.getStates().set(monitorID, state.update(event));
         if (gv.isConsistent()) {
             automaton.advance(gv);
             if (automaton.getCurrentState() != gv.getCurrentState()) {
