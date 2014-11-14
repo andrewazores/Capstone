@@ -8,11 +8,10 @@ import java.util.List;
 public class VectorClock implements Iterable<Integer> {
     public static enum Comparison { EQUAL, BIGGER, SMALLER, CONCURRENT };
 
-    private List<Integer> consistentCut;
+    private final List<Integer> consistentCut = new ArrayList<>();
 
     /* This constructor should eventually be deleted once things are fully implemented */
     public VectorClock() {
-        this.consistentCut = new ArrayList<Integer>();
     }
 
     /*
@@ -21,7 +20,7 @@ public class VectorClock implements Iterable<Integer> {
      * @param consistentCut A List of Integers representing a consistent cut of all known processes.
      */
     public VectorClock(List consistentCut) {
-        this.consistentCut = consistentCut;
+        this.consistentCut.addAll(consistentCut);
     }
 
     /*
