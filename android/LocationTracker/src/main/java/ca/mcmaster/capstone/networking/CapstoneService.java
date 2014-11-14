@@ -149,7 +149,11 @@ public final  class CapstoneService extends Service {
     }
 
     private void nsdRegister() {
-        nsdManager.registerService(getLocalNsdServiceInfo(), NsdManager.PROTOCOL_DNS_SD, nsdRegistrationListener);
+        try {
+            nsdManager.registerService(getLocalNsdServiceInfo(), NsdManager.PROTOCOL_DNS_SD, nsdRegistrationListener);
+        } catch (final IllegalArgumentException iae) {
+            logd(iae.getLocalizedMessage());
+        }
     }
 
     private void setupNsdDiscovery() {
@@ -223,7 +227,11 @@ public final  class CapstoneService extends Service {
     }
 
     private void nsdDiscover() {
-        nsdManager.discoverServices(getNsdServiceType(), NsdManager.PROTOCOL_DNS_SD, nsdDiscoveryListener);
+        try {
+            nsdManager.discoverServices(getNsdServiceType(), NsdManager.PROTOCOL_DNS_SD, nsdDiscoveryListener);
+        } catch (final IllegalArgumentException iae) {
+            logd(iae.getLocalizedMessage());
+        }
     }
 
     private void setupNsdResolution() {
