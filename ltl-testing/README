@@ -1,3 +1,8 @@
+http://spot.lip6.fr/wiki/
+
+Install SPOT. It's in the AUR for Arch users ("spot"). Install GraphViz as well if you want
+to be able to view the automata graphically.
+
 Use something like the following to generate an LTL formula:
 
 randltl --seed="$(date +%s)" --spin A B C D E F G H I J K L M N O P Q R S T U V > formulae
