@@ -1,3 +1,7 @@
+package ca.mcmaster.capstone.monitoralgorithm;
+
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -100,9 +104,9 @@ public class Monitor {
                 GlobalView gvn = new GlobalView();
                 GV.add(gvn);
                 if (automaton.getEvaluation() == Automaton.Evaluation.SATISFIED) {
-                    logd("processEvent", "I am satisfied!");
+                    Log.d("processEvent", "I am satisfied!");
                 } else if (automaton.getEvaluation() == Automaton.Evaluation.VIOLATED) {
-                    logd("processEvent", "I feel violated!");
+                    Log.d("processEvent", "I feel violated!");
                 }
             }
         }
@@ -127,9 +131,9 @@ public class Monitor {
                     gvn.setCurrentState(trans.getTo());
                     GV.add(gvn);
                     if (Automaton.getEvalForState(gvn.getCurrentState()) == Automaton.Evaluation.SATISFIED) {
-                        logd("processEvent", "I am satisfied!");
+                        Log.d("processEvent", "I am satisfied!");
                     } else if (Automaton.getEvalForState(gvn.getCurrentState()) == Automaton.Evaluation.VIOLATED) {
-                        logd("processEvent", "I feel violated!");
+                        Log.d("processEvent", "I feel violated!");
                     }
                     processEvent(gvn, gvn.getPendingEvents().remove());
                     if (gv.getPendingTransitions().isEmpty()) {
@@ -197,9 +201,5 @@ public class Monitor {
         } else {
             waitingTokens.add(token.waitForNextEvent());
         }
-    }
-
-    private static void logd(final String ... args) {
-        System.out.println(args);
     }
 }

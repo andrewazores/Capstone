@@ -3,9 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/LocationTracker/LocationTracker.iml" filepath="$PROJECT_DIR$/LocationTracker/LocationTracker.iml" />
-      <module fileurl="file://$PROJECT_DIR$/MonitorAlgorithm/MonitorAlgorithm.iml" filepath="$PROJECT_DIR$/MonitorAlgorithm/MonitorAlgorithm.iml" />
       <module fileurl="file://$PROJECT_DIR$/android.iml" filepath="$PROJECT_DIR$/android.iml" />
     </modules>
   </component>
 </project>
-

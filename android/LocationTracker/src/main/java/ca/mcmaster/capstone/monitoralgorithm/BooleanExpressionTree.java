@@ -1,3 +1,5 @@
+package ca.mcmaster.capstone.monitoralgorithm;
+
 /* Class to represent a boolean expression as a binary tree.*/
 public class BooleanExpressionTree {
     private Node root;

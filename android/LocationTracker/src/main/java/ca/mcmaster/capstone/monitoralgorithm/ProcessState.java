@@ -1,3 +1,5 @@
+package ca.mcmaster.capstone.monitoralgorithm;
+
 public class ProcessState {
     private final int id;
     private final Valuation val;
