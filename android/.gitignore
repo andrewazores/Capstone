@@ -27,3 +27,5 @@ Thumbs.db
 .gradle
 .idea/workspace.xml
 LocationTracker/.idea/
+.idea/codeStyleSettings.xml
+.idea/junitgenerator-prj-settings.xml
