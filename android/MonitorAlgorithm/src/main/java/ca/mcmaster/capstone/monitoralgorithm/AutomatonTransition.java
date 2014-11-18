@@ -1,5 +1,3 @@
-package ca.mcmaster.capstone.monitoralgorithm;
-
 /* Class to represent an automaton transition.*/
 public class AutomatonTransition {
     public static enum Evaluation {TRUE, FALSE, NONE}

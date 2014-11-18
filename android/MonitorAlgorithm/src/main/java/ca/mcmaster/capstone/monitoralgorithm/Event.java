@@ -1,5 +1,3 @@
-package ca.mcmaster.capstone.monitoralgorithm;
-
 public final class Event {
     private static enum EventType {SEND, RECEIVE, INTERNAL}
 

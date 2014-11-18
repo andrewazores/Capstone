@@ -1,5 +1,3 @@
-package ca.mcmaster.capstone.monitoralgorithm;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;

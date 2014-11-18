@@ -1,5 +1,3 @@
-package ca.mcmaster.capstone.monitoralgorithm;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 

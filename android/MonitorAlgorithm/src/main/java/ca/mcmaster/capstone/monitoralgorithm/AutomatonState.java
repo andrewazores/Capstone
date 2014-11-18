@@ -1,5 +1,3 @@
-package ca.mcmaster.capstone.monitoralgorithm;
-
 /* Class to represent an automaton state.*/
 public class AutomatonState {
     private String stateName;

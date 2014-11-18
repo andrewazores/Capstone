@@ -1,1 +1,1 @@
-include ':LocationTracker'
+include ':LocationTracker', ':MonitorAlgorithm'
