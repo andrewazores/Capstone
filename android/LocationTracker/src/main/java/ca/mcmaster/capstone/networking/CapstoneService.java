@@ -23,6 +23,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
+
+import ca.mcmaster.capstone.monitoralgorithm.Event;
+import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.DeviceLocation;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
@@ -47,6 +50,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public final  class CapstoneService extends Service {
 
@@ -83,6 +88,8 @@ public final  class CapstoneService extends Service {
             Collections.synchronizedSet(new HashSet<>());
     private final Set<NsdUpdateCallbackReceiver> nsdUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
+    private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Token> tokenQueue = new LinkedBlockingQueue<>();
     private volatile boolean nsdBound;
 
     @Override
@@ -112,7 +119,6 @@ public final  class CapstoneService extends Service {
                 return null;
             }
         }.execute();
-
 
         Toast.makeText(getApplicationContext(), "Capstone Location Service starting", Toast.LENGTH_LONG).show();
         logv("Capstone Location Service starting");
@@ -399,34 +405,34 @@ public final  class CapstoneService extends Service {
         logv("Capstone Location Service stopping");
     }
 
-    public DeviceInfo getStatus() {
+    DeviceInfo getStatus() {
         final DeviceLocation deviceLocation = new DeviceLocation(lastLocation, barometerPressure);
         return new DeviceInfo(getLocalNsdServiceInfo().getHost().getHostAddress(),
                                      locationServer.getListeningPort(), deviceLocation);
     }
 
-    public String getStatusAsJson() {
+     String getStatusAsJson() {
         final DeviceInfo deviceInfo = getStatus();
         return gson.toJson(deviceInfo);
     }
 
-    public void registerLocationUpdateCallback(final CapstoneActivity capstoneActivity) {
+    void registerLocationUpdateCallback(final CapstoneActivity capstoneActivity) {
         this.locationUpdateCallbackReceivers.add(capstoneActivity);
     }
 
-    public void unregisterLocationUpdateCallback(final CapstoneActivity capstoneActivity) {
+    void unregisterLocationUpdateCallback(final CapstoneActivity capstoneActivity) {
         this.locationUpdateCallbackReceivers.remove(capstoneActivity);
     }
 
-    public void registerNsdUpdateCallback(final CapstoneActivity capstoneActivity) {
+    void registerNsdUpdateCallback(final CapstoneActivity capstoneActivity) {
         this.nsdUpdateCallbackReceivers.add(capstoneActivity);
     }
 
-    public void unregisterNsdUpdateCallback(final CapstoneActivity capstoneActivity) {
+    void unregisterNsdUpdateCallback(final CapstoneActivity capstoneActivity) {
         this.nsdUpdateCallbackReceivers.remove(capstoneActivity);
     }
 
-    public void sendHandshakeToPeer(final HashableNsdServiceInfo nsdPeer) {
+    void sendHandshakeToPeer(final HashableNsdServiceInfo nsdPeer) {
         final Set<HashableNsdServiceInfo> peersPlusSelf = new HashSet<>();
         peersPlusSelf.addAll(nsdPeers);
         peersPlusSelf.add(HashableNsdServiceInfo.get(getLocalNsdServiceInfo()));
@@ -467,6 +473,48 @@ public final  class CapstoneService extends Service {
         }
     }
 
+    public void sendTokenToPeer(final Token token, final HashableNsdServiceInfo destination) {
+        if (destination == null || destination.getHost() == null) {
+            return;
+        }
+
+        final String contentBody = gson.toJson(token);
+        final String peerUrl = "http://" + destination.getHost().getHostAddress() + ":" + destination.getPort();
+        try {
+            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, peerUrl, new JSONObject(contentBody),
+                    jsonObject -> {},
+                    volleyError -> {
+                        logv("Volley POST info error: " + volleyError);
+                    }) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    final Map<String, String> headers = new HashMap<>();
+                    headers.put(CapstoneServer.KEY_REQUEST_METHOD, CapstoneServer.RequestMethod.SEND_TOKEN.toString());
+                    return headers;
+                }
+            };
+            volleyRequestQueue.add(request);
+        } catch (final JSONException jse) {
+            Log.e("CapstoneService", "Could not POST token send", jse);
+        }
+    }
+
+    void receiveTokenInternal(final Token token) {
+        this.tokenQueue.add(token);
+    }
+
+    public Token receiveToken() throws InterruptedException {
+        return this.tokenQueue.take();
+    }
+
+    void receiveEventInternal(final Event event) {
+        this.eventQueue.add(event);
+    }
+    
+    public Event receiveEvent() throws InterruptedException {
+        return this.eventQueue.take();
+    }
+
     void addSelfIdentifiedPeer(final HashableNsdServiceInfo peerNsdServiceInfo) {
         logv("Learned about new self-identified peer: " + peerNsdServiceInfo);
         if (peerNsdServiceInfo == null
@@ -481,7 +529,7 @@ public final  class CapstoneService extends Service {
         updateNsdCallbackListeners();
     }
 
-    public void requestUpdateFromPeer(final CapstoneActivity capstoneActivity, final HashableNsdServiceInfo nsdServiceInfo) {
+    void requestUpdateFromPeer(final CapstoneActivity capstoneActivity, final HashableNsdServiceInfo nsdServiceInfo) {
         if (capstoneActivity == null || nsdServiceInfo == null || nsdServiceInfo.getHost() == null) {
             logd("Requested peer update from invalid NsdServiceInfo: " + nsdServiceInfo);
             return;
@@ -510,11 +558,11 @@ public final  class CapstoneService extends Service {
         volleyRequestQueue.add(request);
     }
 
-    public String getNsdServiceType() {
+    String getNsdServiceType() {
         return NSD_LOCATION_SERVICE_TYPE;
     }
 
-    public String getNsdServiceName() {
+    String getNsdServiceName() {
         return NSD_LOCATION_SERVICE_NAME;
     }
 

@@ -1,6 +1,8 @@
 package ca.mcmaster.capstone.networking;
 
 import android.util.Log;
+
+import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import com.google.gson.Gson;
 import fi.iki.elonen.NanoHTTPD;
@@ -13,7 +15,8 @@ public class CapstoneServer extends NanoHTTPD {
 
     public enum RequestMethod {
         UPDATE,
-        IDENTIFY;
+        IDENTIFY,
+        SEND_TOKEN,
     }
 
     public enum MimeType {
@@ -85,6 +88,14 @@ public class CapstoneServer extends NanoHTTPD {
                     return genericError();
                 }
                 return servePostIdentify(peerNsdServiceInfo);
+            } else if (method != null && method.equals(RequestMethod.SEND_TOKEN)) {
+                final String postData = contentBody.get("postData");
+                final Token token = gson.fromJson(postData, Token.class);
+                log("Parsed POST data as: " + token);
+                if (token == null) {
+                    return genericError();
+                }
+                return servePostReceiveToken(token);
             }
         }
 
@@ -99,6 +110,11 @@ public class CapstoneServer extends NanoHTTPD {
     private Response servePostIdentify(final HashableNsdServiceInfo peerNsdServiceInfo) {
         capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
         return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), gson.toJson(capstoneService.getLocalNsdServiceInfo()));
+    }
+
+    private Response servePostReceiveToken(final Token token) {
+        capstoneService.receiveTokenInternal(token);
+        return new Response(Response.Status.OK, MIME_PLAINTEXT, "OK");
     }
 
     private Response genericError(final String errorMessage) {
