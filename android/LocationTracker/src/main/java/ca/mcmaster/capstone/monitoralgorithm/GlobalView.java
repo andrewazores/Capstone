@@ -13,16 +13,22 @@ public class GlobalView {
     private VectorClock cut;
     private AutomatonState currentState;
     private List<Token> tokens;
-    private final Queue<Event> pendingEvents;
-    private final List<AutomatonTransition> pendingTransitions;
+    private final Queue<Event> pendingEvents = new ArrayDeque<>();
+    private final List<AutomatonTransition> pendingTransitions = new ArrayList<>();
 
     public GlobalView() {
         this.states = new ArrayList<ProcessState>();
         this.cut = new VectorClock();
         this.currentState = new AutomatonState("", "");
         this.tokens = new ArrayList();
-        this.pendingEvents = new ArrayDeque<Event>();
-        this.pendingTransitions = new ArrayList<AutomatonTransition>();
+    }
+
+    public GlobalView(GlobalView gv) {
+        this.states.addAll(gv.getStates());
+        this.cut = new VectorClock(gv.getCut());
+        this.currentState = new AutomatonState(gv.getCurrentState());
+        this.pendingEvents.addAll(gv.getPendingEvents());
+        this.pendingTransitions.addAll(gv.getPendingTransitions());
     }
 
     public List<ProcessState> getStates() {
@@ -76,7 +82,7 @@ public class GlobalView {
         // If any pending transitions are also in the token, and are evaluated in the token, remove them
         for (Iterator<AutomatonTransition> it = pendingTransitions.iterator(); it.hasNext();) {
             AutomatonTransition pending = it.next();
-            if (token.getAutomatonTransitions().contains(pending) && pending.getEvaluation() != AutomatonTransition.Evaluation.NONE) {
+            if (token.getAutomatonTransitions().contains(pending) && pending.getEvaluation() != Conjunct.Evaluation.NONE) {
                 it.remove();
             }
         }
@@ -93,5 +99,24 @@ public class GlobalView {
             consistent &= this.states.get(i).getId() == this.cut.process(i);
         }
         return consistent;
+    }
+
+    /*
+     * Finds and returns the token that has the most conjuncts requested to be evaluated.
+     *
+     * @return The token with the most conjuncts requested to be evaluated.
+     */
+    public Token getTokenWithMostConjuncts() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    /*
+     * Gets all tokens in the global view that are associated with a particular transition.
+     *
+     * @param transition The transition to match tokens against.
+     * @return A list of tokens which are associated with transition.
+     */
+    public List<Token> getTokensForTransition(AutomatonTransition transition) {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

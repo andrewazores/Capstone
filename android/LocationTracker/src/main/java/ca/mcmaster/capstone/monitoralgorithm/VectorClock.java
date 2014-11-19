@@ -14,6 +14,10 @@ public class VectorClock implements Iterable<Integer> {
     public VectorClock() {
     }
 
+    public VectorClock(VectorClock vc) {
+        this.consistentCut.addAll(vc.consistentCut);
+    }
+
     /*
      * Constructs a vector clock from a List of Integers.
      *

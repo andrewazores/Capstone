@@ -10,6 +10,11 @@ public class AutomatonState {
         this.stateType = stateType;
     }
 
+    public AutomatonState(AutomatonState state) {
+        this.stateName = new String(state.stateName);
+        this.stateType = new String(state.stateType);
+    }
+
     public String getStateType() {
         return stateType;
     }

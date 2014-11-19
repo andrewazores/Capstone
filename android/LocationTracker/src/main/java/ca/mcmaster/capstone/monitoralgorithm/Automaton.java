@@ -18,8 +18,14 @@ public class Automaton {
         return currentState;
     }
 
-    public void advance(GlobalView gv) {
-
+    /*
+     * Computes the next state based on the given GlobalView.
+     *
+     * @param gv The GlobalView to use to compute the next state.
+     * @return The next state of the automaton.
+     */
+    public AutomatonState advance(GlobalView gv) {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     /*
@@ -28,8 +34,7 @@ public class Automaton {
      * @return An Automaton.Evaluation corresponding to the current state of the automaton.
      */
     public Evaluation getEvaluation() {
-        // Place holder
-        return Evaluation.UNDECIDED;
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     /*
@@ -40,7 +45,6 @@ public class Automaton {
      * @return An Automaton.Evaluation corresponding to the given state.
      */
     public static Evaluation getEvalForState(AutomatonState state) {
-        // Place holder
-        return Evaluation.UNDECIDED;
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

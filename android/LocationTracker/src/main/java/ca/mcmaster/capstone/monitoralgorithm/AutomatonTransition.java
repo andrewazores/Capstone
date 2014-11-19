@@ -1,13 +1,13 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /* Class to represent an automaton transition.*/
 public class AutomatonTransition {
-    public static enum Evaluation {TRUE, FALSE, NONE}
-
     private AutomatonState from;
     private AutomatonState to;
-    private BooleanExpressionTree predicate;
-    private Evaluation evaluation;
+    private List<Conjunct> conjuncts = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {
@@ -16,9 +16,8 @@ public class AutomatonTransition {
 
         AutomatonTransition that = (AutomatonTransition) o;
 
+        if (!conjuncts.equals(that.conjuncts)) return false;
         if (from != null ? !from.equals(that.from) : that.from != null) return false;
-        if (predicate != null ? !predicate.equals(that.predicate) : that.predicate != null)
-            return false;
         if (to != null ? !to.equals(that.to) : that.to != null) return false;
 
         return true;
@@ -28,19 +27,14 @@ public class AutomatonTransition {
     public int hashCode() {
         int result = from != null ? from.hashCode() : 0;
         result = 31 * result + (to != null ? to.hashCode() : 0);
-        result = 31 * result + (predicate != null ? predicate.hashCode() : 0);
+        result = 31 * result + conjuncts.hashCode();
         return result;
     }
 
-    public AutomatonTransition(AutomatonState from, AutomatonState to, BooleanExpressionTree predicate, Evaluation eval) {
+    public AutomatonTransition(AutomatonState from, AutomatonState to, List<Conjunct> conjuncts) {
         this.from = from;
         this.to = to;
-        this.predicate = predicate;
-        this.evaluation = eval;
-    }
-
-    public BooleanExpressionTree getPredicate() {
-        return predicate;
+        this.conjuncts.addAll(conjuncts);
     }
 
     public AutomatonState getTo() {
@@ -51,11 +45,22 @@ public class AutomatonTransition {
         return from;
     }
 
-    public Evaluation getEvaluation() {
-        return evaluation;
+    /*
+     * Computes the evaluation of the transition based on the evaluation of each conjunct.
+     *
+     * @return The evaluation of the transition based on its conjuncts.
+     */
+    public Conjunct.Evaluation getEvaluation() {
+        if (this.conjuncts.contains(Conjunct.Evaluation.FALSE)) {
+            return Conjunct.Evaluation.FALSE;
+        } else if (this.conjuncts.contains(Conjunct.Evaluation.NONE)) {
+            return Conjunct.Evaluation.NONE;
+        }
+        return Conjunct.Evaluation.TRUE;
     }
 
-    public AutomatonTransition evaluate(Evaluation eval) {
-        return new AutomatonTransition(this.from, this.to, this.predicate, eval);
+    // XXX: probably not needed now
+    public AutomatonTransition evaluate(Conjunct.Evaluation eval) {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }
