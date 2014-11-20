@@ -6,6 +6,7 @@ public class DeviceLocation {
 
     private final double latitude, longitude, altitude, barometerPressure, speed;
     private final float bearing, accuracy;
+
     private final float[] gravity, linearAccleration;
 
     public DeviceLocation(final Location location, final double barometerPressure, final float[] gravity, final float[] linearAccleration) {
@@ -63,5 +64,13 @@ public class DeviceLocation {
 
     public double getSpeed() {
         return speed;
+    }
+
+    public float[] getGravity() {
+        return gravity;
+    }
+
+    public float[] getLinearAccleration() {
+        return linearAccleration;
     }
 }
