@@ -6,16 +6,18 @@ import java.util.List;
 public class Automaton {
     public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED};
 
-    private AutomatonState currentState;
-    private List<AutomatonState> stateList;
-    private List<AutomatonTransition> transitionList;
+    private static List<AutomatonState> stateList;
+    private static List<AutomatonTransition> transitionList;
 
-    public Automaton() {
+    //public Automaton() {}
 
-    }
-
-    public AutomatonState getCurrentState() {
-        return currentState;
+    /*
+     * Gets the initial state of the automaton.
+     *
+     * @return The initial state of the automaton.
+     */
+    public static AutomatonState getInitialState() {
+        return stateList.get(0);
     }
 
     /*
@@ -24,7 +26,7 @@ public class Automaton {
      * @param gv The GlobalView to use to compute the next state.
      * @return The next state of the automaton.
      */
-    public AutomatonState advance(GlobalView gv) {
+    public static AutomatonState advance(GlobalView gv) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
@@ -33,7 +35,7 @@ public class Automaton {
      *
      * @return An Automaton.Evaluation corresponding to the current state of the automaton.
      */
-    public Evaluation getEvaluation() {
+    public static Evaluation getEvaluation() {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 

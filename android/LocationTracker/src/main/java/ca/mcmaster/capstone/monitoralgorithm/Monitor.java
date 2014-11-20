@@ -12,7 +12,6 @@ import java.util.Set;
 public class Monitor {
     private static final List<Event> history = new ArrayList<Event>();
     private static final Set<Token> waitingTokens = new LinkedHashSet<Token>();
-    private static final Automaton automaton = new Automaton();
     private static final int monitorID = 0; // TODO: make this equal something reasonable
     private static final Set<GlobalView> GV = new LinkedHashSet<GlobalView>();
 
@@ -54,10 +53,9 @@ public class Monitor {
      */
     public static void init(List<ProcessState> initialStates) {
         GlobalView initialGV = new GlobalView();
-        initialGV.setCurrentState(automaton.getCurrentState());
+        initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
-        automaton.advance(initialGV);
-        initialGV.setCurrentState(automaton.getCurrentState());
+        initialGV.setCurrentState(Automaton.advance(initialGV));
     }
 
     /*
@@ -114,10 +112,10 @@ public class Monitor {
         ProcessState state = gv.getStates().get(monitorID);
         gv.getStates().set(monitorID, state.update(event));
         if (gv.isConsistent()) {
-            gv.setCurrentState(automaton.advance(gv));
-            if (automaton.getEvaluation() == Automaton.Evaluation.SATISFIED) {
+            gv.setCurrentState(Automaton.advance(gv));
+            if (Automaton.getEvaluation() == Automaton.Evaluation.SATISFIED) {
                 Log.d("processEvent", "I am satisfied!");
-            } else if (automaton.getEvaluation() == Automaton.Evaluation.VIOLATED) {
+            } else if (Automaton.getEvaluation() == Automaton.Evaluation.VIOLATED) {
                 Log.d("processEvent", "I feel violated!");
             }
         }
