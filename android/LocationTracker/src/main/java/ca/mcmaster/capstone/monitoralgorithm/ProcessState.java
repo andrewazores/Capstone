@@ -18,6 +18,12 @@ public class ProcessState {
         this.VC = VC;
     }
 
+    public ProcessState(ProcessState state) {
+        this.id = state.id;
+        this.val = new Valuation(state.val);
+        this.VC = new VectorClock(state.VC);
+    }
+
     public int getId() {
         return id;
     }

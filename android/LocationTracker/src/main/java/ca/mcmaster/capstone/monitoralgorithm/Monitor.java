@@ -178,7 +178,7 @@ public class Monitor {
             }
             Token maxConjuncts = gv.getTokenWithMostConjuncts();
             send(maxConjuncts, maxConjuncts.getDestination());
-            maxConjuncts.sent = true;
+            maxConjuncts = new Token.Builder(maxConjuncts).sent(true).build();
         } else if (token.getOwner() != monitorID) {
             boolean hasTarget = false;
             for (Event event : history) {
@@ -209,12 +209,7 @@ public class Monitor {
                 conjunct.setEvaluation(Conjunct.Evaluation.FALSE);
             }
             Event eventPrime = history.get(token.getTargetEventId());
-            // TODO: make TokenBuilder class
-            Token newToken = new Token(token.getOwner(), token.getDestination(),
-                    token.getTargetEventId(), eventPrime.getVC(),
-                    token.getAutomatonTransitions(), token.getConjuncts(), eventPrime.getState());
-            newToken.sent = token.sent;
-            newToken.returned = token.returned;
+            Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).targetProcessState(eventPrime.getState()).build();
             send(newToken, newToken.getOwner());
         }
     }
@@ -228,12 +223,7 @@ public class Monitor {
     public static void evaluateToken(Token token, Event event) {
         token.evaluateConjuncts(event);
         if (token.anyConjunctSatisfied()) {
-            // TODO: make TokenBuilder class
-            Token newToken = new Token(token.getOwner(), token.getDestination(),
-                    token.getTargetEventId(), event.getVC(),
-                    token.getAutomatonTransitions(), token.getConjuncts(), event.getState());
-            newToken.sent = token.sent;
-            newToken.returned = token.returned;
+            Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
             send(newToken, newToken.getOwner());
         } else {
             waitingTokens.add(token.waitForNextEvent());
