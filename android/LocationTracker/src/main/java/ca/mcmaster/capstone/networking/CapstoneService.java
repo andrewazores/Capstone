@@ -29,7 +29,7 @@ import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.DeviceLocation;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
-import ca.mcmaster.capstone.networking.util.LocalUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import com.android.volley.Request;
@@ -58,16 +58,19 @@ public final  class CapstoneService extends Service {
     private static final String NSD_LOCATION_SERVICE_NAME = "CapstoneLocationNSD";
     private static final String NSD_LOCATION_SERVICE_TYPE = "_http._tcp.";
 
+    private InetAddress ipAddress;
+
     private LocationManager locationManager;
     private WifiManager wifiManager;
     private SensorManager sensorManager;
-    private Sensor barometer;
+    private Sensor barometer, gravitySensor;
     private LocationProvider gpsProvider;
     private double barometerPressure;
 
     private Location lastLocation;
     private final CapstoneLocationServiceBinder serviceBinder = new CapstoneLocationServiceBinder();
-    private CapstoneSensorEventListener sensorEventListener;
+    private BarometerEventListener barometerEventListener;
+    private GravitySensorEventListener gravitySensorEventListener;
     private CapstoneLocationListener locationListener;
 
     private final Gson gson = new Gson();
@@ -82,7 +85,7 @@ public final  class CapstoneService extends Service {
     private final Set<HashableNsdServiceInfo> nsdPeers =
             Collections.synchronizedSet(new HashSet<>());
 
-    private final Set<LocalUpdateCallbackReceiver<DeviceInfo>> locationUpdateCallbackReceivers =
+    private final Set<SensorUpdateCallbackReceiver<DeviceInfo>> sensorUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
     private final Set<PeerUpdateCallbackReceiver<NsdServiceInfo>> peerUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
@@ -91,15 +94,20 @@ public final  class CapstoneService extends Service {
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Token> tokenQueue = new LinkedBlockingQueue<>();
     private volatile boolean nsdBound;
+    private final float[] gravity = new float[3];
+    private final float[] linearAcceleration = new float[3];
 
     @Override
     public void onCreate() {
         logv("Created");
         System.setProperty("http.keepAlive", "false");
 
+        ipAddress = findIpAddress();
+
         createPersistentNotification();
         setupLocationServices();
         setupBarometerService();
+        setupGravitySensorService();
         setupLocalHttpClient();
         setupLocalHttpServer();
         setupNsdRegistration();
@@ -323,8 +331,17 @@ public final  class CapstoneService extends Service {
         logv("Setting up barometer service...");
         sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
         barometer = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-        sensorEventListener = new CapstoneSensorEventListener();
-        sensorManager.registerListener(sensorEventListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
+        barometerEventListener = new BarometerEventListener();
+        sensorManager.registerListener(barometerEventListener, barometer, SensorManager.SENSOR_DELAY_NORMAL);
+        logv("Done");
+    }
+
+    private void setupGravitySensorService() {
+        logv("Setting up gravity sensor service...");
+        sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
+        gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        gravitySensorEventListener = new GravitySensorEventListener();
+        sensorManager.registerListener(gravitySensorEventListener, gravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
         logv("Done");
     }
 
@@ -395,8 +412,9 @@ public final  class CapstoneService extends Service {
     public void onDestroy() {
         Toast.makeText(getApplicationContext(), "Capstone Location Service stopping", Toast.LENGTH_LONG).show();
         locationManager.removeUpdates(locationListener);
-        sensorManager.unregisterListener(sensorEventListener);
-        locationUpdateCallbackReceivers.clear();
+        sensorManager.unregisterListener(barometerEventListener);
+        sensorManager.unregisterListener(gravitySensorEventListener);
+        sensorUpdateCallbackReceivers.clear();
         peerUpdateCallbackReceivers.clear();
         nsdUpdateCallbackReceivers.clear();
         nsdTeardown();
@@ -406,7 +424,7 @@ public final  class CapstoneService extends Service {
     }
 
     DeviceInfo getStatus() {
-        final DeviceLocation deviceLocation = new DeviceLocation(lastLocation, barometerPressure);
+        final DeviceLocation deviceLocation = new DeviceLocation(lastLocation, barometerPressure, gravity, linearAcceleration);
         return new DeviceInfo(getLocalNsdServiceInfo().getHost().getHostAddress(),
                                      locationServer.getListeningPort(), deviceLocation);
     }
@@ -416,12 +434,12 @@ public final  class CapstoneService extends Service {
         return gson.toJson(deviceInfo);
     }
 
-    void registerLocationUpdateCallback(final CapstoneActivity capstoneActivity) {
-        this.locationUpdateCallbackReceivers.add(capstoneActivity);
+    void registerSensorUpdateCallback(final CapstoneActivity capstoneActivity) {
+        this.sensorUpdateCallbackReceivers.add(capstoneActivity);
     }
 
-    void unregisterLocationUpdateCallback(final CapstoneActivity capstoneActivity) {
-        this.locationUpdateCallbackReceivers.remove(capstoneActivity);
+    void unregisterSensorUpdateCallback(final CapstoneActivity capstoneActivity) {
+        this.sensorUpdateCallbackReceivers.remove(capstoneActivity);
     }
 
     void registerNsdUpdateCallback(final CapstoneActivity capstoneActivity) {
@@ -570,7 +588,7 @@ public final  class CapstoneService extends Service {
         return getNsdServiceName() + "-" + Build.SERIAL;
     }
 
-    private static InetAddress getIpAddress() {
+    private static InetAddress findIpAddress() {
         try {
             InetAddress myAddr = null;
 
@@ -588,6 +606,16 @@ public final  class CapstoneService extends Service {
             Log.e("CapstoneService", "Error when attempting to determine local IP", se);
         }
         return null;
+    }
+
+    private InetAddress getIpAddress() {
+        if (ipAddress != null) {
+            return ipAddress;
+        }
+
+        final InetAddress ipAddress = findIpAddress();
+        this.ipAddress = ipAddress;
+        return this.ipAddress;
     }
 
     private static void logv(final String message) {
@@ -622,8 +650,8 @@ public final  class CapstoneService extends Service {
         @Override
         public void onLocationChanged(final Location location) {
             lastLocation = location;
-            for (final LocalUpdateCallbackReceiver<DeviceInfo> localUpdateCallbackReceiver : locationUpdateCallbackReceivers) {
-                localUpdateCallbackReceiver.update(getStatus());
+            for (final SensorUpdateCallbackReceiver<DeviceInfo> sensorUpdateCallbackReceiver : sensorUpdateCallbackReceivers) {
+                sensorUpdateCallbackReceiver.update(getStatus());
             }
         }
 
@@ -641,10 +669,38 @@ public final  class CapstoneService extends Service {
         }
     }
 
-    private class CapstoneSensorEventListener implements SensorEventListener {
+    private class BarometerEventListener implements SensorEventListener {
         @Override
         public void onSensorChanged(final SensorEvent event) {
             barometerPressure = event.values[0];
+            for (final SensorUpdateCallbackReceiver<DeviceInfo> sensorUpdateCallbackReceiver : sensorUpdateCallbackReceivers) {
+                sensorUpdateCallbackReceiver.update(getStatus());
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
+        }
+    }
+
+    private class GravitySensorEventListener implements SensorEventListener {
+
+        public static final float ALPHA = 0.7f;
+
+        @Override
+        public void onSensorChanged(final SensorEvent event) {
+            // Isolate the force of gravity with the low-pass filter.
+            gravity[0] = ALPHA * gravity[0] + (1 - ALPHA) * event.values[0];
+            gravity[1] = ALPHA * gravity[1] + (1 - ALPHA) * event.values[1];
+            gravity[2] = ALPHA * gravity[2] + (1 - ALPHA) * event.values[2];
+
+            // Remove the gravity contribution with the high-pass filter.
+            linearAcceleration[0] = event.values[0] - gravity[0];
+            linearAcceleration[1] = event.values[1] - gravity[1];
+            linearAcceleration[2] = event.values[2] - gravity[2];
+            for (final SensorUpdateCallbackReceiver<DeviceInfo> sensorUpdateCallbackReceiver : sensorUpdateCallbackReceivers) {
+                sensorUpdateCallbackReceiver.update(getStatus());
+            }
         }
 
         @Override

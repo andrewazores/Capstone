@@ -17,7 +17,7 @@ import android.widget.Toast;
 import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
-import ca.mcmaster.capstone.networking.util.LocalUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import com.google.gson.Gson;
@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class CapstoneActivity extends Activity implements LocalUpdateCallbackReceiver<DeviceInfo>,
+public class CapstoneActivity extends Activity implements SensorUpdateCallbackReceiver<DeviceInfo>,
                                                                           NsdUpdateCallbackReceiver,
                                                                           PeerUpdateCallbackReceiver<DeviceInfo> {
 
@@ -133,7 +133,7 @@ public class CapstoneActivity extends Activity implements LocalUpdateCallbackRec
             log("Service not bound, cannot disconnect again");
             return;
         }
-        serviceConnection.getService().unregisterLocationUpdateCallback(CapstoneActivity.this);
+        serviceConnection.getService().unregisterSensorUpdateCallback(CapstoneActivity.this);
         serviceConnection.getService().unregisterNsdUpdateCallback(CapstoneActivity.this);
         getApplicationContext().unbindService(serviceConnection);
     }
@@ -164,7 +164,7 @@ public class CapstoneActivity extends Activity implements LocalUpdateCallbackRec
 
             this.binder = (CapstoneService.CapstoneLocationServiceBinder) service;
             this.service = ((CapstoneService.CapstoneLocationServiceBinder) service).getService();
-            this.service.registerLocationUpdateCallback(CapstoneActivity.this);
+            this.service.registerSensorUpdateCallback(CapstoneActivity.this);
             this.service.registerNsdUpdateCallback(CapstoneActivity.this);
             updateSelfInfo();
         }

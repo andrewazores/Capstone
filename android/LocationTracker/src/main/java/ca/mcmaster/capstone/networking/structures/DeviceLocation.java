@@ -6,8 +6,9 @@ public class DeviceLocation {
 
     private final double latitude, longitude, altitude, barometerPressure, speed;
     private final float bearing, accuracy;
+    private final float[] gravity, linearAccleration;
 
-    public DeviceLocation(final Location location, final double barometerPressure) {
+    public DeviceLocation(final Location location, final double barometerPressure, final float[] gravity, final float[] linearAccleration) {
         final double latitude, longitude, altitude, speed;
         final float bearing, accuracy;
         if (location == null) {
@@ -32,6 +33,8 @@ public class DeviceLocation {
         this.bearing = bearing;
         this.accuracy = accuracy;
         this.speed = speed;
+        this.gravity = gravity;
+        this.linearAccleration = linearAccleration;
     }
 
     public double getLatitude() {
