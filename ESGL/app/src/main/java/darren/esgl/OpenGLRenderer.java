@@ -15,6 +15,8 @@ class OpenGLRenderer implements Renderer{
 
     private Cube mCube = new Cube();
     private float mCubeRotation;
+    public float angle = 0;
+    public float[] axis = new float[] {0, 0, 1};
 
     @Override
     public void onSurfaceCreated(GL10 gl, javax.microedition.khronos.egl.EGLConfig eglConfig) {
@@ -35,13 +37,15 @@ class OpenGLRenderer implements Renderer{
         gl.glLoadIdentity();
 
         gl.glTranslatef(0.0f, 0.0f, -10.0f);
-        gl.glRotatef(mCubeRotation, 1.0f, 1.0f, 1.0f);
+        //gl.glRotatef(mCubeRotation, 1.0f, 1.0f, 1.0f);
+
+        gl.glRotatef((float)(-angle/Math.PI*180), axis[0], axis[1], axis[2]);
 
         mCube.draw(gl);
 
         gl.glLoadIdentity();
 
-        mCubeRotation -= 0.15f;
+        //mCubeRotation -= 0.15f;
     }
 
     @Override

@@ -25,6 +25,7 @@ public class MainActivity extends Activity {
 
     private final float[] gravity = new float[3];
     private final float[] linearAcceleration = new float[3];
+    private OpenGLRenderer renderer;
 
 
     @Override
@@ -41,19 +42,17 @@ public class MainActivity extends Activity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         GLSurfaceView view = new GLSurfaceView(this);
-        view.setRenderer(new OpenGLRenderer());
+        renderer = new OpenGLRenderer();
+        view.setRenderer(renderer);
         setContentView(view);
 
     }
 
 
     private void setupGravitySensorService() {
-
-
-       mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mSensorEventListener = new GravitySensorEventListener();
         mSensorManager.registerListener(mSensorEventListener, mSensor, SensorManager.SENSOR_DELAY_NORMAL);
-
     }
 
     @Override
@@ -100,6 +99,18 @@ public class MainActivity extends Activity {
             linearAcceleration[1] = event.values[1] - gravity[1];
             linearAcceleration[2] = event.values[2] - gravity[2];
 
+            final float[] z_axis = new float[] {0, 0, 1};
+
+            float[] target_dir = normalise( gravity );
+            float rot_angle = (float) Math.acos( dot_product(target_dir,z_axis) );
+
+            if( Math.abs(rot_angle) > Double.MIN_VALUE ) {
+                float[] rot_axis = normalise(cross_product(target_dir, z_axis));
+
+                renderer.axis = rot_axis;
+                renderer.angle = rot_angle;
+            }
+
             Log.d("Gravity", "X: "+gravity[0]+"\nY: "+gravity[1]+"\nZ: "+gravity[2]);
         }
 
@@ -107,4 +118,43 @@ public class MainActivity extends Activity {
         public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
         }
     }
+
+    private float[] normalise(float[] gravity) {
+        float sum = 0;
+        for (float f : gravity) {
+            sum += f*f;
+        }
+        float magnitude = (float) Math.sqrt(sum);
+        float[] result = new float[gravity.length];
+        for (int i = 0; i < result.length; ++i) {
+            result[i] = gravity[i] / magnitude;
+        }
+        return result;
+    }
+
+    public float[] cross_product(float[] v1, float[] v2){
+        float[] cross =  new float[3];
+
+        cross[0] = (v1[1] * v2[2]) - (v1[2] * v2[1]);
+        cross[1] = (v1[0] * v2[2]) - (v1[2] * v2[0]);
+        cross[2] = (v1[0] * v2[1]) - (v1[1] * v2[0]);
+
+        return cross;
+    }
+
+    public float dot_product(float[] v1, float[] v2){
+        float dot = 0;
+
+        if (v1.length != v2.length) {
+            throw new IllegalArgumentException("Vector dimensionality mismatch");
+        }
+
+        for (int i = 0; i < v1.length; ++i) {
+            dot += v1[i] * v2[i];
+        }
+
+        return dot;
+    }
+
+
 }
