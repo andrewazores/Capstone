@@ -94,6 +94,7 @@ public final  class CapstoneService extends Service {
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Token> tokenQueue = new LinkedBlockingQueue<>();
     private volatile boolean nsdBound;
+
     private final float[] gravity = new float[3];
     private final float[] linearAcceleration = new float[3];
 
@@ -429,7 +430,7 @@ public final  class CapstoneService extends Service {
                                      locationServer.getListeningPort(), deviceLocation);
     }
 
-     String getStatusAsJson() {
+    String getStatusAsJson() {
         final DeviceInfo deviceInfo = getStatus();
         return gson.toJson(deviceInfo);
     }
