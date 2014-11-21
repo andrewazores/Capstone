@@ -79,7 +79,6 @@ public final  class CapstoneService extends Service {
 
     private volatile NsdManager.RegistrationListener nsdRegistrationListener;
     private volatile NsdManager.DiscoveryListener nsdDiscoveryListener;
-    private volatile NsdManager.ResolveListener nsdResolveListener;
     private volatile NsdManager nsdManager;
 
     private final Set<HashableNsdServiceInfo> nsdPeers =
@@ -112,7 +111,6 @@ public final  class CapstoneService extends Service {
         setupLocalHttpClient();
         setupLocalHttpServer();
         setupNsdRegistration();
-        setupNsdResolution();
 
         // Sometimes getting the system NSD_SERVICE blocks for a few minutes or indefinitely... start these components
         // async so we can eventually get updates when ready while allowing the UI to populate/appear in the meantime,
@@ -213,7 +211,7 @@ public final  class CapstoneService extends Service {
                     logv("Same machine: " + nsdPeerInfo);
                 } else if (nsdPeerInfo.getServiceName().contains(getNsdServiceName())){
                     logv("Attempting to resolve: " + nsdPeerInfo);
-                    nsdManager.resolveService(nsdPeerInfo, nsdResolveListener);
+                    nsdManager.resolveService(nsdPeerInfo, new NsdResolveListener());
                 } else {
                     logv("Could not register NSD service: " + nsdPeerInfo);
                 }
@@ -247,36 +245,6 @@ public final  class CapstoneService extends Service {
         } catch (final IllegalArgumentException iae) {
             logd(iae.getLocalizedMessage());
         }
-    }
-
-    private void setupNsdResolution() {
-        logv("Setting up NSD resolver...");
-        nsdResolveListener = new NsdManager.ResolveListener() {
-            @Override
-            public void onResolveFailed(final NsdServiceInfo nsdServiceInfo, final int errorCode) {
-                logd("NSD resolve failed for: " + nsdServiceInfo + ". Error: " + errorCode);
-            }
-
-            @Override
-            public void onServiceResolved(final NsdServiceInfo nsdServiceInfo) {
-                logd("NSD resolve succeeded for: " + nsdServiceInfo);
-
-                if (nsdServiceInfo.getHost().getHostAddress().equals(getIpAddress().getHostAddress())
-                        || nsdServiceInfo.getServiceName().contains(getLocalNsdServiceName())) {
-                    logv("NSD resolve found localhost");
-                    return;
-                }
-
-                logv("Validating NSD peer: " + nsdServiceInfo);
-                final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(nsdServiceInfo);
-                boolean newPeer = nsdPeers.add(hashableNsdServiceInfo);
-                if (newPeer) {
-                    sendHandshakeToPeer(hashableNsdServiceInfo);
-                }
-                updateNsdCallbackListeners();
-            }
-        };
-        logv("Done");
     }
 
     private void updateNsdCallbackListeners() {
@@ -544,7 +512,7 @@ public final  class CapstoneService extends Service {
             logv("Invalid service info: " + peerNsdServiceInfo);
             return;
         }
-        nsdResolveListener.onServiceResolved(peerNsdServiceInfo.getNsdServiceInfo());
+        new NsdResolveListener().onServiceResolved(peerNsdServiceInfo.getNsdServiceInfo());
         updateNsdCallbackListeners();
     }
 
@@ -709,4 +677,29 @@ public final  class CapstoneService extends Service {
         }
     }
 
+    private class NsdResolveListener implements NsdManager.ResolveListener {
+        @Override
+        public void onResolveFailed(final NsdServiceInfo nsdServiceInfo, final int errorCode) {
+            logd("NSD resolve failed for: " + nsdServiceInfo + ". Error: " + errorCode);
+        }
+
+        @Override
+        public void onServiceResolved(final NsdServiceInfo nsdServiceInfo) {
+            logd("NSD resolve succeeded for: " + nsdServiceInfo);
+
+            if (nsdServiceInfo.getHost().getHostAddress().equals(getIpAddress().getHostAddress())
+                    || nsdServiceInfo.getServiceName().contains(getLocalNsdServiceName())) {
+                logv("NSD resolve found localhost");
+                return;
+            }
+
+            logv("Validating NSD peer: " + nsdServiceInfo);
+            final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(nsdServiceInfo);
+            boolean newPeer = nsdPeers.add(hashableNsdServiceInfo);
+            if (newPeer) {
+                sendHandshakeToPeer(hashableNsdServiceInfo);
+            }
+            updateNsdCallbackListeners();
+        }
+    }
 }
