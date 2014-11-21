@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone.monitoralgorithm;
+package darren.esgl;
 
 public final class Event {
     public static enum EventType {SEND, RECEIVE, INTERNAL}

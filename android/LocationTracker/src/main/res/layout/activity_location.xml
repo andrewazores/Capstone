@@ -25,7 +25,7 @@
         android:id="@+id/listView"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/jsonTextView"
-        android:layout_above="@+id/reconnectButton" />
+        android:layout_above="@+id/cube" />
 
     <Button
         android:layout_width="wrap_content"
@@ -33,6 +33,14 @@
         android:text="@string/reconnectButtonLabel"
         android:layout_above="@+id/stopButton"
         android:id="@+id/reconnectButton"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cube"
+        android:id="@+id/cube"
+        android:layout_above="@+id/reconnectButton"
         android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

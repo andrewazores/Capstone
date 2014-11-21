@@ -55,3 +55,7 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-lang3:3.3.2'
 }
+
+retrulambda {
+    jdk System.getenv("")
+}

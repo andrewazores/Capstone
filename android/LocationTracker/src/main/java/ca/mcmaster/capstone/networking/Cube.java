@@ -1,4 +1,4 @@
-package darren.esgl;
+package ca.mcmaster.capstone.networking;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

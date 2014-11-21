@@ -1,4 +1,4 @@
-package darren.esgl;
+package ca.mcmaster.capstone.networking;
 
 import android.opengl.EGLConfig;
 import android.opengl.GLSurfaceView;

@@ -1,31 +1,38 @@
 package darren.esgl;
 
 import android.app.Activity;
-import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.Context;
-import android.content.pm.ConfigurationInfo;
+import android.content.DialogInterface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.util.Log;
+import android.util.EventLog;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
-public class MainActivity extends Activity {
+import java.util.ArrayList;
+
+public class CubeActivity extends Activity {
 
     private GLSurfaceView mGLSurfaceView;
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private SensorEventListener mSensorEventListener;
+    private int flatnessCounter = 0;
+    private boolean isFlat = true;
 
     private final float[] gravity = new float[3];
     private final float[] linearAcceleration = new float[3];
     private OpenGLRenderer renderer;
+
+    private EventLog.Event event;
 
 
     @Override
@@ -47,7 +54,6 @@ public class MainActivity extends Activity {
         setContentView(view);
 
     }
-
 
     private void setupGravitySensorService() {
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -110,6 +116,64 @@ public class MainActivity extends Activity {
                 renderer.axis = rot_axis;
                 renderer.angle = rot_angle;
             }
+
+            boolean previouslyFlat = isFlat;
+
+            isFlat = checkCondition(gravity);
+
+            if (isFlat) {
+                renderer.setColor(new float[] {
+                        0f,  1.0f,  0f,  1.0f,
+                        0f,  1.0f,  0f,  1.0f,
+                        0f,  1.0f,  0f,  1.0f,
+                        0f,  1.0f,  0f,  1.0f,
+                        0f,  1.0f,  0f,  1.0f,
+                        0f,  1.0f,  0f,  1.0f,
+                        0f,  1.0f,  0f,  1.0f,
+                        0f,  1.0f,  0f,  1.0f
+                });
+            } else {
+                renderer.setColor(new float[] {
+                        1.0f,  1.0f,  1.0f,  1.0f,
+                        1.0f,  1.0f,  1.0f,  1.0f,
+                        1.0f,  1.0f,  1.0f,  1.0f,
+                        1.0f,  1.0f,  1.0f,  1.0f,
+                        1.0f,  1.0f,  1.0f,  1.0f,
+                        1.0f,  1.0f,  1.0f,  1.0f,
+                        1.0f,  1.0f,  1.0f,  1.0f,
+                        1.0f,  1.0f,  1.0f,  1.0f
+                });
+            }
+            if (previouslyFlat != isFlat) {
+                ++flatnessCounter;
+                sendEvent(isFlat);
+            }
+        }
+
+        public void sendEvent(boolean event){
+            final Valuation valuation = new Valuation("isFlat", new Valuation.Value<Boolean>(isFlat));
+            Event e = new Event(flatnessCounter, 0, Event.EventType.INTERNAL, valuation, new VectorClock(new ArrayList<Integer>() {{ add(1); add(7); add(42);}}));
+            Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
+            //recieveEventInternal(e);
+        }
+
+        public void getEvent(){
+            Event e = null;//recieveEvent();
+            if(e.getVal().getValue("isFlat").evaluate().equals(true)){
+                new AlertDialog.Builder(CubeActivity.this)
+                    .setTitle("All Phones are Flat!!!")
+                    .setPositiveButton("YAY!", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                        }
+                    }).show();
+
+            }
+        }
+
+        public boolean checkCondition(float[] gravity){
+            float dot = dot_product(gravity, new float[] {0, 0, 1});
+
+            return dot < .5;
         }
 
         @Override
