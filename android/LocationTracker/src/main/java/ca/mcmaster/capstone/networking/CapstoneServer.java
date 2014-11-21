@@ -2,6 +2,7 @@ package ca.mcmaster.capstone.networking;
 
 import android.util.Log;
 
+import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import com.google.gson.Gson;
@@ -17,6 +18,7 @@ public class CapstoneServer extends NanoHTTPD {
         UPDATE,
         IDENTIFY,
         SEND_TOKEN,
+        SEND_EVENT,
     }
 
     public enum MimeType {
@@ -96,12 +98,21 @@ public class CapstoneServer extends NanoHTTPD {
                     return genericError();
                 }
                 return servePostReceiveToken(token);
+            } else if (method != null && method.equals(RequestMethod.SEND_EVENT)) {
+                final String postData = contentBody.get("postData");
+                final Event event = gson.fromJson(postData, Event.class);
+                log("Parsed POST data as: " + event);
+                if (event == null) {
+                    return genericError();
+                }
+                return servePostReceiveEvent(event);
             }
         }
 
         log("No known handler for request, returning generic error");
         return genericError();
     }
+
 
     private Response serveGetRequest() {
         return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), capstoneService.getStatusAsJson());
@@ -114,6 +125,11 @@ public class CapstoneServer extends NanoHTTPD {
 
     private Response servePostReceiveToken(final Token token) {
         capstoneService.receiveTokenInternal(token);
+        return new Response(Response.Status.OK, MIME_PLAINTEXT, "OK");
+    }
+
+    private Response servePostReceiveEvent(final Event event) {
+        capstoneService.receiveEventExternal(event);
         return new Response(Response.Status.OK, MIME_PLAINTEXT, "OK");
     }
 

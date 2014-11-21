@@ -90,7 +90,7 @@ public final  class CapstoneService extends Service {
             Collections.synchronizedSet(new HashSet<>());
     private final Set<NsdUpdateCallbackReceiver> nsdUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
-    private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Event> incomingEventQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Token> tokenQueue = new LinkedBlockingQueue<>();
     private volatile boolean nsdBound;
 
@@ -495,11 +495,43 @@ public final  class CapstoneService extends Service {
     }
 
     void receiveEventInternal(final Event event) {
-        this.eventQueue.add(event);
+        for (final HashableNsdServiceInfo peer : nsdPeers) {
+            sendEvent(event, peer);
+        }
     }
-    
+
+    private void sendEvent(final Event event, final HashableNsdServiceInfo destination) {
+        if (destination == null || destination.getHost() == null) {
+            return;
+        }
+
+        final String contentBody = gson.toJson(event);
+        final String peerUrl = "http://" + destination.getHost().getHostAddress() + ":" + destination.getPort();
+        try {
+            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, peerUrl, new JSONObject(contentBody),
+                    jsonObject -> {},
+                    volleyError -> {
+                        logv("Volley POST info error: " + volleyError);
+                    }) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    final Map<String, String> headers = new HashMap<>();
+                    headers.put(CapstoneServer.KEY_REQUEST_METHOD, CapstoneServer.RequestMethod.SEND_EVENT.toString());
+                    return headers;
+                }
+            };
+            volleyRequestQueue.add(request);
+        } catch (final JSONException jse) {
+            Log.e("CapstoneService", "Could not POST event send", jse);
+        }
+    }
+
+    void receiveEventExternal(final Event event) {
+        this.incomingEventQueue.add(event);
+    }
+
     public Event receiveEvent() throws InterruptedException {
-        return this.eventQueue.take();
+        return this.incomingEventQueue.take();
     }
 
     void addSelfIdentifiedPeer(final HashableNsdServiceInfo peerNsdServiceInfo) {
