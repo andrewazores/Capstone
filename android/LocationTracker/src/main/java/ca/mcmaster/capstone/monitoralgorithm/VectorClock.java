@@ -23,7 +23,7 @@ public class VectorClock implements Iterable<Integer> {
      *
      * @param consistentCut A List of Integers representing a consistent cut of all known processes.
      */
-    public VectorClock(List consistentCut) {
+    public VectorClock(List<Integer> consistentCut) {
         this.consistentCut.addAll(consistentCut);
     }
 
