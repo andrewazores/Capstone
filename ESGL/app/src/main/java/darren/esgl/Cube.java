@@ -16,24 +16,35 @@ class Cube {
     private ByteBuffer mIndexBuffer;
 
     private float vertices[] = {
-            -1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f,  1.0f, -1.0f,
-            -1.0f, 1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-            1.0f, -1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f
+            -.6f, -1.0f, -.1f,
+            .6f, -1.0f, -.1f,
+            .6f,  1.0f, -.1f,
+            -.6f, 1.0f, -.1f,
+            -.6f, -1.0f,  .1f,
+            .6f, -1.0f,  .1f,
+            .6f,  1.0f,  .1f,
+            -.6f,  1.0f,  .1f
     };
-    private float colors[] = {
-            0.0f,  1.0f,  0.0f,  1.0f,
-            0.0f,  1.0f,  0.0f,  1.0f,
-            1.0f,  0.5f,  0.0f,  1.0f,
-            1.0f,  0.5f,  0.0f,  1.0f,
-            1.0f,  0.0f,  0.0f,  1.0f,
-            1.0f,  0.0f,  0.0f,  1.0f,
-            0.0f,  0.0f,  1.0f,  1.0f,
-            1.0f,  0.0f,  1.0f,  1.0f
+    private float white[] = {
+            1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f
+    };
+
+    private float black[] = {
+            0.0f,  0.0f,  0.0f,  0.0f,
+            0.0f,  0.0f,  0.0f,  0.0f,
+            0.0f,  0.0f,  0.0f,  0.0f,
+            0.0f,  0.0f,  0.0f,  0.0f,
+            0.0f,  0.0f,  0.0f,  0.0f,
+            0.0f,  0.0f,  0.0f,  0.0f,
+            0.0f,  0.0f,  0.0f,  0.0f,
+            0.0f,  0.0f,  0.0f,  0.0f
     };
 
     private byte indices[] = {
@@ -52,10 +63,10 @@ class Cube {
         mVertexBuffer.put(vertices);
         mVertexBuffer.position(0);
 
-        byteBuf = ByteBuffer.allocateDirect(colors.length * 4);
+        byteBuf = ByteBuffer.allocateDirect(white.length * 4);
         byteBuf.order(ByteOrder.nativeOrder());
         mColorBuffer = byteBuf.asFloatBuffer();
-        mColorBuffer.put(colors);
+        mColorBuffer.put(white);
         mColorBuffer.position(0);
 
         mIndexBuffer = ByteBuffer.allocateDirect(indices.length);
@@ -72,8 +83,23 @@ class Cube {
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
 
+        mColorBuffer.clear();
+
+        mColorBuffer.put(white);
+        mColorBuffer.position(0);
+        gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
         gl.glDrawElements(GL10.GL_TRIANGLES, 36, GL10.GL_UNSIGNED_BYTE,
                 mIndexBuffer);
+
+        mColorBuffer.clear();
+
+        mColorBuffer.put(black);
+        mColorBuffer.position(0);
+        gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
+        gl.glDrawElements(GL10.GL_LINES, 36, GL10.GL_UNSIGNED_BYTE,
+                mIndexBuffer);
+
+        //mColorBuffer.clear();
 
         gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glDisableClientState(GL10.GL_COLOR_ARRAY);

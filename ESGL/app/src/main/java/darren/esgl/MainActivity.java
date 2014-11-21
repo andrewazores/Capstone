@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
     private void setupGravitySensorService() {
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mSensorEventListener = new GravitySensorEventListener();
-        mSensorManager.registerListener(mSensorEventListener, mSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(mSensorEventListener, mSensor, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
@@ -110,8 +110,6 @@ public class MainActivity extends Activity {
                 renderer.axis = rot_axis;
                 renderer.angle = rot_angle;
             }
-
-            Log.d("Gravity", "X: "+gravity[0]+"\nY: "+gravity[1]+"\nZ: "+gravity[2]);
         }
 
         @Override
