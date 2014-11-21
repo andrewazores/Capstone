@@ -3,6 +3,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 import java.util.HashMap;
 import java.util.Map;
 
+// XXX: The Value<T> class basically breaks type safety. We need to find a better way to do this.
 public class Valuation {
     public static class Value<T> {
         private final T value;
