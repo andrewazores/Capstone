@@ -119,4 +119,8 @@ public class GlobalView {
     public List<Token> getTokensForTransition(AutomatonTransition transition) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
+
+    public Set<Integer> getInconsistentProcesses() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
 }

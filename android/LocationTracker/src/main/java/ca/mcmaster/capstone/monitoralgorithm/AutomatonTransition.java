@@ -1,7 +1,10 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import android.provider.Settings;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /* Class to represent an automaton transition.*/
 public class AutomatonTransition {
@@ -45,6 +48,10 @@ public class AutomatonTransition {
         return from;
     }
 
+    public List<Conjunct> getConjuncts() {
+        return conjuncts;
+    }
+
     /*
      * Computes the evaluation of the transition based on the evaluation of each conjunct.
      *
@@ -61,6 +68,14 @@ public class AutomatonTransition {
 
     // XXX: probably not needed now
     public AutomatonTransition evaluate(Conjunct.Evaluation eval) {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    public Set<Integer> getParticipatingProcesses() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    public Set<Integer> getForbiddingProcesses(GlobalView gv) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

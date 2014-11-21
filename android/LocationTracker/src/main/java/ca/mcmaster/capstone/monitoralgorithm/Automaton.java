@@ -49,4 +49,12 @@ public class Automaton {
     public static Evaluation getEvalForState(AutomatonState state) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
+
+    public static List<AutomatonState> getStates() {
+        return stateList;
+    }
+
+    public static List<AutomatonTransition> getTransitions() {
+        return transitionList;
+    }
 }

@@ -3,6 +3,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ public class Monitor {
     private static final Set<Token> waitingTokens = new LinkedHashSet<Token>();
     private static final int monitorID = 0; // TODO: make this equal something reasonable
     private static final Set<GlobalView> GV = new LinkedHashSet<GlobalView>();
+    private static final int numProcesses = 10;
 
     // Placeholders until it becomes clear where these methods will really come from.
     private static Token receive() {
@@ -29,9 +31,6 @@ public class Monitor {
     // These methods are either not described in the paper or are described separately from the main
     // body of the algorithm. They will be implemented in a future commit.
     private static void mergeSimilarGlobalViews(Set<GlobalView> views) {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-    private static void checkOutgoingTransitions(GlobalView gv) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
     private static GlobalView getGlobalView(Token token) {
@@ -119,7 +118,45 @@ public class Monitor {
                 Log.d("processEvent", "I feel violated!");
             }
         }
-        checkOutgoingTransitions(gv);
+        checkOutgoingTransitions(gv, event);
+    }
+
+    private static void checkOutgoingTransitions(GlobalView gv, Event event) {
+        List<Set<AutomatonTransition>> consult = new ArrayList<>();
+        for (AutomatonTransition trans : Automaton.getTransitions()) {
+            AutomatonState current = gv.getCurrentState();
+            if (trans.getFrom() == current && trans.getTo() != current) {
+                Set<Integer> participating = trans.getParticipatingProcesses();
+                Set<Integer> forbidding = trans.getForbiddingProcesses(gv);
+                if (!forbidding.contains(monitorID)) {
+                    Set<Integer> inconsistent = gv.getInconsistentProcesses();
+                    // intersection
+                    participating.retainAll(inconsistent);
+                    // union
+                    forbidding.addAll(participating);
+                    for (Integer process : forbidding) {
+                        gv.getPendingTransitions().add(trans);
+                        consult.get(process).add(trans);
+                    }
+                }
+            }
+        }
+        for (int j = 0; j < numProcesses; ++j) {
+            if (!consult.get(j).isEmpty()) {
+                // Get all the conjuncts for process j
+                Set<Conjunct> conjuncts = new HashSet<>();
+                for (AutomatonTransition trans : consult.get(j)) {
+                    conjuncts.addAll(trans.getConjuncts());
+                }
+                Token token = new Token.Builder(monitorID, j).targetEventId(gv.getCut().process(j) + 1)
+                        .cut(event.getVC()).conjuncts(conjuncts).automatonTransitions(consult.get(j))
+                        .build();
+                gv.getTokens().add(token);
+            }
+        }
+        Token token = gv.getTokenWithMostConjuncts();
+        send(token, token.getDestination());
+        token = new Token.Builder(token).sent(true).build();
     }
 
     /*
