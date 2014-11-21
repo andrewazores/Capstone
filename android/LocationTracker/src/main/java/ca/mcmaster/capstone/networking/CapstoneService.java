@@ -527,10 +527,12 @@ public final  class CapstoneService extends Service {
     }
 
     void receiveEventExternal(final Event event) {
+        logv("Received event over the network: " + event);
         this.incomingEventQueue.add(event);
     }
 
     public Event receiveEvent() throws InterruptedException {
+        logv("Serving up event!");
         return this.incomingEventQueue.take();
     }
 

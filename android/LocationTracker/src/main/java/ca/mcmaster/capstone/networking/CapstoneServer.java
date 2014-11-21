@@ -14,6 +14,8 @@ import java.util.Map;
 
 public class CapstoneServer extends NanoHTTPD {
 
+    private static final String JSON_OK_STATUS = "{\"status\":\"OK\"}";
+
     public enum RequestMethod {
         UPDATE,
         IDENTIFY,
@@ -130,7 +132,7 @@ public class CapstoneServer extends NanoHTTPD {
 
     private Response servePostReceiveEvent(final Event event) {
         capstoneService.receiveEventExternal(event);
-        return new Response(Response.Status.OK, MIME_PLAINTEXT, "OK");
+        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), JSON_OK_STATUS);
     }
 
     private Response genericError(final String errorMessage) {

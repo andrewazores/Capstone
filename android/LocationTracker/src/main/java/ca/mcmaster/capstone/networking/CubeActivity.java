@@ -40,7 +40,6 @@ public class CubeActivity extends Activity {
     private int flatnessCounter = 0;
     private boolean isFlat = true;
     private HashableNsdServiceInfo NSD;
-    private CapstoneService binder;
 
     private final float[] gravity = new float[3];
     private final float[] linearAcceleration = new float[3];
@@ -57,7 +56,6 @@ public class CubeActivity extends Activity {
 
         serviceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
-        binder = serviceConnection.getService();
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -86,22 +84,27 @@ public class CubeActivity extends Activity {
                 return null;
             }
         };
+        networkGet.execute();
     }
 
     HashMap<Integer, Boolean> deviceMap = new HashMap<>();
     public void getEvent() throws InterruptedException {
-        Event e = binder.receiveEvent();
+        if (serviceConnection.getService() == null) {
+            return;
+        }
+        Event e = serviceConnection.getService().receiveEvent();
 
         deviceMap.put(e.pid(), (Boolean)e.getVal().getValue("isFlat").evaluate());
 
         int i = 0;
         StringBuilder sb = new StringBuilder();
         for(Boolean b : deviceMap.values()){
-            sb.append(" Device " + i + ": ");
+            sb.append(" Device ").append(i).append(": ");
             sb.append(b);
+            ++i;
         }
 
-        Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT);
+        runOnUiThread(() -> Toast.makeText(CubeActivity.this, sb.toString(), Toast.LENGTH_SHORT).show());
 
         if(e.getVal().getValue("isFlat").evaluate().equals(true)){
 
@@ -116,6 +119,7 @@ public class CubeActivity extends Activity {
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
         back = true;
         mSensorManager.unregisterListener(mSensorEventListener);
     }
@@ -197,10 +201,13 @@ public class CubeActivity extends Activity {
         }
 
         public void sendEvent(boolean event){
+            if (serviceConnection.getService() == null) {
+                return;
+            }
             final Valuation valuation = new Valuation("isFlat", new Valuation.Value<Boolean>(isFlat));
             Event e = new Event(flatnessCounter, NSD.hashCode(), Event.EventType.INTERNAL, valuation, new VectorClock(new ArrayList<Integer>() {{ add(1); add(7); add(42);}}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
-            binder.receiveEventInternal(e);
+            serviceConnection.getService().receiveEventInternal(e);
         }
 
         public boolean checkCondition(float[] gravity){
