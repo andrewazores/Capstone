@@ -84,13 +84,18 @@ public class CapstoneServer extends NanoHTTPD {
         log("Method: " + method);
         log("Content Body: " + contentBody);
 
+        if (method == null) {
+            log("Request method is invalid (null), cnanot serve request");
+            return genericError();
+        }
+
         if (session.getMethod().equals(Method.GET)) {
-            if (method != null && method.equals(RequestMethod.UPDATE)) {
+            if (method.equals(RequestMethod.UPDATE)) {
                 log("Responding with OK and current DeviceInfo");
                 return serveGetRequest();
             }
         } else if (session.getMethod().equals(Method.POST)) {
-            if (method != null && method.equals(RequestMethod.IDENTIFY)) {
+            if (method.equals(RequestMethod.IDENTIFY)) {
                 final String postData = contentBody.get("postData");
                 final HashableNsdServiceInfo peerNsdServiceInfo = gson.fromJson(postData, HashableNsdServiceInfo.class);
                 log("Parsed POST data as: " + peerNsdServiceInfo);
@@ -98,7 +103,7 @@ public class CapstoneServer extends NanoHTTPD {
                     return genericError();
                 }
                 return servePostIdentify(peerNsdServiceInfo);
-            } else if (method != null && method.equals(RequestMethod.SEND_TOKEN)) {
+            } else if (method.equals(RequestMethod.SEND_TOKEN)) {
                 final String postData = contentBody.get("postData");
                 final Token token = gson.fromJson(postData, Token.class);
                 log("Parsed POST data as: " + token);
@@ -106,7 +111,7 @@ public class CapstoneServer extends NanoHTTPD {
                     return genericError();
                 }
                 return servePostReceiveToken(token);
-            } else if (method != null && method.equals(RequestMethod.SEND_EVENT)) {
+            } else if (method.equals(RequestMethod.SEND_EVENT)) {
                 final String postData = contentBody.get("postData");
                 final Event event = gson.fromJson(postData, Event.class);
                 log("Parsed POST data as: " + event);
