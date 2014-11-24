@@ -67,8 +67,8 @@ public class CapstoneServer extends NanoHTTPD {
     @Override
     public Response serve(final IHTTPSession session) {
         log("Got " + session.getMethod() + " request on " + session.getUri());
-        if (!(session.getMethod().equals(Method.GET) || session.getMethod().equals(Method.POST) )) {
-            return new Response(Response.Status.METHOD_NOT_ALLOWED, MimeType.TEXT_PLAIN.getContentType(), "Only GET and POST requests are supported");
+        if (!(session.getMethod().equals(Method.GET) || session.getMethod().equals(Method.POST))) {
+            return errorResponse("Only GET and POST requests are supported");
         }
 
         final Map<String, String> headers = session.getHeaders();
@@ -121,16 +121,15 @@ public class CapstoneServer extends NanoHTTPD {
         return genericError();
     }
 
-
     private Response serveGetRequest() {
         final PayloadObject<DeviceInfo> getRequestResponse = new PayloadObject<>(capstoneService.getStatus(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), getRequestResponse.toString());
+        return JSONResponse(Response.Status.OK, getRequestResponse);
     }
 
     private Response servePostIdentify(final HashableNsdServiceInfo peerNsdServiceInfo) {
         capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
         final PayloadObject<NsdServiceInfo> postIdentifyResponse = new PayloadObject<>(capstoneService.getLocalNsdServiceInfo(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), postIdentifyResponse.toString());
+        return JSONResponse(Response.Status.OK, postIdentifyResponse);
     }
 
     private Response servePostReceiveToken(final Token token) {
@@ -143,14 +142,23 @@ public class CapstoneServer extends NanoHTTPD {
         return genericSuccess();
     }
 
+    private Response errorResponse(final String errorMessage) {
+        final PayloadObject<String> errorPayload = new PayloadObject<>(errorMessage, capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
+        return JSONResponse(Response.Status.BAD_REQUEST, errorPayload);
+    }
+
     private Response genericError() {
         final PayloadObject<Void> errorPayload = new PayloadObject<>(null, capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
-        return new Response(Response.Status.BAD_REQUEST, MimeType.APPLICATION_JSON.getContentType(), errorPayload.toString());
+        return JSONResponse(Response.Status.BAD_REQUEST, errorPayload);
     }
 
     private Response genericSuccess() {
         final PayloadObject<Void> successPayload = new PayloadObject<>(null, capstoneService.getNsdPeers(), PayloadObject.Status.OK);
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), successPayload.toString());
+        return JSONResponse(Response.Status.OK, successPayload);
+    }
+
+    private static Response JSONResponse(final Response.Status status, final Object object) {
+        return new Response(status, MimeType.APPLICATION_JSON.getContentType(), object.toString());
     }
 
     private static void log(final String message) {
