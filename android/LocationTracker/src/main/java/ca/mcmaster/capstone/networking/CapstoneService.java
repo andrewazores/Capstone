@@ -3,7 +3,6 @@ package ca.mcmaster.capstone.networking;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -25,15 +24,6 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-import ca.mcmaster.capstone.monitoralgorithm.Event;
-import ca.mcmaster.capstone.monitoralgorithm.Token;
-import ca.mcmaster.capstone.networking.structures.DeviceInfo;
-import ca.mcmaster.capstone.networking.structures.DeviceLocation;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
-import ca.mcmaster.capstone.networking.structures.PayloadObject;
-import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
-import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
-import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -58,6 +48,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import ca.mcmaster.capstone.monitoralgorithm.Event;
+import ca.mcmaster.capstone.monitoralgorithm.Token;
+import ca.mcmaster.capstone.networking.structures.DeviceInfo;
+import ca.mcmaster.capstone.networking.structures.DeviceLocation;
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.PayloadObject;
+import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 
 public final  class CapstoneService extends Service {
 
