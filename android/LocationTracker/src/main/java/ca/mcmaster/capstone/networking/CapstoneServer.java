@@ -1,11 +1,18 @@
 package ca.mcmaster.capstone.networking;
 
+import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
+import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import ca.mcmaster.capstone.networking.structures.PayloadObject;
 import fi.iki.elonen.NanoHTTPD;
 
 import java.io.IOException;
@@ -13,8 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CapstoneServer extends NanoHTTPD {
-
-    private static final String JSON_OK_STATUS = "{\"status\":\"OK\"}";
 
     public enum RequestMethod {
         UPDATE,
@@ -73,6 +78,7 @@ public class CapstoneServer extends NanoHTTPD {
             session.parseBody(contentBody);
         } catch (final ResponseException | IOException e) {
             log("Error parsing body: " + contentBody);
+            log(e.getLocalizedMessage());
             return genericError();
         }
         log("Method: " + method);
@@ -117,30 +123,34 @@ public class CapstoneServer extends NanoHTTPD {
 
 
     private Response serveGetRequest() {
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), capstoneService.getStatusAsJson());
+        final PayloadObject<DeviceInfo> getRequestResponse = new PayloadObject<>(capstoneService.getStatus(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), getRequestResponse.toString());
     }
 
     private Response servePostIdentify(final HashableNsdServiceInfo peerNsdServiceInfo) {
         capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), gson.toJson(capstoneService.getLocalNsdServiceInfo()));
+        final PayloadObject<NsdServiceInfo> postIdentifyResponse = new PayloadObject<>(capstoneService.getLocalNsdServiceInfo(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), postIdentifyResponse.toString());
     }
 
     private Response servePostReceiveToken(final Token token) {
         capstoneService.receiveTokenInternal(token);
-        return new Response(Response.Status.OK, MIME_PLAINTEXT, "OK");
+        return genericSuccess();
     }
 
     private Response servePostReceiveEvent(final Event event) {
         capstoneService.receiveEventExternal(event);
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), JSON_OK_STATUS);
-    }
-
-    private Response genericError(final String errorMessage) {
-        return new Response(Response.Status.BAD_REQUEST, MimeType.TEXT_PLAIN.getContentType(), errorMessage);
+        return genericSuccess();
     }
 
     private Response genericError() {
-        return genericError("Error");
+        final PayloadObject<Void> errorPayload = new PayloadObject<>(null, capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
+        return new Response(Response.Status.BAD_REQUEST, MimeType.APPLICATION_JSON.getContentType(), errorPayload.toString());
+    }
+
+    private Response genericSuccess() {
+        final PayloadObject<Void> successPayload = new PayloadObject<>(null, capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), successPayload.toString());
     }
 
     private static void log(final String message) {

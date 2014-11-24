@@ -3,6 +3,7 @@ package ca.mcmaster.capstone.networking;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -29,6 +30,7 @@ import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.DeviceLocation;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.PayloadObject;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
@@ -39,10 +41,13 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -478,8 +483,10 @@ public final  class CapstoneService extends Service {
 
     private void sendNsdInfoToPeer(final HashableNsdServiceInfo destination, final HashableNsdServiceInfo info) {
         final Response.Listener<JSONObject> successListener = jsonObject -> {
-            final NsdServiceInfo nsdServiceInfo = gson.fromJson(jsonObject.toString(), NsdServiceInfo.class);
-            nsdDiscoveryListener.onServiceFound(nsdServiceInfo);
+            final Type type = new TypeToken<PayloadObject<NsdServiceInfo>>(){}.getType();
+            final PayloadObject<NsdServiceInfo> payloadObject = gson.fromJson(jsonObject.toString(), type);
+            logv("Received peer NSD info payload: " + payloadObject);
+            nsdDiscoveryListener.onServiceFound(payloadObject.getPayload());
         };
         final Response.ErrorListener errorListener = volleyError -> {
             logv("Volley POST info error: " + volleyError);
@@ -557,8 +564,10 @@ public final  class CapstoneService extends Service {
     void requestUpdateFromPeer(final HashableNsdServiceInfo peer, final PeerUpdateCallbackReceiver<DeviceInfo> callbackReceiver) {
         final Response.Listener<JSONObject> successListener = jsonObject -> {
             try {
-                final DeviceInfo deviceInfo = gson.fromJson(jsonObject.toString(), DeviceInfo.class);
-                callbackReceiver.peerUpdate(deviceInfo);
+                final Type type = new TypeToken<PayloadObject<DeviceInfo>>(){}.getType();
+                final PayloadObject<DeviceInfo> payloadObject = gson.fromJson(jsonObject.toString(), type);
+                logv("Received peer update payload: " + payloadObject);
+                callbackReceiver.peerUpdate(payloadObject.getPayload());
             } catch (final JsonSyntaxException jse) {
                 logv("Bad JSON syntax in peer response, got: " + jsonObject);
             }
@@ -582,6 +591,10 @@ public final  class CapstoneService extends Service {
 
     private String getLocalNsdServiceName() {
         return getNsdServiceName() + "-" + Build.SERIAL;
+    }
+
+    Set<HashableNsdServiceInfo> getNsdPeers() {
+        return new HashSet<>(nsdPeers);
     }
 
     private static InetAddress findIpAddress() {
