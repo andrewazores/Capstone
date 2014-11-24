@@ -622,8 +622,7 @@ public final  class CapstoneService extends Service {
             return ipAddress;
         }
 
-        final InetAddress ipAddress = findIpAddress();
-        this.ipAddress = ipAddress;
+        this.ipAddress = findIpAddress();
         return this.ipAddress;
     }
 
