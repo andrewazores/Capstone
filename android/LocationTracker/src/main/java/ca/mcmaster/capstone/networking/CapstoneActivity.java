@@ -8,7 +8,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -90,7 +89,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     private void getPeerUpdate(final HashableNsdServiceInfo peer) {
         if (serviceConnection.isBound()) {
             serviceConnection.getService().sendHandshakeToPeer(peer);
-            serviceConnection.getService().requestUpdateFromPeer(this, peer);
+            serviceConnection.getService().requestUpdateFromPeer(peer, this);
         }
     }
 

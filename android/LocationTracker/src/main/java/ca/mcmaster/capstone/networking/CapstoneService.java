@@ -34,6 +34,7 @@ import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
@@ -426,64 +427,75 @@ public final  class CapstoneService extends Service {
         peersPlusSelf.remove(nsdPeer);
 
         for (final HashableNsdServiceInfo nsdServiceInfo : peersPlusSelf) {
-            sendNsdInfoToPeer(nsdServiceInfo, nsdPeer);
+            sendNsdInfoToPeer(nsdPeer, nsdServiceInfo);
         }
     }
 
-    private void sendNsdInfoToPeer(final HashableNsdServiceInfo info, final HashableNsdServiceInfo destination) {
-        if (destination == null || destination.getHost() == null) {
+    private void postDataToPeer(final HashableNsdServiceInfo peer, final Object data,
+                                    final Response.Listener<JSONObject> successListener, Response.ErrorListener errorListener,
+                                    final CapstoneServer.RequestMethod requestMethod) {
+
+        final String contentBody = gson.toJson(data);
+        final JSONObject payload;
+        try {
+            payload = new JSONObject(contentBody);
+        } catch (final JSONException e) {
+            logv("Could not POST data, JSONException: " + e.getLocalizedMessage());
             return;
         }
 
-        final String contentBody = gson.toJson(info);
-        final String peerUrl = "http://" + destination.getHost().getHostAddress() + ":" + destination.getPort();
-        try {
-            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, peerUrl, new JSONObject(contentBody),
-                   jsonObject -> {
-                       final NsdServiceInfo nsdServiceInfo = gson.fromJson(jsonObject.toString(), NsdServiceInfo.class);
-                       nsdDiscoveryListener.onServiceFound(nsdServiceInfo);
-                   },
-                   volleyError -> {
-                       logv("Volley POST info error: " + volleyError);
-                       nsdDiscoveryListener.onServiceLost(destination.getNsdServiceInfo());
-                   }) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    final Map<String, String> headers = new HashMap<>();
-                    headers.put(CapstoneServer.KEY_REQUEST_METHOD, CapstoneServer.RequestMethod.IDENTIFY.toString());
-                    return headers;
-                }
-            };
-            volleyRequestQueue.add(request);
-        } catch (final JSONException jse) {
-            Log.e("CapstoneService", "Could not POST request", jse);
-        }
+        queueVolleyRequest(Request.Method.POST, peer, payload, requestMethod, successListener, errorListener);
     }
 
-    public void sendTokenToPeer(final Token token, final HashableNsdServiceInfo destination) {
-        if (destination == null || destination.getHost() == null) {
+    private void queueVolleyRequest(final int method,
+                                    final HashableNsdServiceInfo peer,
+                                    final JSONObject payload,
+                                    final CapstoneServer.RequestMethod requestMethod,
+                                    final Response.Listener<JSONObject> successListener,
+                                    final Response.ErrorListener errorListener) {
+        if (peer == null || peer.getHost() == null) {
+            logv("Could not queue Volley request:");
+            logv("method = [" + method + "], peer = [" + peer + "], payload = [" + payload + "], requestMethod = [" + requestMethod + "], successListener = [" + successListener + "], errorListener = [" + errorListener + "]");
             return;
         }
+        final String peerUrl = getUrlStringForPeer(peer);
+        final JsonObjectRequest request = new JsonObjectRequest(
+                method,
+                peerUrl,
+                payload,
+                successListener,
+                errorListener
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                final Map<String, String> headers = new HashMap<>();
+                headers.put(CapstoneServer.KEY_REQUEST_METHOD, requestMethod.toString());
+                return headers;
+            }
+        };
+        volleyRequestQueue.add(request);
+    }
 
-        final String contentBody = gson.toJson(token);
-        final String peerUrl = "http://" + destination.getHost().getHostAddress() + ":" + destination.getPort();
-        try {
-            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, peerUrl, new JSONObject(contentBody),
-                    jsonObject -> {},
-                    volleyError -> {
-                        logv("Volley POST info error: " + volleyError);
-                    }) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    final Map<String, String> headers = new HashMap<>();
-                    headers.put(CapstoneServer.KEY_REQUEST_METHOD, CapstoneServer.RequestMethod.SEND_TOKEN.toString());
-                    return headers;
-                }
-            };
-            volleyRequestQueue.add(request);
-        } catch (final JSONException jse) {
-            Log.e("CapstoneService", "Could not POST token send", jse);
-        }
+    private void sendNsdInfoToPeer(final HashableNsdServiceInfo destination, final HashableNsdServiceInfo info) {
+        final Response.Listener<JSONObject> successListener = jsonObject -> {
+            final NsdServiceInfo nsdServiceInfo = gson.fromJson(jsonObject.toString(), NsdServiceInfo.class);
+            nsdDiscoveryListener.onServiceFound(nsdServiceInfo);
+        };
+        final Response.ErrorListener errorListener = volleyError -> {
+            logv("Volley POST info error: " + volleyError);
+            nsdDiscoveryListener.onServiceLost(destination.getNsdServiceInfo());
+        };
+        final CapstoneServer.RequestMethod requestMethod = CapstoneServer.RequestMethod.IDENTIFY;
+
+        postDataToPeer(destination, info, successListener, errorListener, requestMethod);
+    }
+
+    public void sendTokenToPeer(final HashableNsdServiceInfo destination, final Token token) {
+        final Response.Listener<JSONObject> successListener = j -> {};
+        final Response.ErrorListener errorListener = error -> logv("Volley POST info error: " + error);
+        final CapstoneServer.RequestMethod requestMethod = CapstoneServer.RequestMethod.SEND_TOKEN;
+
+        postDataToPeer(destination, token, successListener, errorListener, requestMethod);
     }
 
     void receiveTokenInternal(final Token token) {
@@ -496,34 +508,16 @@ public final  class CapstoneService extends Service {
 
     void receiveEventInternal(final Event event) {
         for (final HashableNsdServiceInfo peer : nsdPeers) {
-            sendEvent(event, peer);
+            sendEvent(peer, event);
         }
     }
 
-    private void sendEvent(final Event event, final HashableNsdServiceInfo destination) {
-        if (destination == null || destination.getHost() == null) {
-            return;
-        }
+    private void sendEvent(final HashableNsdServiceInfo destination, final Event event) {
+        final Response.Listener<JSONObject> successListener = j -> {};
+        final Response.ErrorListener errorListener = error -> logv("Volley POST info error: " + error);
+        final CapstoneServer.RequestMethod requestMethod = CapstoneServer.RequestMethod.SEND_EVENT;
 
-        final String contentBody = gson.toJson(event);
-        final String peerUrl = "http://" + destination.getHost().getHostAddress() + ":" + destination.getPort();
-        try {
-            final JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, peerUrl, new JSONObject(contentBody),
-                    jsonObject -> {},
-                    volleyError -> {
-                        logv("Volley POST info error: " + volleyError);
-                    }) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    final Map<String, String> headers = new HashMap<>();
-                    headers.put(CapstoneServer.KEY_REQUEST_METHOD, CapstoneServer.RequestMethod.SEND_EVENT.toString());
-                    return headers;
-                }
-            };
-            volleyRequestQueue.add(request);
-        } catch (final JSONException jse) {
-            Log.e("CapstoneService", "Could not POST event send", jse);
-        }
+        postDataToPeer(destination, event, successListener, errorListener, requestMethod);
     }
 
     void receiveEventExternal(final Event event) {
@@ -550,33 +544,32 @@ public final  class CapstoneService extends Service {
         updateNsdCallbackListeners();
     }
 
-    void requestUpdateFromPeer(final CapstoneActivity capstoneActivity, final HashableNsdServiceInfo nsdServiceInfo) {
-        if (capstoneActivity == null || nsdServiceInfo == null || nsdServiceInfo.getHost() == null) {
-            logd("Requested peer update from invalid NsdServiceInfo: " + nsdServiceInfo);
-            return;
-        }
-        final String url = "http://" + nsdServiceInfo.getHost().getHostAddress() + ":" + nsdServiceInfo.getPort();
-        final Request request = new JsonObjectRequest(Request.Method.GET, url, null,
-             jsonObject -> {
-                 try {
-                     final DeviceInfo deviceInfo = gson.fromJson(jsonObject.toString(), DeviceInfo.class);
-                     capstoneActivity.peerUpdate(deviceInfo);
-                 } catch (final JsonSyntaxException jse) {
-                     logv("Bad JSON syntax in peer response, got: " + jsonObject);
-                 }
-             },
-             volleyError -> {
-                 logv("Volley GET update error: " + volleyError);
-                 nsdDiscoveryListener.onServiceLost(nsdServiceInfo.getNsdServiceInfo());
-             }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                final Map<String, String> headers = new HashMap<>();
-                headers.put(CapstoneServer.KEY_REQUEST_METHOD, CapstoneServer.RequestMethod.UPDATE.toString());
-                return headers;
+    private void getDataFromPeer(final HashableNsdServiceInfo peer,
+                                     final Response.Listener<JSONObject> successListener, final Response.ErrorListener errorListener,
+                                     final CapstoneServer.RequestMethod requestMethod) {
+        queueVolleyRequest(Request.Method.GET, peer, null, requestMethod, successListener, errorListener);
+    }
+
+    static String getUrlStringForPeer(HashableNsdServiceInfo peer) {
+        return "http://" + peer.getHost().getHostAddress() + ":" + peer.getPort();
+    }
+
+    void requestUpdateFromPeer(final HashableNsdServiceInfo peer, final PeerUpdateCallbackReceiver<DeviceInfo> callbackReceiver) {
+        final Response.Listener<JSONObject> successListener = jsonObject -> {
+            try {
+                final DeviceInfo deviceInfo = gson.fromJson(jsonObject.toString(), DeviceInfo.class);
+                callbackReceiver.peerUpdate(deviceInfo);
+            } catch (final JsonSyntaxException jse) {
+                logv("Bad JSON syntax in peer response, got: " + jsonObject);
             }
         };
-        volleyRequestQueue.add(request);
+        final Response.ErrorListener errorListener = error -> {
+            logv("Volley GET update error: " + error);
+            nsdDiscoveryListener.onServiceLost(peer.getNsdServiceInfo());
+        };
+        final CapstoneServer.RequestMethod requestMethod = CapstoneServer.RequestMethod.UPDATE;
+
+        getDataFromPeer(peer, successListener, errorListener, requestMethod);
     }
 
     String getNsdServiceType() {
