@@ -6,10 +6,10 @@ public final class Event {
     private final int eid;
     private final int pid;
     private final EventType type;
-    private final Valuation val;
+    private final Valuation<?> val;
     private final VectorClock VC;
 
-    public Event(int eid, int pid, EventType type, Valuation val, VectorClock VC) {
+    public Event(int eid, int pid, EventType type, Valuation<?> val, VectorClock VC) {
         this.eid = eid;
         this.pid = pid;
         this.type = type;
@@ -29,7 +29,7 @@ public final class Event {
         return type;
     }
 
-    public Valuation getVal() {
+    public Valuation<?> getVal() {
         return val;
     }
 

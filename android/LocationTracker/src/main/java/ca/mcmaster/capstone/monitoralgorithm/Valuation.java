@@ -3,23 +3,10 @@ package ca.mcmaster.capstone.monitoralgorithm;
 import java.util.HashMap;
 import java.util.Map;
 
-// XXX: The Value<T> class basically breaks type safety. We need to find a better way to do this.
-public class Valuation {
-    public static class Value<T> {
-        private final T value;
+public class Valuation<T> {
+    private final Map<String, T> valuation = new HashMap<>();
 
-        public Value(final T value) {
-            this.value = value;
-        }
-
-        public T evaluate() {
-            return value;
-        }
-    }
-
-    private final Map<String, Value<?>> valuation = new HashMap<>();
-
-    public Valuation(String variableName, Value<?> value) {
+    public Valuation(String variableName, T value) {
         this.valuation.put(variableName, value);
     }
 
@@ -27,11 +14,11 @@ public class Valuation {
         this.valuation.putAll(valuation.valuation);
     }
 
-    public Value<?> add(String variableName, Value<?> value) {
+    public T add(String variableName, T value) {
         return this.valuation.put(variableName, value);
     }
 
-    public Value<?> getValue(String name){
+    public T getValue(String name){
         return valuation.get(name);
     }
 }

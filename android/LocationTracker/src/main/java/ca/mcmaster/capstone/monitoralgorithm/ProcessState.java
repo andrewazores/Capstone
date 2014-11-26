@@ -2,7 +2,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 public class ProcessState {
     private final int id;
-    private final Valuation val;
+    private final Valuation<?> val;
     private final VectorClock VC;
 
     /*
@@ -12,7 +12,7 @@ public class ProcessState {
      * @param val The valuation of the process' variables.
      * @param VC The vector clock for the process.
      */
-    public ProcessState(int id, Valuation val, VectorClock VC) {
+    public ProcessState(int id, Valuation<?> val, VectorClock VC) {
         this.id = id;
         this.val = val;
         this.VC = VC;
@@ -20,7 +20,7 @@ public class ProcessState {
 
     public ProcessState(ProcessState state) {
         this.id = state.id;
-        this.val = new Valuation(state.val);
+        this.val = new Valuation<>(state.val);
         this.VC = new VectorClock(state.VC);
     }
 
@@ -28,8 +28,8 @@ public class ProcessState {
         return id;
     }
 
-    public Valuation getVal() {
-        return new Valuation(val);
+    public Valuation<?> getVal() {
+        return new Valuation<>(val);
     }
 
     /*

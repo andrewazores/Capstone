@@ -1,10 +1,8 @@
 package ca.mcmaster.capstone.networking;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.hardware.Sensor;
@@ -25,7 +23,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
@@ -94,7 +91,7 @@ public class CubeActivity extends Activity {
         }
         Event e = serviceConnection.getService().receiveEvent();
 
-        deviceMap.put(e.pid(), (Boolean)e.getVal().getValue("isFlat").evaluate());
+        deviceMap.put(e.pid(), (Boolean)e.getVal().getValue("isFlat"));
 
         int i = 0;
         StringBuilder sb = new StringBuilder();
@@ -106,7 +103,7 @@ public class CubeActivity extends Activity {
 
         runOnUiThread(() -> Toast.makeText(CubeActivity.this, sb.toString(), Toast.LENGTH_SHORT).show());
 
-        if(e.getVal().getValue("isFlat").evaluate().equals(true)){
+        if(e.getVal().getValue("isFlat").equals(true)){
 
         }
     }
@@ -204,7 +201,7 @@ public class CubeActivity extends Activity {
             if (serviceConnection.getService() == null) {
                 return;
             }
-            final Valuation valuation = new Valuation("isFlat", new Valuation.Value<Boolean>(isFlat));
+            final Valuation<?> valuation = new Valuation<>("isFlat", isFlat);
             Event e = new Event(flatnessCounter, NSD.hashCode(), Event.EventType.INTERNAL, valuation, new VectorClock(new ArrayList<Integer>() {{ add(1); add(7); add(42);}}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
             serviceConnection.getService().receiveEventInternal(e);
