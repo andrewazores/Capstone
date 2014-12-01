@@ -11,10 +11,10 @@ import java.util.Set;
 
 /* Class to hold the main algorithm code.*/
 public class Monitor {
-    private static final List<Event> history = new ArrayList<Event>();
-    private static final Set<Token> waitingTokens = new LinkedHashSet<Token>();
+    private static final List<Event> history = new ArrayList<>();
+    private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static final int monitorID = 0; // TODO: make this equal something reasonable
-    private static final Set<GlobalView> GV = new LinkedHashSet<GlobalView>();
+    private static final Set<GlobalView> GV = new LinkedHashSet<>();
     private static final int numProcesses = 10;
 
     // Placeholders until it becomes clear where these methods will really come from.
@@ -110,9 +110,9 @@ public class Monitor {
         gv.getStates().set(monitorID, state.update(event));
         if (gv.isConsistent()) {
             gv.setCurrentState(Automaton.advance(gv));
-            if (Automaton.getEvaluation() == Automaton.Evaluation.SATISFIED) {
+            if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
                 Log.d("processEvent", "I am satisfied!");
-            } else if (Automaton.getEvaluation() == Automaton.Evaluation.VIOLATED) {
+            } else if (gv.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
                 Log.d("processEvent", "I feel violated!");
             }
         }
@@ -185,9 +185,9 @@ public class Monitor {
                         globalView.getPendingTransitions().remove(trans);
                         GV.add(gvn1);
                         GV.add(gvn2);
-                        if (Automaton.getEvalForState(gvn1.getCurrentState()) == Automaton.Evaluation.SATISFIED) {
+                        if (gvn1.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
                             Log.d("processEvent", "I am satisfied!");
-                        } else if (Automaton.getEvalForState(gvn1.getCurrentState()) == Automaton.Evaluation.VIOLATED) {
+                        } else if (gvn1.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
                             Log.d("processEvent", "I feel violated!");
                         }
                         processEvent(gvn1, gvn1.getPendingEvents().remove());

@@ -3,19 +3,19 @@ package ca.mcmaster.capstone.monitoralgorithm;
 /* Class to represent an automaton state.*/
 public class AutomatonState {
     private String stateName;
-    private String stateType;
+    private Automaton.Evaluation stateType;
 
-    public AutomatonState(String stateName, String stateType) {
+    public AutomatonState(final String stateName, final Automaton.Evaluation stateType) {
         this.stateName = stateName;
         this.stateType = stateType;
     }
 
-    public AutomatonState(AutomatonState state) {
+    public AutomatonState(final AutomatonState state) {
         this.stateName = new String(state.stateName);
-        this.stateType = new String(state.stateType);
+        this.stateType = state.stateType;
     }
 
-    public String getStateType() {
+    public Automaton.Evaluation getStateType() {
         return stateType;
     }
 

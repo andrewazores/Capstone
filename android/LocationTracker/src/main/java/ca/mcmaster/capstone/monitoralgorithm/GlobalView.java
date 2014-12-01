@@ -20,7 +20,7 @@ public class GlobalView {
     public GlobalView() {
         this.states = new ArrayList<ProcessState>();
         this.cut = new VectorClock();
-        this.currentState = new AutomatonState("", "");
+        this.currentState = new AutomatonState("", Automaton.Evaluation.UNDECIDED);
         this.tokens = new ArrayList();
     }
 

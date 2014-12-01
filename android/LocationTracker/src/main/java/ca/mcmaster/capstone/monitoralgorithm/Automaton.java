@@ -1,15 +1,16 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /* Class to represent an Automaton.*/
 public class Automaton {
     public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED};
 
-    private static List<AutomatonState> stateList;
-    private static List<AutomatonTransition> transitionList;
-
-    //public Automaton() {}
+    private final static AutomatonState initialState = new AutomatonState("Start", Evaluation.UNDECIDED);
+    private final static Set<AutomatonState> stateList = new HashSet<>();
+    private final static Set<AutomatonTransition> transitionList = new HashSet<>();
 
     /*
      * Gets the initial state of the automaton.
@@ -17,7 +18,7 @@ public class Automaton {
      * @return The initial state of the automaton.
      */
     public static AutomatonState getInitialState() {
-        return stateList.get(0);
+        return initialState;
     }
 
     /*
@@ -26,35 +27,11 @@ public class Automaton {
      * @param gv The GlobalView to use to compute the next state.
      * @return The next state of the automaton.
      */
-    public static AutomatonState advance(GlobalView gv) {
+    public static AutomatonState advance(final GlobalView gv) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
-    /*
-     * Maps currentState to an Evaluation.
-     *
-     * @return An Automaton.Evaluation corresponding to the current state of the automaton.
-     */
-    public static Evaluation getEvaluation() {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
-    /*
-     * Maps state to an Evaluation.
-     *
-     * @param state The state to determine the evaluation for.
-     *
-     * @return An Automaton.Evaluation corresponding to the given state.
-     */
-    public static Evaluation getEvalForState(AutomatonState state) {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
-    public static List<AutomatonState> getStates() {
-        return stateList;
-    }
-
-    public static List<AutomatonTransition> getTransitions() {
+    public static Set<AutomatonTransition> getTransitions() {
         return transitionList;
     }
 }
