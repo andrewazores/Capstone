@@ -2,6 +2,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
@@ -136,7 +137,20 @@ public class GlobalView {
         return ret;
     }
 
+    /*
+     * Returns a set of process ids for processes that are inconsistent with the local vector clock.
+     * A process is inconsistent if it's vector clock is not equal to or concurrent with this process'.
+     *
+     * @return A set of process ids, for inconsistent processes.
+     */
     public Set<Integer> getInconsistentProcesses() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        Set<Integer> ret = new HashSet<>();
+        for (ProcessState state : this.states) {
+            if (this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.BIGGER ||
+                    this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.SMALLER) {
+                ret.add(state.getId());
+            }
+        }
+        return ret;
     }
 }

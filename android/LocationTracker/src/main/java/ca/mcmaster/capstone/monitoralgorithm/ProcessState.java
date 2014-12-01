@@ -32,12 +32,16 @@ public class ProcessState {
         return new Valuation<>(val);
     }
 
+    public VectorClock getVC() {
+        return new VectorClock(VC);
+    }
+
     /*
-     * Updates the ProcessState with the state after event occurs.
-     *
-     * @param event The event to update to.
-     * @return A new ProcessState updated with event.
-     */
+         * Updates the ProcessState with the state after event occurs.
+         *
+         * @param event The event to update to.
+         * @return A new ProcessState updated with event.
+         */
     public ProcessState update(Event event) {
         return new ProcessState(this.id, event.getVal(), event.getVC());
     }
