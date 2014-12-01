@@ -102,12 +102,18 @@ public class GlobalView {
     }
 
     /*
-     * Finds and returns the token that has the most conjuncts requested to be evaluated.
+     * Finds and returns a reference to the token that has the most conjuncts requested to be evaluated.
      *
-     * @return The token with the most conjuncts requested to be evaluated.
+     * @return A reference to The token with the most conjuncts requested to be evaluated.
      */
     public Token getTokenWithMostConjuncts() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        Token ret = this.tokens.get(0);
+        for (Token token : this.tokens) {
+            if (token.getConjuncts().size() > ret.getConjuncts().size()) {
+                ret = token;
+            }
+        }
+        return ret;
     }
 
     /*
