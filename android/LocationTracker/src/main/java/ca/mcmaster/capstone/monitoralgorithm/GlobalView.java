@@ -123,7 +123,17 @@ public class GlobalView {
      * @return A list of tokens which are associated with transition.
      */
     public List<Token> getTokensForTransition(AutomatonTransition transition) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        List<Token> ret = new ArrayList<>();
+        List<Conjunct> transConjuncts = transition.getConjuncts();
+        for (Token token : this.tokens) {
+            for (Conjunct conjunct : token.getConjuncts()) {
+                if (transConjuncts.contains(conjunct)) {
+                    ret.add(token);
+                    break;
+                }
+            }
+        }
+        return ret;
     }
 
     public Set<Integer> getInconsistentProcesses() {
