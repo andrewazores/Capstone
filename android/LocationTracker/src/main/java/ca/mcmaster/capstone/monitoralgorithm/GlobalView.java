@@ -89,7 +89,7 @@ public class GlobalView {
         // If any pending transitions are also in the token, and are evaluated in the token, remove them
         for (Iterator<AutomatonTransition> it = pendingTransitions.iterator(); it.hasNext();) {
             final AutomatonTransition pending = it.next();
-            if (token.getAutomatonTransitions().contains(pending) && pending.getEvaluation() != Conjunct.Evaluation.NONE) {
+            if (token.getAutomatonTransitions().contains(pending) && pending.evaluate(this.states.values()) != Conjunct.Evaluation.NONE) {
                 it.remove();
             }
         }

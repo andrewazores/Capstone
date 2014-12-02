@@ -1,7 +1,6 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /* Class to represent an Automaton.*/
@@ -9,8 +8,8 @@ public class Automaton {
     public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED}
 
     private final static AutomatonState initialState = new AutomatonState("Start", Evaluation.UNDECIDED);
-    private final static Set<AutomatonState> stateList = new HashSet<>();
-    private final static Set<AutomatonTransition> transitionList = new HashSet<>();
+    private final static Set<AutomatonState> states = new HashSet<>();
+    private final static Set<AutomatonTransition> transitions = new HashSet<>();
 
     /*
      * Gets the initial state of the automaton.
@@ -28,10 +27,17 @@ public class Automaton {
      * @return The next state of the automaton.
      */
     public static AutomatonState advance(final GlobalView gv) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        for (AutomatonTransition transition : transitions) {
+            if (transition.getFrom() == gv.getCurrentState() && transition.getFrom() != transition.getTo()) {
+                if (transition.evaluate(gv.getStates().values()) == Conjunct.Evaluation.TRUE) {
+                    return transition.getTo();
+                }
+            }
+        }
+        return gv.getCurrentState();
     }
 
     public static Set<AutomatonTransition> getTransitions() {
-        return transitionList;
+        return transitions;
     }
 }

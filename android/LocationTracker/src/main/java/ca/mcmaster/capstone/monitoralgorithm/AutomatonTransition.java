@@ -1,6 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,10 +61,16 @@ public class AutomatonTransition {
      *
      * @return The evaluation of the transition based on its conjuncts.
      */
-    public Conjunct.Evaluation getEvaluation() {
-        if (this.conjuncts.contains(Conjunct.Evaluation.FALSE)) {
+    public Conjunct.Evaluation evaluate(Collection<ProcessState> processStates) {
+        Map<Conjunct, Conjunct.Evaluation> evaluations = new HashMap<>();
+        for (ProcessState state : processStates) {
+            for (Conjunct conjunct : this.conjuncts) {
+                evaluations.put(conjunct, conjunct.evaluate(state));
+            }
+        }
+        if (evaluations.values().contains(Conjunct.Evaluation.FALSE)) {
             return Conjunct.Evaluation.FALSE;
-        } else if (this.conjuncts.contains(Conjunct.Evaluation.NONE)) {
+        } else if (evaluations.values().contains(Conjunct.Evaluation.NONE)) {
             return Conjunct.Evaluation.NONE;
         }
         return Conjunct.Evaluation.TRUE;

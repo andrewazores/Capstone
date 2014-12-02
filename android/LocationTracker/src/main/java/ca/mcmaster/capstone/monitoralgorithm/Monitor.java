@@ -302,14 +302,14 @@ public class Monitor extends Service {
                         }
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
-                    } else if (trans.getEvaluation() == Conjunct.Evaluation.FALSE) {
+                    } else if (trans.evaluate(globalView.getStates().values()) == Conjunct.Evaluation.FALSE) {
                         globalView.getPendingTransitions().remove(trans);
                     }
                 }
                 if (globalView.getPendingTransitions().isEmpty()) {
                     boolean hasEnabled = false;
                     for (final AutomatonTransition gvTrans : globalView.getPendingTransitions()) {
-                        if (gvTrans.getEvaluation() == Conjunct.Evaluation.TRUE) {
+                        if (gvTrans.evaluate(globalView.getStates().values()) == Conjunct.Evaluation.TRUE) {
                             GV.removeAll(globalViews);
                             hasEnabled = true;
                             break;
