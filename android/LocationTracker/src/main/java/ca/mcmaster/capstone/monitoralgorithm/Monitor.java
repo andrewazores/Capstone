@@ -121,6 +121,13 @@ public class Monitor {
         checkOutgoingTransitions(gv, event);
     }
 
+    /*
+     * Identifies events in gv that are concurrent with event that can enable out going transitions
+     * from the current state of the monitor automaton.
+     *
+     * @param gv The global view to use for finding concurrent events.
+     * @param event The event to find concurrent events for.
+     */
     private static void checkOutgoingTransitions(final GlobalView gv, final Event event) {
         List<Set<AutomatonTransition>> consult = new ArrayList<>();
         for (AutomatonTransition trans : Automaton.getTransitions()) {

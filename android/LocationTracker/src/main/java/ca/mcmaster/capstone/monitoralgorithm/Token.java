@@ -142,8 +142,10 @@ public class Token {
      *
      * @param event The event to use to evaluate the transitions.
      */
-    public void evaluateConjuncts(final Event event){
-        throw new UnsupportedOperationException("Not implemented yet.");
+    public void evaluateConjuncts(final Event event) {
+        for (Conjunct conjunct : conjuncts.keySet()) {
+            conjuncts.put(conjunct, conjunct.evaluate(event.getState()));
+        }
     }
 
     /*
@@ -152,6 +154,6 @@ public class Token {
      * @return True if at least one conjunct is satisfied, false otherwise.
      */
     public boolean anyConjunctSatisfied() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return conjuncts.containsValue(Conjunct.Evaluation.TRUE);
     }
 }
