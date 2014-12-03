@@ -1,20 +1,22 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Conjunct {
     public static enum Evaluation {TRUE, FALSE, NONE}
 
-    private Evaluation evaluation = Evaluation.NONE;
-    private final int ownerProcess;
+    private final Set<Integer> ownerProcesses = new HashSet<>();
 
-    public Conjunct(int ownerProcess) {
-        this.ownerProcess = ownerProcess;
+    public Conjunct(final Set<Integer> ownerProcesses) {
+        this.ownerProcesses.addAll(ownerProcesses);
     }
 
-    public Evaluation getEvaluation() {
-        return evaluation;
+    public Set<Integer> getOwnerProcesses() {
+        return new HashSet<>(ownerProcesses);
     }
 
-    public void setEvaluation(Evaluation evaluation) {
-        this.evaluation = evaluation;
+    public Evaluation evaluate(final ProcessState state) {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

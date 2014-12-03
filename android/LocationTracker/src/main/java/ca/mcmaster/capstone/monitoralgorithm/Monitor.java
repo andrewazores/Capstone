@@ -3,10 +3,12 @@ package ca.mcmaster.capstone.monitoralgorithm;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /* Class to hold the main algorithm code.*/
@@ -119,7 +121,7 @@ public class Monitor {
         checkOutgoingTransitions(gv, event);
     }
 
-    private static void checkOutgoingTransitions(GlobalView gv, Event event) {
+    private static void checkOutgoingTransitions(final GlobalView gv, final Event event) {
         List<Set<AutomatonTransition>> consult = new ArrayList<>();
         for (AutomatonTransition trans : Automaton.getTransitions()) {
             AutomatonState current = gv.getCurrentState();
@@ -139,6 +141,7 @@ public class Monitor {
                 }
             }
         }
+
         for (int j = 0; j < numProcesses; ++j) {
             if (!consult.get(j).isEmpty()) {
                 // Get all the conjuncts for process j
@@ -146,8 +149,13 @@ public class Monitor {
                 for (AutomatonTransition trans : consult.get(j)) {
                     conjuncts.addAll(trans.getConjuncts());
                 }
+                //Build map to add to token
+                Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
+                for (Conjunct conjunct : conjuncts) {
+                    forToken.put(conjunct, Conjunct.Evaluation.NONE);
+                }
                 Token token = new Token.Builder(monitorID, j).targetEventId(gv.getCut().process(j) + 1)
-                        .cut(event.getVC()).conjuncts(conjuncts).automatonTransitions(consult.get(j))
+                        .cut(event.getVC()).conjuncts(forToken).automatonTransitions(consult.get(j))
                         .build();
                 gv.getTokens().add(token);
             }
@@ -236,15 +244,15 @@ public class Monitor {
      * @param event The event to update token with.
      */
     public static void processToken(Token token, Event event) {
-        // TODO: define TokenBuilder, use to do assgns here
         if (event.getVC().compareToClock(token.getCut()) == VectorClock.Comparison.CONCURRENT) {
             evaluateToken(token, event);
         } else {
-            for (Conjunct conjunct : token.getConjuncts()) {
-                conjunct.setEvaluation(Conjunct.Evaluation.FALSE);
+            Map<Conjunct, Conjunct.Evaluation> conjunctsMap = token.getConjunctsMap();
+            for (Conjunct conjunct : conjunctsMap.keySet()) {
+                conjunctsMap.put(conjunct, Conjunct.Evaluation.FALSE);
             }
             Event eventPrime = history.get(token.getTargetEventId());
-            Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).targetProcessState(eventPrime.getState()).build();
+            Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).conjuncts(conjunctsMap).targetProcessState(eventPrime.getState()).build();
             send(newToken, newToken.getOwner());
         }
     }

@@ -1,9 +1,8 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
-import android.os.Build;
-
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /* Class to represent the computation slicing tokens.*/
@@ -15,7 +14,7 @@ public class Token {
         private int targetEventId = 0;
         private VectorClock cut = new VectorClock();
         private Set<AutomatonTransition> automatonTransitions = new HashSet<>();
-        private Set<Conjunct> conjuncts = new HashSet<>();
+        private Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
         private ProcessState targetProcessState = null;
         public boolean returned = false;
         public boolean sent = false;
@@ -31,7 +30,7 @@ public class Token {
             this.targetEventId = token.targetEventId;
             this.cut = new VectorClock(token.cut);
             this.automatonTransitions.addAll(token.automatonTransitions);
-            this.conjuncts.addAll(token.conjuncts);
+            this.conjuncts.putAll(token.conjuncts);
             this.targetProcessState = new ProcessState(token.targetProcessState);
             this.returned = token.returned;
             this.sent = token.sent;
@@ -52,8 +51,8 @@ public class Token {
             return this;
         }
 
-        public Builder conjuncts(Set<Conjunct> conjuncts) {
-            this.conjuncts.addAll(conjuncts);
+        public Builder conjuncts(Map<Conjunct, Conjunct.Evaluation> conjuncts) {
+            this.conjuncts.putAll(conjuncts);
             return this;
         }
 
@@ -82,18 +81,18 @@ public class Token {
     private final int targetEventId;
     private final VectorClock cut;
     private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
-    private final Set<Conjunct> conjuncts = new HashSet<>();
+    private final Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
     private final ProcessState targetProcessState;
     private final boolean returned = false;
     private final boolean sent = false;
 
-    public Token(Builder builder) {
+    public Token(final Builder builder) {
         this.owner = builder.owner;
         this.destination = builder.destination;
         this.targetEventId = builder.targetEventId;
         this.cut = builder.cut;
         this.automatonTransitions.addAll(builder.automatonTransitions);
-        this.conjuncts.addAll(builder.conjuncts);
+        this.conjuncts.putAll(builder.conjuncts);
         this.targetProcessState = builder.targetProcessState;
     }
 
@@ -102,6 +101,10 @@ public class Token {
     }
 
     public Set<Conjunct> getConjuncts() {
+        return conjuncts.keySet();
+    }
+
+    public Map<Conjunct, Conjunct.Evaluation> getConjunctsMap() {
         return conjuncts;
     }
 
@@ -139,7 +142,7 @@ public class Token {
      *
      * @param event The event to use to evaluate the transitions.
      */
-    public void evaluateConjuncts(Event event){
+    public void evaluateConjuncts(final Event event){
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
