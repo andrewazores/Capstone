@@ -1,3 +1,6 @@
- 2.08   2.50 Problem Statement
-68.48 100.00 SRS
-67.50 100.00 STP
+Marks  TMarks FMarks TFMarks
+ 00.00  00.00  00.00   00.00 Record of Project
+ 41.50  50.00   2.08    2.50 Problem Statement
+ 63.00  92.00   5.14    7.50 SRS
+ 67.50 100.00   3.34    5.00 STP
+  7.00   7.00   5.00    5.00 POC
