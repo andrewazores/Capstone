@@ -1,7 +1,9 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /* Class to represent an automaton transition.*/
 public class AutomatonTransition {
@@ -31,7 +33,7 @@ public class AutomatonTransition {
         return result;
     }
 
-    public AutomatonTransition(AutomatonState from, AutomatonState to, List<Conjunct> conjuncts) {
+    public AutomatonTransition(final AutomatonState from, final AutomatonState to, final List<Conjunct> conjuncts) {
         this.from = from;
         this.to = to;
         this.conjuncts.addAll(conjuncts);
@@ -43,6 +45,10 @@ public class AutomatonTransition {
 
     public AutomatonState getFrom() {
         return from;
+    }
+
+    public List<Conjunct> getConjuncts() {
+        return conjuncts;
     }
 
     /*
@@ -59,8 +65,35 @@ public class AutomatonTransition {
         return Conjunct.Evaluation.TRUE;
     }
 
-    // XXX: probably not needed now
-    public AutomatonTransition evaluate(Conjunct.Evaluation eval) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+    /*
+     * Returns a set of process ids for the processes that contribute variables to the predicate
+     * labeling this transition.
+     *
+     * @return A set of process ids.
+     */
+    public Set<Integer> getParticipatingProcesses() {
+        Set<Integer> ret = new HashSet<>();
+        for (Conjunct conjunct : conjuncts) {
+            ret.addAll(conjunct.getOwnerProcesses());
+        }
+        return ret;
+    }
+
+    /*
+     * Returns a set of process ids for the processes that cause this transition to evaluate to false.
+     *
+     * @return A set of process ids.
+     */
+    public Set<Integer> getForbiddingProcesses(final GlobalView gv) {
+        Set<Integer> ret = new HashSet<>();
+        for (ProcessState state : gv.getStates()) {
+            for (Conjunct conjunct : conjuncts) {
+                if (conjunct.evaluate(state) == Conjunct.Evaluation.FALSE) {
+                    ret.add(state.getId());
+                    break;
+                }
+            }
+        }
+        return ret;
     }
 }

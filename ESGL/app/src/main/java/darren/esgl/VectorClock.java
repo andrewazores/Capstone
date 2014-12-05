@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone.monitoralgorithm;
+package darren.esgl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -8,7 +8,7 @@ import java.util.List;
 public class VectorClock implements Iterable<Integer> {
     public static enum Comparison { EQUAL, BIGGER, SMALLER, CONCURRENT };
 
-    private final List<Integer> consistentCut = new ArrayList<>();
+    private final List<Integer> consistentCut = new ArrayList<Integer>();
 
     /* This constructor should eventually be deleted once things are fully implemented */
     public VectorClock() {

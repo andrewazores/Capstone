@@ -2,6 +2,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
@@ -19,7 +20,7 @@ public class GlobalView {
     public GlobalView() {
         this.states = new ArrayList<ProcessState>();
         this.cut = new VectorClock();
-        this.currentState = new AutomatonState("", "");
+        this.currentState = new AutomatonState("", Automaton.Evaluation.UNDECIDED);
         this.tokens = new ArrayList();
     }
 
@@ -102,12 +103,18 @@ public class GlobalView {
     }
 
     /*
-     * Finds and returns the token that has the most conjuncts requested to be evaluated.
+     * Finds and returns a reference to the token that has the most conjuncts requested to be evaluated.
      *
-     * @return The token with the most conjuncts requested to be evaluated.
+     * @return A reference to The token with the most conjuncts requested to be evaluated.
      */
     public Token getTokenWithMostConjuncts() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        Token ret = this.tokens.get(0);
+        for (Token token : this.tokens) {
+            if (token.getConjuncts().size() > ret.getConjuncts().size()) {
+                ret = token;
+            }
+        }
+        return ret;
     }
 
     /*
@@ -117,6 +124,33 @@ public class GlobalView {
      * @return A list of tokens which are associated with transition.
      */
     public List<Token> getTokensForTransition(AutomatonTransition transition) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        List<Token> ret = new ArrayList<>();
+        List<Conjunct> transConjuncts = transition.getConjuncts();
+        for (Token token : this.tokens) {
+            for (Conjunct conjunct : token.getConjuncts()) {
+                if (transConjuncts.contains(conjunct)) {
+                    ret.add(token);
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
+
+    /*
+     * Returns a set of process ids for processes that are inconsistent with the local vector clock.
+     * A process is inconsistent if it's vector clock is not equal to or concurrent with this process'.
+     *
+     * @return A set of process ids, for inconsistent processes.
+     */
+    public Set<Integer> getInconsistentProcesses() {
+        Set<Integer> ret = new HashSet<>();
+        for (ProcessState state : this.states) {
+            if (this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.BIGGER ||
+                    this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.SMALLER) {
+                ret.add(state.getId());
+            }
+        }
+        return ret;
     }
 }

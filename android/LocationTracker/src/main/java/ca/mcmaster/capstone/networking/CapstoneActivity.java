@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -39,6 +40,12 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     private final List<HashableNsdServiceInfo> nsdPeers = new ArrayList<>();
     private Intent serviceIntent;
 
+    public HashableNsdServiceInfo getLocalNsdServiceInfo() {
+        return localNsdServiceInfo;
+    }
+
+    private HashableNsdServiceInfo localNsdServiceInfo = null;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,12 +71,25 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
 
         final Button stopButton = (Button) findViewById(R.id.stopButton);
         stopButton.setOnClickListener(view -> stopLocationService());
+
+        final Button cubeButton = (Button) findViewById(R.id.cube);
+        cubeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(localNsdServiceInfo != null) {
+                    Intent i = new Intent(CapstoneActivity.this, CubeActivity.class);
+                    startActivity(i);
+                }
+                else
+                    Toast.makeText(CapstoneActivity.this, "NSD Conenction invalid", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void getPeerUpdate(final HashableNsdServiceInfo peer) {
         if (serviceConnection.isBound()) {
             serviceConnection.getService().sendHandshakeToPeer(peer);
-            serviceConnection.getService().requestUpdateFromPeer(this, peer);
+            serviceConnection.getService().requestUpdateFromPeer(peer, this);
         }
     }
 
@@ -152,7 +172,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         Log.v("CapstoneActivity", message);
     }
 
-    private class LocationServiceConnection implements ServiceConnection {
+    public class LocationServiceConnection implements ServiceConnection {
 
         private CapstoneService service;
         private CapstoneService.CapstoneLocationServiceBinder binder;
@@ -166,6 +186,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             this.service = ((CapstoneService.CapstoneLocationServiceBinder) service).getService();
             this.service.registerSensorUpdateCallback(CapstoneActivity.this);
             this.service.registerNsdUpdateCallback(CapstoneActivity.this);
+            CapstoneActivity.this.localNsdServiceInfo = HashableNsdServiceInfo.get(this.service.getLocalNsdServiceInfo());
             updateSelfInfo();
         }
 

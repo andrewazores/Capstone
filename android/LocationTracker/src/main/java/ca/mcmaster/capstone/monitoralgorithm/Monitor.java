@@ -3,18 +3,21 @@ package ca.mcmaster.capstone.monitoralgorithm;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /* Class to hold the main algorithm code.*/
 public class Monitor {
-    private static final List<Event> history = new ArrayList<Event>();
-    private static final Set<Token> waitingTokens = new LinkedHashSet<Token>();
-    private static final Automaton automaton = new Automaton();
+    private static final List<Event> history = new ArrayList<>();
+    private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static final int monitorID = 0; // TODO: make this equal something reasonable
-    private static final Set<GlobalView> GV = new LinkedHashSet<GlobalView>();
+    private static final Set<GlobalView> GV = new LinkedHashSet<>();
+    private static final int numProcesses = 10;
 
     // Placeholders until it becomes clear where these methods will really come from.
     private static Token receive() {
@@ -32,12 +35,7 @@ public class Monitor {
     private static void mergeSimilarGlobalViews(Set<GlobalView> views) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
-    private static void checkOutgoingTransitions(GlobalView gv) {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-    private static GlobalView getGlobalView(Token token) {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
+
     private static boolean enabled(AutomatonTransition transition, List<Token> tokens){
         throw new UnsupportedOperationException("Not implemented yet.");
     }
@@ -54,10 +52,9 @@ public class Monitor {
      */
     public static void init(List<ProcessState> initialStates) {
         GlobalView initialGV = new GlobalView();
-        initialGV.setCurrentState(automaton.getCurrentState());
+        initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
-        automaton.advance(initialGV);
-        initialGV.setCurrentState(automaton.getCurrentState());
+        initialGV.setCurrentState(Automaton.advance(initialGV));
     }
 
     /*
@@ -114,14 +111,58 @@ public class Monitor {
         ProcessState state = gv.getStates().get(monitorID);
         gv.getStates().set(monitorID, state.update(event));
         if (gv.isConsistent()) {
-            gv.setCurrentState(automaton.advance(gv));
-            if (automaton.getEvaluation() == Automaton.Evaluation.SATISFIED) {
+            gv.setCurrentState(Automaton.advance(gv));
+            if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
                 Log.d("processEvent", "I am satisfied!");
-            } else if (automaton.getEvaluation() == Automaton.Evaluation.VIOLATED) {
+            } else if (gv.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
                 Log.d("processEvent", "I feel violated!");
             }
         }
-        checkOutgoingTransitions(gv);
+        checkOutgoingTransitions(gv, event);
+    }
+
+    private static void checkOutgoingTransitions(final GlobalView gv, final Event event) {
+        List<Set<AutomatonTransition>> consult = new ArrayList<>();
+        for (AutomatonTransition trans : Automaton.getTransitions()) {
+            AutomatonState current = gv.getCurrentState();
+            if (trans.getFrom() == current && trans.getTo() != current) {
+                Set<Integer> participating = trans.getParticipatingProcesses();
+                Set<Integer> forbidding = trans.getForbiddingProcesses(gv);
+                if (!forbidding.contains(monitorID)) {
+                    Set<Integer> inconsistent = gv.getInconsistentProcesses();
+                    // intersection
+                    participating.retainAll(inconsistent);
+                    // union
+                    forbidding.addAll(participating);
+                    for (Integer process : forbidding) {
+                        gv.getPendingTransitions().add(trans);
+                        consult.get(process).add(trans);
+                    }
+                }
+            }
+        }
+
+        for (int j = 0; j < numProcesses; ++j) {
+            if (!consult.get(j).isEmpty()) {
+                // Get all the conjuncts for process j
+                Set<Conjunct> conjuncts = new HashSet<>();
+                for (AutomatonTransition trans : consult.get(j)) {
+                    conjuncts.addAll(trans.getConjuncts());
+                }
+                //Build map to add to token
+                Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
+                for (Conjunct conjunct : conjuncts) {
+                    forToken.put(conjunct, Conjunct.Evaluation.NONE);
+                }
+                Token token = new Token.Builder(monitorID, j).targetEventId(gv.getCut().process(j) + 1)
+                        .cut(event.getVC()).conjuncts(forToken).automatonTransitions(consult.get(j))
+                        .build();
+                gv.getTokens().add(token);
+            }
+        }
+        Token token = gv.getTokenWithMostConjuncts();
+        send(token, token.getDestination());
+        token = new Token.Builder(token).sent(true).build();
     }
 
     /*
@@ -133,52 +174,54 @@ public class Monitor {
      */
     public static void receiveToken(Token token) {
         if (token.getOwner() == monitorID) {
-            GlobalView gv = getGlobalView(token);
-            gv.update(token);
-            for (AutomatonTransition trans : token.getAutomatonTransitions()) {
-                // Get other tokens for same transition
-                List<Token> tokens = gv.getTokensForTransition(trans);
-                if (enabled(trans, tokens) && consistent(tokens)) {
-                    for (Token tok : tokens) {
-                        gv.update(tok);
+            List<GlobalView> globalViews = getGlobalView(token);
+            for (GlobalView globalView : globalViews) {
+                globalView.update(token);
+                for (AutomatonTransition trans : token.getAutomatonTransitions()) {
+                    // Get other tokens for same transition
+                    List<Token> tokens = globalView.getTokensForTransition(trans);
+                    if (enabled(trans, tokens) && consistent(tokens)) {
+                        for (Token tok : tokens) {
+                            globalView.update(tok);
+                        }
+                        GlobalView gvn1 = new GlobalView(globalView);
+                        GlobalView gvn2 = new GlobalView(globalView);
+                        gvn1.setCurrentState(trans.getTo());
+                        gvn2.setCurrentState(trans.getTo());
+                        gvn1.setTokens(new ArrayList<Token>());
+                        gvn2.setTokens(new ArrayList<Token>());
+                        globalView.getPendingTransitions().remove(trans);
+                        GV.add(gvn1);
+                        GV.add(gvn2);
+                        if (gvn1.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
+                            Log.d("processEvent", "I am satisfied!");
+                        } else if (gvn1.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
+                            Log.d("processEvent", "I feel violated!");
+                        }
+                        processEvent(gvn1, gvn1.getPendingEvents().remove());
+                        processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
+                    } else if (trans.getEvaluation() == Conjunct.Evaluation.FALSE) {
+                        globalView.getPendingTransitions().remove(trans);
                     }
-                    GlobalView gvn1 = new GlobalView(gv);
-                    GlobalView gvn2 = new GlobalView(gv);
-                    gvn1.setCurrentState(trans.getTo());
-                    gvn2.setCurrentState(trans.getTo());
-                    gvn1.setTokens(new ArrayList<Token>());
-                    gvn2.setTokens(new ArrayList<Token>());
-                    gv.getPendingTransitions().remove(trans);
-                    GV.add(gvn1);
-                    GV.add(gvn2);
-                    if (Automaton.getEvalForState(gvn1.getCurrentState()) == Automaton.Evaluation.SATISFIED) {
-                        Log.d("processEvent", "I am satisfied!");
-                    } else if (Automaton.getEvalForState(gvn1.getCurrentState()) == Automaton.Evaluation.VIOLATED) {
-                        Log.d("processEvent", "I feel violated!");
-                    }
-                    processEvent(gvn1, gvn1.getPendingEvents().remove());
-                    processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
-                } else if (trans.getEvaluation() == Conjunct.Evaluation.FALSE) {
-                    gv.getPendingTransitions().remove(trans);
                 }
+                if (globalView.getPendingTransitions().isEmpty()) {
+                    boolean hasEnabled = false;
+                    for (AutomatonTransition gvTrans : globalView.getPendingTransitions()) {
+                        if (gvTrans.getEvaluation() == Conjunct.Evaluation.TRUE) {
+                            GV.remove(globalViews);
+                            hasEnabled = true;
+                            break;
+                        }
+                    }
+                    if (!hasEnabled) {
+                        globalView.setTokens(new ArrayList<Token>());
+                        processEvent(globalView, globalView.getPendingEvents().remove());
+                    }
+                }
+                Token maxConjuncts = globalView.getTokenWithMostConjuncts();
+                send(maxConjuncts, maxConjuncts.getDestination());
+                maxConjuncts = new Token.Builder(maxConjuncts).sent(true).build();
             }
-            if (gv.getPendingTransitions().isEmpty()) {
-                boolean hasEnabled = false;
-                for (AutomatonTransition gvTrans : gv.getPendingTransitions()) {
-                    if (gvTrans.getEvaluation() == Conjunct.Evaluation.TRUE) {
-                        GV.remove(gv);
-                        hasEnabled = true;
-                        break;
-                    }
-                }
-                if (!hasEnabled) {
-                    gv.setTokens(new ArrayList<Token>());
-                    processEvent(gv, gv.getPendingEvents().remove());
-                }
-            }
-            Token maxConjuncts = gv.getTokenWithMostConjuncts();
-            send(maxConjuncts, maxConjuncts.getDestination());
-            maxConjuncts = new Token.Builder(maxConjuncts).sent(true).build();
         } else if (token.getOwner() != monitorID) {
             boolean hasTarget = false;
             for (Event event : history) {
@@ -201,15 +244,15 @@ public class Monitor {
      * @param event The event to update token with.
      */
     public static void processToken(Token token, Event event) {
-        // TODO: define TokenBuilder, use to do assgns here
         if (event.getVC().compareToClock(token.getCut()) == VectorClock.Comparison.CONCURRENT) {
             evaluateToken(token, event);
         } else {
-            for (Conjunct conjunct : token.getConjuncts()) {
-                conjunct.setEvaluation(Conjunct.Evaluation.FALSE);
+            Map<Conjunct, Conjunct.Evaluation> conjunctsMap = token.getConjunctsMap();
+            for (Conjunct conjunct : conjunctsMap.keySet()) {
+                conjunctsMap.put(conjunct, Conjunct.Evaluation.FALSE);
             }
             Event eventPrime = history.get(token.getTargetEventId());
-            Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).targetProcessState(eventPrime.getState()).build();
+            Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).conjuncts(conjunctsMap).targetProcessState(eventPrime.getState()).build();
             send(newToken, newToken.getOwner());
         }
     }
@@ -218,7 +261,7 @@ public class Monitor {
      * Evaluates each of token's predicates.
      *
      * @param token The token whose predicates will be evaluated.
-     * @param event The
+     * @param event The event to use to evaluate the token.
      */
     public static void evaluateToken(Token token, Event event) {
         token.evaluateConjuncts(event);
@@ -228,5 +271,24 @@ public class Monitor {
         } else {
             waitingTokens.add(token.waitForNextEvent());
         }
+    }
+
+    /*
+     * Returns a list of global views that contain a copy of token.
+     *
+     * @param token The token to search for.
+     * @return A list of GlobalViews that have a copy of token.
+     */
+    private static List<GlobalView> getGlobalView(Token token) {
+        List<GlobalView> ret = new ArrayList<>();
+        for (GlobalView gv : GV) {
+            for (Token t : gv.getTokens()) {
+                if (token.getOwner() == t.getOwner()) {
+                    ret.add(gv);
+                    break;
+                }
+            }
+        }
+        return ret;
     }
 }

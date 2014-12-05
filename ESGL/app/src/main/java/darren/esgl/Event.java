@@ -1,4 +1,4 @@
-package ca.mcmaster.capstone.monitoralgorithm;
+package darren.esgl;
 
 public final class Event {
     public static enum EventType {SEND, RECEIVE, INTERNAL}
@@ -6,10 +6,10 @@ public final class Event {
     private final int eid;
     private final int pid;
     private final EventType type;
-    private final Valuation<?> val;
+    private final Valuation val;
     private final VectorClock VC;
 
-    public Event(int eid, int pid, EventType type, Valuation<?> val, VectorClock VC) {
+    public Event(int eid, int pid, EventType type, Valuation val, VectorClock VC) {
         this.eid = eid;
         this.pid = pid;
         this.type = type;
@@ -29,7 +29,7 @@ public final class Event {
         return type;
     }
 
-    public Valuation<?> getVal() {
+    public Valuation getVal() {
         return val;
     }
 
@@ -38,22 +38,11 @@ public final class Event {
     }
 
     /*
-         * Returns a ProcessState based on this event's vector clock and variable valuation.
-         *
-         * @return A new ProcessState based on this event's vector clock and variable valuation.
-         */
+     * Returns a ProcessState based on this event's vector clock and variable valuation.
+     *
+     * @return A new ProcessState based on this event's vector clock and variable valuation.
+     */
     public ProcessState getState() {
         return new ProcessState(this.pid, this.val, this.VC);
-    }
-
-    @Override
-    public String toString() {
-        return "Event{" +
-                "eid=" + eid +
-                ", pid=" + pid +
-                ", type=" + type +
-                ", val=" + val +
-                ", VC=" + VC +
-                '}';
     }
 }

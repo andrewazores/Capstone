@@ -1,15 +1,20 @@
 package ca.mcmaster.capstone.networking;
 
+import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 
-import ca.mcmaster.capstone.monitoralgorithm.Token;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import com.google.gson.Gson;
-import fi.iki.elonen.NanoHTTPD;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import ca.mcmaster.capstone.monitoralgorithm.Event;
+import ca.mcmaster.capstone.monitoralgorithm.Token;
+import ca.mcmaster.capstone.networking.structures.DeviceInfo;
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.PayloadObject;
+import fi.iki.elonen.NanoHTTPD;
 
 public class CapstoneServer extends NanoHTTPD {
 
@@ -17,6 +22,7 @@ public class CapstoneServer extends NanoHTTPD {
         UPDATE,
         IDENTIFY,
         SEND_TOKEN,
+        SEND_EVENT,
     }
 
     public enum MimeType {
@@ -58,8 +64,8 @@ public class CapstoneServer extends NanoHTTPD {
     @Override
     public Response serve(final IHTTPSession session) {
         log("Got " + session.getMethod() + " request on " + session.getUri());
-        if (!(session.getMethod().equals(Method.GET) || session.getMethod().equals(Method.POST) )) {
-            return new Response(Response.Status.METHOD_NOT_ALLOWED, MimeType.TEXT_PLAIN.getContentType(), "Only GET and POST requests are supported");
+        if (!(session.getMethod().equals(Method.GET) || session.getMethod().equals(Method.POST))) {
+            return errorResponse("Only GET and POST requests are supported");
         }
 
         final Map<String, String> headers = session.getHeaders();
@@ -69,33 +75,33 @@ public class CapstoneServer extends NanoHTTPD {
             session.parseBody(contentBody);
         } catch (final ResponseException | IOException e) {
             log("Error parsing body: " + contentBody);
+            log(e.getLocalizedMessage());
             return genericError();
         }
         log("Method: " + method);
         log("Content Body: " + contentBody);
 
+        if (method == null) {
+            log("Request method is invalid (null), cnanot serve request");
+            return genericError();
+        }
+
         if (session.getMethod().equals(Method.GET)) {
-            if (method != null && method.equals(RequestMethod.UPDATE)) {
+            if (method.equals(RequestMethod.UPDATE)) {
                 log("Responding with OK and current DeviceInfo");
                 return serveGetRequest();
             }
         } else if (session.getMethod().equals(Method.POST)) {
-            if (method != null && method.equals(RequestMethod.IDENTIFY)) {
-                final String postData = contentBody.get("postData");
-                final HashableNsdServiceInfo peerNsdServiceInfo = gson.fromJson(postData, HashableNsdServiceInfo.class);
-                log("Parsed POST data as: " + peerNsdServiceInfo);
-                if (peerNsdServiceInfo == null) {
+            switch (method) {
+                case UPDATE:
+                    log("Cannot serve POST with UPDATE method, returning error");
                     return genericError();
-                }
-                return servePostIdentify(peerNsdServiceInfo);
-            } else if (method != null && method.equals(RequestMethod.SEND_TOKEN)) {
-                final String postData = contentBody.get("postData");
-                final Token token = gson.fromJson(postData, Token.class);
-                log("Parsed POST data as: " + token);
-                if (token == null) {
-                    return genericError();
-                }
-                return servePostReceiveToken(token);
+                case IDENTIFY:
+                    return servePostIdentify(contentBody);
+                case SEND_TOKEN:
+                    return servePostReceiveToken(contentBody);
+                case SEND_EVENT:
+                    return servePostReceiveEvent(contentBody);
             }
         }
 
@@ -104,25 +110,53 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private Response serveGetRequest() {
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), capstoneService.getStatusAsJson());
+        final PayloadObject<DeviceInfo> getRequestResponse = new PayloadObject<>(capstoneService.getStatus(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        return JSONResponse(Response.Status.OK, getRequestResponse);
     }
 
-    private Response servePostIdentify(final HashableNsdServiceInfo peerNsdServiceInfo) {
+    private static <T> T parseContentBody(final Gson gson, final Map<String, String> contentBody, final Class<T> type) {
+        final String postData = contentBody.get("postData");
+        final T t = gson.fromJson(postData, type);
+        log("Parsed POST data as: " + t);
+        return t;
+    }
+
+    private Response servePostIdentify(final Map<String, String> contentBody) {
+        final HashableNsdServiceInfo peerNsdServiceInfo = parseContentBody(gson, contentBody, HashableNsdServiceInfo.class);
         capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
-        return new Response(Response.Status.OK, MimeType.APPLICATION_JSON.getContentType(), gson.toJson(capstoneService.getLocalNsdServiceInfo()));
+        final PayloadObject<NsdServiceInfo> postIdentifyResponse = new PayloadObject<>(capstoneService.getLocalNsdServiceInfo(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        return JSONResponse(Response.Status.OK, postIdentifyResponse);
     }
 
-    private Response servePostReceiveToken(final Token token) {
+    private Response servePostReceiveToken(final Map<String, String> contentBody) {
+        final Token token = parseContentBody(gson, contentBody, Token.class);
         capstoneService.receiveTokenInternal(token);
-        return new Response(Response.Status.OK, MIME_PLAINTEXT, "OK");
+        return genericSuccess();
     }
 
-    private Response genericError(final String errorMessage) {
-        return new Response(Response.Status.BAD_REQUEST, MimeType.TEXT_PLAIN.getContentType(), errorMessage);
+    private Response servePostReceiveEvent(final Map<String, String> contentBody) {
+        final Event event = parseContentBody(gson, contentBody, Event.class);
+        capstoneService.receiveEventExternal(event);
+        return genericSuccess();
+    }
+
+    private Response errorResponse(final String errorMessage) {
+        final PayloadObject<String> errorPayload = new PayloadObject<>(errorMessage, capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
+        return JSONResponse(Response.Status.BAD_REQUEST, errorPayload);
     }
 
     private Response genericError() {
-        return genericError("Error");
+        final PayloadObject<Void> errorPayload = new PayloadObject<>(null, capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
+        return JSONResponse(Response.Status.BAD_REQUEST, errorPayload);
+    }
+
+    private Response genericSuccess() {
+        final PayloadObject<Void> successPayload = new PayloadObject<>(null, capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        return JSONResponse(Response.Status.OK, successPayload);
+    }
+
+    private static Response JSONResponse(final Response.Status status, final Object object) {
+        return new Response(status, MimeType.APPLICATION_JSON.getContentType(), object.toString());
     }
 
     private static void log(final String message) {
