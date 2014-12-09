@@ -13,73 +13,73 @@ import static org.junit.Assert.assertThat;
 @RunWith(RobolectricTestRunner.class)
 public class ArithmeticOperatorTest {
 
-    private static void test(final BooleanExpressionTree.ArithmeticOperator operator,
-                             final double first, final double second, final double expected) {
+    private static void test(final double first, final BooleanExpressionTree.ArithmeticOperator operator,
+                             final double second, final double expected) {
         final double result = operator.apply(first, second);
         assertThat(String.format("%s is broke for (%f, %f)!", operator, first, second), result, is(expected));
     }
 
     @Test public void testAdd1() {
-        test(ADD, 1, 1, 2);
+        test(1, ADD, 1, 2);
     }
 
     @Test public void testAdd2() {
-        test(ADD, -1, -1, -2);
+        test(-1, ADD, -1, -2);
     }
 
     @Test public void testSubtract1() {
-        test(SUBTRACT, 1, 1, 0);
+        test(1, SUBTRACT, 1, 0);
     }
 
     @Test public void testSubtract2() {
-        test(SUBTRACT, -1, -1, 0);
+        test(-1, SUBTRACT, -1, 0);
     }
 
     @Test public void testDivide1() {
-        test(DIVIDE, 1, 2, 0.5);
+        test(1, DIVIDE, 2, 0.5);
     }
 
     @Test public void testDivide2() {
-        test(DIVIDE, 4, 2, 2);
+        test(4, DIVIDE, 2, 2);
     }
 
     @Test public void testDivide3() {
-        test(DIVIDE, 1, 0, Double.POSITIVE_INFINITY);
+        test(1, DIVIDE, 0, Double.POSITIVE_INFINITY);
     }
 
     @Test public void testDivide4() {
-        test(DIVIDE, 1, Double.POSITIVE_INFINITY, 0);
+        test(1, DIVIDE, Double.POSITIVE_INFINITY, 0);
     }
 
     @Test public void testMultiply1() {
-        test(MULTIPLY, 1, 1, 1);
+        test(1, MULTIPLY, 1, 1);
     }
 
     @Test public void testMultiply2() {
-        test(MULTIPLY, 1, -1, -1);
+        test(1, MULTIPLY, -1, -1);
     }
 
     @Test public void testMultiply3() {
-        test(MULTIPLY, 1, 0, 0);
+        test(1, MULTIPLY, 0, 0);
     }
 
     @Test public void testMultiply4() {
-        test(MULTIPLY, 1, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        test(1, MULTIPLY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
     }
 
     @Test public void testExponent1() {
-        test(EXPONENT, 1, 0, 1);
+        test(1, EXPONENT, 0, 1);
     }
 
     @Test public void testExponent2() {
-        test(EXPONENT, 0, 1, 0);
+        test(0, EXPONENT, 1, 0);
     }
 
     @Test public void testExponent3() {
-        test(EXPONENT, 2, -1, 0.5);
+        test(2, EXPONENT, -1, 0.5);
     }
 
     @Test public void testExponent4() {
-        test(EXPONENT, 2, 2, 4);
+        test(2, EXPONENT, 2, 4);
     }
 }
