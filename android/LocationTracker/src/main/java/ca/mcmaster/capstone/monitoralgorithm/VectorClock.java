@@ -73,7 +73,7 @@ public class VectorClock implements Iterable<Integer> {
      *         each clock being merged.
      * @throws IllegalArgumentException If the clocks are of different size this exception is thrown.
      */
-    public VectorClock merge(VectorClock clock) {
+    public VectorClock merge(final VectorClock clock) {
         if (this.size() != clock.size()) {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }
