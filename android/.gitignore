@@ -29,3 +29,9 @@ Thumbs.db
 LocationTracker/.idea/
 .idea/codeStyleSettings.xml
 .idea/junitgenerator-prj-settings.xml
+
+# robolectric or some other test framework element downloaded a TON of JARs.
+# we don't really want to be tracking these. Hardly anything else in here is
+# actually needed anyway - it's just JARs for the testing frameworks, plus all
+# the additional dependencies that get automatically pulled down.
+lib
