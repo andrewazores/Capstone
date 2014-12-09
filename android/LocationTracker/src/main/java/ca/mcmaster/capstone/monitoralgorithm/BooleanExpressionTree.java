@@ -17,7 +17,7 @@ public class BooleanExpressionTree {
 
         private final Operator<Double, Double> operator;
 
-        ArithmeticOperator(final Operator<Double, Double> operator) {
+        private ArithmeticOperator(final Operator<Double, Double> operator) {
             this.operator = operator;
         }
 
@@ -39,7 +39,7 @@ public class BooleanExpressionTree {
 
         private final Operator<Double, Boolean> operator;
 
-        ComparisonOperator(final Operator<Double, Boolean> operator) {
+        private ComparisonOperator(final Operator<Double, Boolean> operator) {
             this.operator = operator;
         }
 
