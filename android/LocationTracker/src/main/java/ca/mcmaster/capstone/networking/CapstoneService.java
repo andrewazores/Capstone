@@ -38,9 +38,12 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -108,7 +111,8 @@ public final  class CapstoneService extends Service {
         logv("Created");
         System.setProperty("http.keepAlive", "false");
 
-        ipAddress = findIpAddress();
+        this.wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        this.ipAddress = findIpAddress();
 
         createPersistentNotification();
         setupLocationServices();
@@ -597,7 +601,24 @@ public final  class CapstoneService extends Service {
         return new HashSet<>(nsdPeers);
     }
 
-    private static InetAddress findIpAddress() {
+    private InetAddress findIpAddress() {
+        int ip = wifiManager.getConnectionInfo().getIpAddress();
+
+        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            ip = Integer.reverseBytes(ip);
+        }
+
+        final byte[] ipByteArray = BigInteger.valueOf(ip).toByteArray();
+
+        try {
+            return InetAddress.getByAddress(ipByteArray);
+        } catch (final UnknownHostException ex) {
+            logv("Unable to determine WiFi IP address!");
+            Toast.makeText(this, "Unable to determine WiFi IP address!", Toast.LENGTH_LONG).show();
+        }
+
+        // we weren't able to determine our WiFi IP... try looking for any other available IPs, even
+        // though they probably aren't going to actually work for us
         try {
             InetAddress myAddr = null;
 
