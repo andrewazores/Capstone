@@ -14,7 +14,7 @@ public class VectorClock implements Iterable<Integer> {
     public VectorClock() {
     }
 
-    public VectorClock(VectorClock vc) {
+    public VectorClock(final VectorClock vc) {
         this.consistentCut.addAll(vc.consistentCut);
     }
 
@@ -23,7 +23,7 @@ public class VectorClock implements Iterable<Integer> {
      *
      * @param consistentCut A List of Integers representing a consistent cut of all known processes.
      */
-    public VectorClock(List<Integer> consistentCut) {
+    public VectorClock(final List<Integer> consistentCut) {
         this.consistentCut.addAll(consistentCut);
     }
 
@@ -35,7 +35,7 @@ public class VectorClock implements Iterable<Integer> {
      *         if clock has a more recent event, CONCURRENT each has some more recent events.
      * @throws IllegalArgumentException If the clocks are of different size this exception is thrown.
      */
-    public Comparison compareToClock(VectorClock clock) {
+    public Comparison compareToClock(final VectorClock clock) {
         if (this.size() != clock.size()) {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }
@@ -96,7 +96,7 @@ public class VectorClock implements Iterable<Integer> {
      * @param i The index of the process whose clock to return.
      * @return The clock for the ith process.
      */
-    public int process(int i) {
+    public int process(final int i) {
         return consistentCut.get(i);
     }
 
