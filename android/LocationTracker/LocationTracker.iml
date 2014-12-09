@@ -22,7 +22,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" inherit-compiler-output="true">
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/../build/classes/production/LocationTracker" />
     <output-test url="file://$MODULE_DIR$/../build/classes/test/LocationTracker" />
     <exclude-output />
@@ -67,5 +67,18 @@
     <orderEntry type="library" exported="" name="org.apache.commons:commons-lang3:3.3.2" level="project" />
     <orderEntry type="library" exported="" name="com.mcxiaoke.volley:library:1.0.6" level="project" />
     <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../lib" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/../lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/../lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
   </component>
 </module>
