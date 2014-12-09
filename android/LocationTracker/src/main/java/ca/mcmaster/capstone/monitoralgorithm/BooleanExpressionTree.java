@@ -13,7 +13,8 @@ public class BooleanExpressionTree {
         ADD(x -> x[0] + x[1]),
         SUBTRACT(x -> x[0] - x[1]),
         DIVIDE(x -> x[0] / x[1]),
-        MULTIPLY(x -> x[0] * x[1]);
+        MULTIPLY(x -> x[0] * x[1]),
+        EXPONENT(x -> Math.pow(x[0], x[1]));
 
         private final Operator<Double, Double> operator;
 
