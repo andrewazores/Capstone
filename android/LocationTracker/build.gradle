@@ -5,10 +5,12 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:0.14.4'
         classpath 'me.tatarka:gradle-retrolambda:2.4.0'
+        classpath 'org.robolectric:robolectric-gradle-plugin:0.14.+'
     }
 }
 apply plugin: 'com.android.application'
 apply plugin: 'retrolambda'
+apply plugin: 'robolectric'
 
 repositories {
     mavenCentral()
@@ -37,6 +39,10 @@ android {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
     }
+
+    sourceSets {
+        androidTest.setRoot('src/test')
+    }
 }
 
 dependencies {
@@ -49,8 +55,15 @@ dependencies {
     compile 'com.mcxiaoke.volley:library:1.0.6@aar'
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-lang3:3.3.2'
+
+    androidTestCompile 'junit:junit:4.11'
+    androidTestCompile 'org.robolectric:robolectric:2.4'
 }
 
 retrolambda {
     jdk System.getenv("JAVA8_HOME")
+}
+
+robolectric {
+    include '**/*Test.class'
 }
