@@ -7,9 +7,9 @@ public class BooleanExpressionTree {
     private interface Operator<T, R> {
         R apply(T ... args);
     }
-    private interface Binary{}
+    private interface BinaryOperator {}
 
-    public static enum ArithmeticOperator implements Node, Operator<Double, Double>, Binary {
+    public static enum ArithmeticOperator implements Operator<Double, Double>, BinaryOperator {
         ADD(x -> x[0] + x[1]),
         SUBTRACT(x -> x[0] - x[1]),
         DIVIDE(x -> x[0] / x[1]),
@@ -30,7 +30,7 @@ public class BooleanExpressionTree {
         }
     }
 
-    public static enum ComparisonOperator implements Node, Operator<Double, Boolean>, Binary {
+    public static enum ComparisonOperator implements Operator<Double, Boolean>, BinaryOperator {
         LESS_THAN(x -> x[0] < x[1]),
         GREATER_THAN(x -> x[0] > x[1]),
         LESS_OR_EQUAL(x -> x[0] <= x[1]),
