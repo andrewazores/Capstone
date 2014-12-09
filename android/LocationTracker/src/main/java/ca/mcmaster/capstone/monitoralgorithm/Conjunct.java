@@ -18,6 +18,6 @@ public class Conjunct {
     }
 
     public Evaluation evaluate(final ProcessState state) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return expression.evaluate(state);
     }
 }

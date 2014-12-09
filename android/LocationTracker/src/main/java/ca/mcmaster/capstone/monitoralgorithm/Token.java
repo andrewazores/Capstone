@@ -83,8 +83,8 @@ public class Token {
     private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
     private final Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
     private final ProcessState targetProcessState;
-    private final boolean returned = false;
-    private final boolean sent = false;
+    private boolean returned = false;
+    private boolean sent = false;
 
     public Token(final Builder builder) {
         this.owner = builder.owner;
@@ -118,6 +118,14 @@ public class Token {
 
     public VectorClock getCut() {
         return cut;
+    }
+
+    public void setReturned(boolean returned) {
+        this.returned = returned;
+    }
+
+    public void setSent(boolean sent) {
+        this.sent = sent;
     }
 
     public Set<AutomatonTransition> getAutomatonTransitions() {

@@ -130,7 +130,10 @@ public class Monitor {
      * @param event The event to find concurrent events for.
      */
     private static void checkOutgoingTransitions(final GlobalView gv, final Event event) {
-        final List<Set<AutomatonTransition>> consult = new ArrayList<>(); // TODO: contents of consult are queried but no contents are ever added
+        final List<Set<AutomatonTransition>> consult = new ArrayList<>();
+        for (int i = 0; i < numProcesses; ++i) {
+            consult.add(new HashSet<>());
+        }
         for (AutomatonTransition trans : Automaton.getTransitions()) {
             final AutomatonState current = gv.getCurrentState();
             if (trans.getFrom() == current && trans.getTo() != current) {
@@ -170,7 +173,7 @@ public class Monitor {
         }
         Token token = gv.getTokenWithMostConjuncts();
         send(token, token.getDestination());
-        token = new Token.Builder(token).sent(true).build(); // TODO: why is this assigned and left alone after already sending?
+        token.setSent(true);
     }
 
     /*
@@ -228,7 +231,7 @@ public class Monitor {
                 }
                 Token maxConjuncts = globalView.getTokenWithMostConjuncts();
                 send(maxConjuncts, maxConjuncts.getDestination());
-                maxConjuncts = new Token.Builder(maxConjuncts).sent(true).build(); // TODO: again, assigned after sending, not used again?
+                maxConjuncts.setSent(true);
             }
         } else if (token.getOwner() != monitorID) {
             boolean hasTarget = false;
