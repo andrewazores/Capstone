@@ -1,7 +1,9 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 public class BooleanExpressionTree {
-    private interface Node {}
+    private interface Node {
+        Double evaluate(ProcessState state);
+    }
     private interface Operator<T, R> {
         R apply(T ... args);
     }
@@ -62,18 +64,26 @@ public class BooleanExpressionTree {
             this.right = right;
             this.op = op;
         }
+
+        public Boolean evaluate(ProcessState state) {
+            return op.apply(left.evaluate(state), right.evaluate(state));
+        }
     }
 
     /* An inner node */
     private static class InnerNode implements Node {
         private final Node left;
         private final Node right;
-        private final Operator<?, ?> op;
+        private final ArithmeticOperator op;
 
-        public InnerNode(final Node left, final Node right, final Operator<?, ?> op) {
+        public InnerNode(final Node left, final Node right, final ArithmeticOperator op) {
             this.left = left;
             this.right = right;
             this.op = op;
+        }
+
+        public Double evaluate(ProcessState state) {
+            return op.apply(left.evaluate(state), right.evaluate(state));
         }
     }
 
@@ -84,7 +94,21 @@ public class BooleanExpressionTree {
         public LeafNode(final String variableName) {
             this.variableName = variableName;
         }
+
+        public Double evaluate(ProcessState state) {
+            //TODO: refactor Valuation to use Double
+            return (Double) state.getVal().getValue(variableName);
+        }
     }
 
     private final RootNode root = new RootNode(null, null, ComparisonOperator.EQUAL);
+
+    public Conjunct.Evaluation evaluate(ProcessState state) {
+        boolean evaluation = root.evaluate(state);
+        if (evaluation) {
+            return Conjunct.Evaluation.TRUE;
+        } else {
+            return Conjunct.Evaluation.FALSE;
+        }
+    }
 }
