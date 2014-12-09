@@ -16,7 +16,7 @@ public class ArithmeticOperatorTest {
     private static void test(final BooleanExpressionTree.ArithmeticOperator operator,
                              final double first, final double second, final double expected) {
         final double result = operator.apply(first, second);
-        assertThat(operator + " is broke!", result, is(expected));
+        assertThat(String.format("%s is broke for (%f, %f)!", operator, first, second), result, is(expected));
     }
 
     @Test public void testAdd1() {
