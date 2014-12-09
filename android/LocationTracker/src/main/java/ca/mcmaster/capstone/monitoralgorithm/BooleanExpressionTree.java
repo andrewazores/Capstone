@@ -53,6 +53,19 @@ public class BooleanExpressionTree {
         }
     }
 
+    /* Root node must be a comparison */
+    private static class RootNode {
+        private final Node left;
+        private final Node right;
+        private final ComparisonOperator op;
+
+        public RootNode(final Node left, final Node right, final ComparisonOperator op) {
+            this.left = left;
+            this.right = right;
+            this.op = op;
+        }
+    }
+
     /* An inner node */
     private static class InnerNode implements Node {
         private final Node left;
@@ -68,12 +81,12 @@ public class BooleanExpressionTree {
 
     /* A leaf node */
     private static class LeafNode implements Node {
-        private final double value;
+        private final String variableName;
 
-        public LeafNode(final double value) {
-            this.value = value;
+        public LeafNode(final String variableName) {
+            this.variableName = variableName;
         }
     }
 
-    private final Node root = new LeafNode(0.0);
+    private final RootNode root = new RootNode(null, null, ComparisonOperator.EQUAL);
 }
