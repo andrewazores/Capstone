@@ -7,62 +7,40 @@ public class BooleanExpressionTree {
     }
     private interface Binary{}
 
-    private abstract class BinaryOperator <T, R> implements Node, Operator<T, R>, Binary {
+    public static enum NumericOperator implements Node, Operator<Double, Double>, Binary {
+        ADD(x -> x[0] + x[1]),
+        SUBTRACT(x -> x[0] - x[1]),
+        DIVIDE(x -> x[0] / x[1]),
+        MULTIPLY(x -> x[0] * x[1]);
+
+        private final Operator<Double, Double> operator;
+
+        NumericOperator(final Operator<Double, Double> operator) {
+            this.operator = operator;
+        }
+
         @Override
-        abstract public R apply(T ... args);
-    }
-
-    public class Add extends BinaryOperator<Double, Double> {
-        public Double apply(Double ... args) {
-            return args[0] + args[1];
+        public Double apply(final Double ... args) {
+            return this.operator.apply(args);
         }
     }
 
-    public class Subtract extends BinaryOperator<Double, Double> {
-        public Double apply(Double ... args) {
-            return args[0] - args[1];
-        }
-    }
+    public static enum ComparisonOperator implements Node, Operator<Double, Boolean>, Binary {
+        LESS_THAN(x -> x[0] < x[1]),
+        GREATER_THAN(x -> x[0] > x[1]),
+        LESS_OR_EQUAL(x -> x[0] <= x[1]),
+        GREATER_OR_EQUAL(x -> x[0] >= x[1]),
+        EQUAL(x -> x[0].equals(x[1]));
 
-    public class Divide extends BinaryOperator<Double, Double> {
-        public Double apply(Double ... args) {
-            return args[0] / args[1];
-        }
-    }
+        private final Operator<Double, Boolean> operator;
 
-    public class Multiply extends BinaryOperator<Double, Double> {
-        public Double apply(Double ... args) {
-            return args[0] * args[1];
+        ComparisonOperator(final Operator<Double, Boolean> operator) {
+            this.operator = operator;
         }
-    }
 
-    public class LessThan extends BinaryOperator<Double, Boolean> {
-        public Boolean apply(Double ... args) {
-            return args[0] < args[1];
-        }
-    }
-
-    public class GreaterThan extends BinaryOperator<Double, Boolean> {
-        public Boolean apply(Double ... args) {
-            return args[0] > args[1];
-        }
-    }
-
-    public class LessOrEqual extends BinaryOperator<Double, Boolean> {
-        public Boolean apply(Double ... args) {
-            return args[0] <= args[1];
-        }
-    }
-
-    public class GreaterOrEqual extends BinaryOperator<Double, Boolean> {
-        public Boolean apply(Double ... args) {
-            return args[0] >= args[1];
-        }
-    }
-
-    public class Equal extends BinaryOperator<Double, Boolean> {
-        public Boolean apply(Double ... args) {
-            return args[0] == args[1];
+        @Override
+        public Boolean apply(final Double ... args) {
+            return this.operator.apply(args);
         }
     }
 
