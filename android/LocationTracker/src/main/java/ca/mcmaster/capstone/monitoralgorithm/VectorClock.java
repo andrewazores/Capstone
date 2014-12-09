@@ -78,12 +78,12 @@ public class VectorClock implements Iterable<Integer> {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }
 
-        List merged = new ArrayList<Integer>();
+        final List<Integer> merged = new ArrayList<>();
         for (int i = 0; i < consistentCut.size(); ++i) {
             if (this.process(i) > clock.process(i)) {
-                merged.add(new Integer(this.process(i)));
+                merged.add(this.process(i));
             } else {
-                merged.add(new Integer(clock.process(i)));
+                merged.add(clock.process(i));
             }
         }
 
