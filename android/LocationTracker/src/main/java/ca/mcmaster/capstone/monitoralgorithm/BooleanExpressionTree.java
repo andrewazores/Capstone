@@ -25,7 +25,7 @@ public class BooleanExpressionTree {
         @Override
         public Double apply(final Double ... args) {
             if (args.length != 2) {
-                throw new IllegalArgumentException("Invalid number of arguments for " + this + ": " + Arrays.toString(args));
+                throw new ArityException(2, args);
             }
             return this.operator.apply(args);
         }
@@ -47,7 +47,7 @@ public class BooleanExpressionTree {
         @Override
         public Boolean apply(final Double ... args) {
             if (args.length != 2) {
-                throw new IllegalArgumentException("Invalid number of arguments for " + this + ": " + Arrays.toString(args));
+                throw new ArityException(2, args);
             }
             return this.operator.apply(args);
         }
