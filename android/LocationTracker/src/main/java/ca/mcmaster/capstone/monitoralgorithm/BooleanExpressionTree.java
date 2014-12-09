@@ -9,7 +9,7 @@ public class BooleanExpressionTree {
     }
     private interface Binary{}
 
-    public static enum NumericOperator implements Node, Operator<Double, Double>, Binary {
+    public static enum ArithmeticOperator implements Node, Operator<Double, Double>, Binary {
         ADD(x -> x[0] + x[1]),
         SUBTRACT(x -> x[0] - x[1]),
         DIVIDE(x -> x[0] / x[1]),
@@ -17,7 +17,7 @@ public class BooleanExpressionTree {
 
         private final Operator<Double, Double> operator;
 
-        NumericOperator(final Operator<Double, Double> operator) {
+        ArithmeticOperator(final Operator<Double, Double> operator) {
             this.operator = operator;
         }
 
