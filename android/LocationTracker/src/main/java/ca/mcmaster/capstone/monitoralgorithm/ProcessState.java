@@ -12,13 +12,13 @@ public class ProcessState {
      * @param val The valuation of the process' variables.
      * @param VC The vector clock for the process.
      */
-    public ProcessState(int id, Valuation<?> val, VectorClock VC) {
+    public ProcessState(final int id, final Valuation<?> val, final VectorClock VC) {
         this.id = id;
         this.val = val;
         this.VC = VC;
     }
 
-    public ProcessState(ProcessState state) {
+    public ProcessState(final ProcessState state) {
         this.id = state.id;
         this.val = new Valuation<>(state.val);
         this.VC = new VectorClock(state.VC);
@@ -42,7 +42,7 @@ public class ProcessState {
          * @param event The event to update to.
          * @return A new ProcessState updated with event.
          */
-    public ProcessState update(Event event) {
+    public ProcessState update(final Event event) {
         return new ProcessState(this.id, event.getVal(), event.getVC());
     }
 }

@@ -13,18 +13,18 @@ public class Token {
 
         private int targetEventId = 0;
         private VectorClock cut = new VectorClock();
-        private Set<AutomatonTransition> automatonTransitions = new HashSet<>();
-        private Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
+        private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
+        private final Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
         private ProcessState targetProcessState = null;
         public boolean returned = false;
         public boolean sent = false;
 
-        public Builder(int owner, int destination) {
+        public Builder(final int owner, final int destination) {
             this.owner = owner;
             this.destination = destination;
         }
 
-        public Builder(Token token) {
+        public Builder(final Token token) {
             this.owner = token.owner;
             this.destination = token.destination;
             this.targetEventId = token.targetEventId;
@@ -36,37 +36,37 @@ public class Token {
             this.sent = token.sent;
         }
 
-        public Builder targetEventId(int id) {
+        public Builder targetEventId(final int id) {
             this.targetEventId = id;
             return this;
         }
 
-        public Builder cut(VectorClock cut) {
+        public Builder cut(final VectorClock cut) {
             this.cut = new VectorClock(cut);
             return this;
         }
 
-        public Builder automatonTransitions(Set<AutomatonTransition> transitions) {
+        public Builder automatonTransitions(final Set<AutomatonTransition> transitions) {
             this.automatonTransitions.addAll(transitions);
             return this;
         }
 
-        public Builder conjuncts(Map<Conjunct, Conjunct.Evaluation> conjuncts) {
+        public Builder conjuncts(final Map<Conjunct, Conjunct.Evaluation> conjuncts) {
             this.conjuncts.putAll(conjuncts);
             return this;
         }
 
-        public Builder targetProcessState(ProcessState state) {
+        public Builder targetProcessState(final ProcessState state) {
             this.targetProcessState = new ProcessState(state);
             return this;
         }
 
-        public Builder returned(boolean returned) {
+        public Builder returned(final boolean returned) {
             this.returned = returned;
             return this;
         }
 
-        public Builder sent(boolean sent) {
+        public Builder sent(final boolean sent) {
             this.sent = sent;
             return this;
         }
@@ -101,11 +101,11 @@ public class Token {
     }
 
     public Set<Conjunct> getConjuncts() {
-        return conjuncts.keySet();
+        return new HashSet<>(conjuncts.keySet());
     }
 
     public Map<Conjunct, Conjunct.Evaluation> getConjunctsMap() {
-        return conjuncts;
+        return new HashMap<>(conjuncts);
     }
 
     public int getDestination() {
@@ -121,7 +121,7 @@ public class Token {
     }
 
     public Set<AutomatonTransition> getAutomatonTransitions() {
-        return automatonTransitions;
+        return new HashSet<>(automatonTransitions);
     }
 
     public ProcessState getTargetProcessState() {
@@ -143,7 +143,7 @@ public class Token {
      * @param event The event to use to evaluate the transitions.
      */
     public void evaluateConjuncts(final Event event) {
-        for (Conjunct conjunct : conjuncts.keySet()) {
+        for (final Conjunct conjunct : conjuncts.keySet()) {
             conjuncts.put(conjunct, conjunct.evaluate(event.getState()));
         }
     }
