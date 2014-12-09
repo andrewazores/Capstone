@@ -19,6 +19,14 @@ public class ArithmeticOperatorTest {
         assertThat(String.format("%s is broke for (%f, %f)!", operator, first, second), result, is(expected));
     }
 
+    @Test(expected = ArityException.class) public void testArity1() {
+        ADD.apply(1.0, 2.0, 3.0);
+    }
+
+    @Test(expected = ArityException.class) public void testArity2() {
+        ADD.apply(1.0);
+    }
+
     @Test public void testAdd1() {
         test(1, ADD, 1, 2);
     }

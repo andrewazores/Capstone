@@ -1,5 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import android.provider.Telephony;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -17,6 +19,14 @@ public class ComparisonOperatorTest {
                              final double second, final boolean expected) {
         final boolean result = operator.apply(first, second);
         assertThat(String.format("%s is broke for (%f, %f)!", operator, first, second), result, is(expected));
+    }
+
+    @Test(expected = ArityException.class) public void testArity1() {
+        LESS_THAN.apply(1.0, 2.0, 3.0);
+    }
+
+    @Test(expected = ArityException.class) public void testArity2() {
+        LESS_THAN.apply(1.0);
     }
 
     @Test public void testLessThan1() {
