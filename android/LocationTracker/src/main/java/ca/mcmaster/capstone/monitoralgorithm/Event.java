@@ -9,7 +9,7 @@ public final class Event {
     private final Valuation<?> val;
     private final VectorClock VC;
 
-    public Event(int eid, int pid, EventType type, Valuation<?> val, VectorClock VC) {
+    public Event(final int eid, final int pid, final EventType type, final Valuation<?> val, final VectorClock VC) {
         this.eid = eid;
         this.pid = pid;
         this.type = type;

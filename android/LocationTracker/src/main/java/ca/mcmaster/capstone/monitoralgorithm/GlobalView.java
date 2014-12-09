@@ -10,21 +10,19 @@ import java.util.Set;
 
 /* Class to represent the local view of the global state.*/
 public class GlobalView {
-    private List<ProcessState> states;
+    private final List<ProcessState> states = new ArrayList<>();
     private VectorClock cut;
     private AutomatonState currentState;
-    private List<Token> tokens;
+    private final List<Token> tokens = new ArrayList<>();
     private final Queue<Event> pendingEvents = new ArrayDeque<>();
     private final List<AutomatonTransition> pendingTransitions = new ArrayList<>();
 
     public GlobalView() {
-        this.states = new ArrayList<ProcessState>();
         this.cut = new VectorClock();
         this.currentState = new AutomatonState("", Automaton.Evaluation.UNDECIDED);
-        this.tokens = new ArrayList();
     }
 
-    public GlobalView(GlobalView gv) {
+    public GlobalView(final GlobalView gv) {
         this.states.addAll(gv.getStates());
         this.cut = new VectorClock(gv.getCut());
         this.currentState = new AutomatonState(gv.getCurrentState());
@@ -36,15 +34,16 @@ public class GlobalView {
         return states;
     }
 
-    public void setStates(List<ProcessState> states) {
-        this.states = states;
+    public void setStates(final List<ProcessState> states) {
+        this.states.clear();
+        this.states.addAll(states);
     }
 
     public VectorClock getCut() {
         return cut;
     }
 
-    public void setCut(VectorClock cut) {
+    public void setCut(final VectorClock cut) {
         this.cut = cut;
     }
 
@@ -52,7 +51,7 @@ public class GlobalView {
         return currentState;
     }
 
-    public void setCurrentState(AutomatonState state) {
+    public void setCurrentState(final AutomatonState state) {
         this.currentState = state;
     }
 
@@ -60,8 +59,9 @@ public class GlobalView {
         return tokens;
     }
 
-    public void setTokens(List<Token> tokens) {
-        this.tokens = tokens;
+    public void setTokens(final List<Token> tokens) {
+        this.tokens.clear();
+        this.tokens.addAll(tokens);
     }
 
     public Queue<Event> getPendingEvents() {
@@ -69,7 +69,7 @@ public class GlobalView {
     }
 
     public List<AutomatonTransition> getPendingTransitions() {
-        return pendingTransitions;
+        return new ArrayList<>(pendingTransitions);
     }
 
     /*
@@ -77,12 +77,12 @@ public class GlobalView {
      *
      * @param token The token to use to update the global view.
      */
-    public void update(Token token) {
+    public void update(final Token token) {
         cut = cut.merge(token.getCut());
         states.set(token.getTargetProcessState().getId(), token.getTargetProcessState());
         // If any pending transitions are also in the token, and are evaluated in the token, remove them
         for (Iterator<AutomatonTransition> it = pendingTransitions.iterator(); it.hasNext();) {
-            AutomatonTransition pending = it.next();
+            final AutomatonTransition pending = it.next();
             if (token.getAutomatonTransitions().contains(pending) && pending.getEvaluation() != Conjunct.Evaluation.NONE) {
                 it.remove();
             }
@@ -109,7 +109,7 @@ public class GlobalView {
      */
     public Token getTokenWithMostConjuncts() {
         Token ret = this.tokens.get(0);
-        for (Token token : this.tokens) {
+        for (final Token token : this.tokens) {
             if (token.getConjuncts().size() > ret.getConjuncts().size()) {
                 ret = token;
             }
@@ -124,8 +124,8 @@ public class GlobalView {
      * @return A list of tokens which are associated with transition.
      */
     public List<Token> getTokensForTransition(AutomatonTransition transition) {
-        List<Token> ret = new ArrayList<>();
-        List<Conjunct> transConjuncts = transition.getConjuncts();
+        final List<Token> ret = new ArrayList<>();
+        final List<Conjunct> transConjuncts = transition.getConjuncts();
         for (Token token : this.tokens) {
             for (Conjunct conjunct : token.getConjuncts()) {
                 if (transConjuncts.contains(conjunct)) {
@@ -144,8 +144,8 @@ public class GlobalView {
      * @return A set of process ids, for inconsistent processes.
      */
     public Set<Integer> getInconsistentProcesses() {
-        Set<Integer> ret = new HashSet<>();
-        for (ProcessState state : this.states) {
+        final Set<Integer> ret = new HashSet<>();
+        for (final ProcessState state : this.states) {
             if (this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.BIGGER ||
                     this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.SMALLER) {
                 ret.add(state.getId());
