@@ -1,7 +1,5 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
-import android.provider.Telephony;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
