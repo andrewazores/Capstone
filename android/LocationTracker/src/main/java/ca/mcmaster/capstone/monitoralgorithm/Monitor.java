@@ -3,6 +3,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,21 +27,21 @@ public class Monitor {
     private static Event read() {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
-    private static void send(Token token, int pid) {
+    private static void send(final Token token, final int pid) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     // These methods are either not described in the paper or are described separately from the main
     // body of the algorithm. They will be implemented in a future commit.
-    private static void mergeSimilarGlobalViews(Set<GlobalView> views) {
+    private static void mergeSimilarGlobalViews(final Collection<GlobalView> views) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
-    private static boolean enabled(AutomatonTransition transition, List<Token> tokens){
+    private static boolean enabled(final AutomatonTransition transition, final List<Token> tokens){
         throw new UnsupportedOperationException("Not implemented yet.");
     }
     // Checks to make sure the vector clock of each token is consistent with this process's
-    private static boolean consistent(List<Token> tokens){
+    private static boolean consistent(final List<Token> tokens){
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
@@ -50,8 +51,8 @@ public class Monitor {
      *
      * @param initialStates The initial state of each known process.
      */
-    public static void init(List<ProcessState> initialStates) {
-        GlobalView initialGV = new GlobalView();
+    public static void init(final List<ProcessState> initialStates) {
+        final GlobalView initialGV = new GlobalView();
         initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
         initialGV.setCurrentState(Automaton.advance(initialGV));
@@ -62,14 +63,14 @@ public class Monitor {
      *
      * @param initialStates The initial state of each known process.
      */
-    public static void monitorLoop(List<ProcessState> initialStates) {
+    public static void monitorLoop(final List<ProcessState> initialStates) {
         init(initialStates);
 
         while (true) {
-            Token receivedToken = receive();
+            final Token receivedToken = receive();
             // TODO: add check for empty token and empty event if it turns out such a thing is possible
             receiveToken(receivedToken);
-            Event localEvent = read();
+            final Event localEvent = read();
             receiveEvent(localEvent);
         }
     }
@@ -79,17 +80,17 @@ public class Monitor {
      *
      * @param event The event to be processed.
      */
-    public static void receiveEvent(Event event) {
+    public static void receiveEvent(final Event event) {
         history.add(event.eid(), event);
-        for (Iterator<Token> i = waitingTokens.iterator(); i.hasNext(); ) {
-            Token t = i.next();
+        for (Iterator<Token> i = waitingTokens.iterator(); i.hasNext();) {
+            final Token t = i.next();
             if (t.getTargetEventId() == event.eid()) {
                 processToken(t, event);
                 i.remove();
             }
         }
         mergeSimilarGlobalViews(GV);
-        for (GlobalView gv : GV) {
+        for (final GlobalView gv : GV) {
             gv.getPendingEvents().add(event);
             if (gv.getTokens().isEmpty()) {
                 //XXX: not really sure why the algorithm specifies these being passes separately.
@@ -106,9 +107,9 @@ public class Monitor {
      * @param gv The global view to compute the next monitor state for.
      * @param event The event to be evaluated.
      */
-    public static void processEvent(GlobalView gv, Event event) {
+    public static void processEvent(final GlobalView gv, final Event event) {
         gv.setCut(gv.getCut().merge(event.getVC()));
-        ProcessState state = gv.getStates().get(monitorID);
+        final ProcessState state = gv.getStates().get(monitorID);
         gv.getStates().set(monitorID, state.update(event));
         if (gv.isConsistent()) {
             gv.setCurrentState(Automaton.advance(gv));
@@ -129,19 +130,19 @@ public class Monitor {
      * @param event The event to find concurrent events for.
      */
     private static void checkOutgoingTransitions(final GlobalView gv, final Event event) {
-        List<Set<AutomatonTransition>> consult = new ArrayList<>();
+        final List<Set<AutomatonTransition>> consult = new ArrayList<>(); // TODO: contents of consult are queried but no contents are ever added
         for (AutomatonTransition trans : Automaton.getTransitions()) {
-            AutomatonState current = gv.getCurrentState();
+            final AutomatonState current = gv.getCurrentState();
             if (trans.getFrom() == current && trans.getTo() != current) {
-                Set<Integer> participating = trans.getParticipatingProcesses();
-                Set<Integer> forbidding = trans.getForbiddingProcesses(gv);
+                final Set<Integer> participating = trans.getParticipatingProcesses();
+                final Set<Integer> forbidding = trans.getForbiddingProcesses(gv);
                 if (!forbidding.contains(monitorID)) {
-                    Set<Integer> inconsistent = gv.getInconsistentProcesses();
+                    final Set<Integer> inconsistent = gv.getInconsistentProcesses();
                     // intersection
                     participating.retainAll(inconsistent);
                     // union
                     forbidding.addAll(participating);
-                    for (Integer process : forbidding) {
+                    for (final Integer process : forbidding) {
                         gv.getPendingTransitions().add(trans);
                         consult.get(process).add(trans);
                     }
@@ -152,16 +153,16 @@ public class Monitor {
         for (int j = 0; j < numProcesses; ++j) {
             if (!consult.get(j).isEmpty()) {
                 // Get all the conjuncts for process j
-                Set<Conjunct> conjuncts = new HashSet<>();
-                for (AutomatonTransition trans : consult.get(j)) {
+                final Set<Conjunct> conjuncts = new HashSet<>();
+                for (final AutomatonTransition trans : consult.get(j)) {
                     conjuncts.addAll(trans.getConjuncts());
                 }
                 //Build map to add to token
-                Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
-                for (Conjunct conjunct : conjuncts) {
+                final Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
+                for (final Conjunct conjunct : conjuncts) {
                     forToken.put(conjunct, Conjunct.Evaluation.NONE);
                 }
-                Token token = new Token.Builder(monitorID, j).targetEventId(gv.getCut().process(j) + 1)
+                final Token token = new Token.Builder(monitorID, j).targetEventId(gv.getCut().process(j) + 1)
                         .cut(event.getVC()).conjuncts(forToken).automatonTransitions(consult.get(j))
                         .build();
                 gv.getTokens().add(token);
@@ -169,7 +170,7 @@ public class Monitor {
         }
         Token token = gv.getTokenWithMostConjuncts();
         send(token, token.getDestination());
-        token = new Token.Builder(token).sent(true).build();
+        token = new Token.Builder(token).sent(true).build(); // TODO: why is this assigned and left alone after already sending?
     }
 
     /*
@@ -179,20 +180,20 @@ public class Monitor {
      *
      * @param token The token being received.
      */
-    public static void receiveToken(Token token) {
+    public static void receiveToken(final Token token) {
         if (token.getOwner() == monitorID) {
-            List<GlobalView> globalViews = getGlobalView(token);
-            for (GlobalView globalView : globalViews) {
+            final List<GlobalView> globalViews = getGlobalView(token);
+            for (final GlobalView globalView : globalViews) {
                 globalView.update(token);
-                for (AutomatonTransition trans : token.getAutomatonTransitions()) {
+                for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
                     // Get other tokens for same transition
-                    List<Token> tokens = globalView.getTokensForTransition(trans);
+                    final List<Token> tokens = globalView.getTokensForTransition(trans);
                     if (enabled(trans, tokens) && consistent(tokens)) {
-                        for (Token tok : tokens) {
+                        for (final Token tok : tokens) {
                             globalView.update(tok);
                         }
-                        GlobalView gvn1 = new GlobalView(globalView);
-                        GlobalView gvn2 = new GlobalView(globalView);
+                        final GlobalView gvn1 = new GlobalView(globalView);
+                        final GlobalView gvn2 = new GlobalView(globalView);
                         gvn1.setCurrentState(trans.getTo());
                         gvn2.setCurrentState(trans.getTo());
                         gvn1.setTokens(new ArrayList<Token>());
@@ -213,7 +214,7 @@ public class Monitor {
                 }
                 if (globalView.getPendingTransitions().isEmpty()) {
                     boolean hasEnabled = false;
-                    for (AutomatonTransition gvTrans : globalView.getPendingTransitions()) {
+                    for (final AutomatonTransition gvTrans : globalView.getPendingTransitions()) {
                         if (gvTrans.getEvaluation() == Conjunct.Evaluation.TRUE) {
                             GV.remove(globalViews);
                             hasEnabled = true;
@@ -227,11 +228,11 @@ public class Monitor {
                 }
                 Token maxConjuncts = globalView.getTokenWithMostConjuncts();
                 send(maxConjuncts, maxConjuncts.getDestination());
-                maxConjuncts = new Token.Builder(maxConjuncts).sent(true).build();
+                maxConjuncts = new Token.Builder(maxConjuncts).sent(true).build(); // TODO: again, assigned after sending, not used again?
             }
         } else if (token.getOwner() != monitorID) {
             boolean hasTarget = false;
-            for (Event event : history) {
+            for (final Event event : history) {
                 if (event.eid() == token.getTargetEventId()) {
                     processToken(token, event);
                     hasTarget = true;
@@ -250,16 +251,16 @@ public class Monitor {
      * @param token The token to process.
      * @param event The event to update token with.
      */
-    public static void processToken(Token token, Event event) {
+    public static void processToken(final Token token, final Event event) {
         if (event.getVC().compareToClock(token.getCut()) == VectorClock.Comparison.CONCURRENT) {
             evaluateToken(token, event);
         } else {
-            Map<Conjunct, Conjunct.Evaluation> conjunctsMap = token.getConjunctsMap();
-            for (Conjunct conjunct : conjunctsMap.keySet()) {
+            final Map<Conjunct, Conjunct.Evaluation> conjunctsMap = token.getConjunctsMap();
+            for (final Conjunct conjunct : conjunctsMap.keySet()) {
                 conjunctsMap.put(conjunct, Conjunct.Evaluation.FALSE);
             }
-            Event eventPrime = history.get(token.getTargetEventId());
-            Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).conjuncts(conjunctsMap).targetProcessState(eventPrime.getState()).build();
+            final Event eventPrime = history.get(token.getTargetEventId());
+            final Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).conjuncts(conjunctsMap).targetProcessState(eventPrime.getState()).build();
             send(newToken, newToken.getOwner());
         }
     }
@@ -270,10 +271,10 @@ public class Monitor {
      * @param token The token whose predicates will be evaluated.
      * @param event The event to use to evaluate the token.
      */
-    public static void evaluateToken(Token token, Event event) {
+    public static void evaluateToken(final Token token, final Event event) {
         token.evaluateConjuncts(event);
         if (token.anyConjunctSatisfied()) {
-            Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
+            final Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
             send(newToken, newToken.getOwner());
         } else {
             waitingTokens.add(token.waitForNextEvent());
@@ -286,10 +287,10 @@ public class Monitor {
      * @param token The token to search for.
      * @return A list of GlobalViews that have a copy of token.
      */
-    private static List<GlobalView> getGlobalView(Token token) {
-        List<GlobalView> ret = new ArrayList<>();
-        for (GlobalView gv : GV) {
-            for (Token t : gv.getTokens()) {
+    private static List<GlobalView> getGlobalView(final Token token) {
+        final List<GlobalView> ret = new ArrayList<>();
+        for (final GlobalView gv : GV) {
+            for (final Token t : gv.getTokens()) {
                 if (token.getOwner() == t.getOwner()) {
                     ret.add(gv);
                     break;
