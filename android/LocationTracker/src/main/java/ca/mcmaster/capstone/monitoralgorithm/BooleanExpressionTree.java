@@ -1,5 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import java.util.Arrays;
+
 public class BooleanExpressionTree {
     private interface Node {}
     private interface Operator<T, R> {
@@ -21,6 +23,9 @@ public class BooleanExpressionTree {
 
         @Override
         public Double apply(final Double ... args) {
+            if (args.length != 2) {
+                throw new IllegalArgumentException("Invalid number of arguments for " + this + ": " + Arrays.toString(args));
+            }
             return this.operator.apply(args);
         }
     }
@@ -40,6 +45,9 @@ public class BooleanExpressionTree {
 
         @Override
         public Boolean apply(final Double ... args) {
+            if (args.length != 2) {
+                throw new IllegalArgumentException("Invalid number of arguments for " + this + ": " + Arrays.toString(args));
+            }
             return this.operator.apply(args);
         }
     }
