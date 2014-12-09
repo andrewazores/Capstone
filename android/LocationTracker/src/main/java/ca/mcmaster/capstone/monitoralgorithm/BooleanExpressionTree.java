@@ -45,7 +45,7 @@ public class BooleanExpressionTree {
     }
 
     /* An inner node */
-    private class InnerNode implements Node {
+    private static class InnerNode implements Node {
         private final Node left;
         private final Node right;
         private final Operator<?, ?> op;
@@ -58,11 +58,11 @@ public class BooleanExpressionTree {
     }
 
     /* A leaf node */
-    private class LeafNode implements Node {
-        private final Double value;
+    private static class LeafNode implements Node {
+        private final double value;
 
-        public LeafNode(Double value) {
-            this.value = new Double(value);
+        public LeafNode(final double value) {
+            this.value = value;
         }
     }
 
