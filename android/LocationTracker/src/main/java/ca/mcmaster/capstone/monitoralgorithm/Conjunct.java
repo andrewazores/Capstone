@@ -7,6 +7,7 @@ public class Conjunct {
     public static enum Evaluation {TRUE, FALSE, NONE}
 
     private final Set<Integer> ownerProcesses = new HashSet<>();
+    private final BooleanExpressionTree expression = new BooleanExpressionTree();
 
     public Conjunct(final Set<Integer> ownerProcesses) {
         this.ownerProcesses.addAll(ownerProcesses);
