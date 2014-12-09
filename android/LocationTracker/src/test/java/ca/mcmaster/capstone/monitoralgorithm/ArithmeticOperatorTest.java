@@ -67,4 +67,19 @@ public class ArithmeticOperatorTest {
         test(MULTIPLY, 1, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
     }
 
+    @Test public void testExponent1() {
+        test(EXPONENT, 1, 0, 1);
+    }
+
+    @Test public void testExponent2() {
+        test(EXPONENT, 0, 1, 0);
+    }
+
+    @Test public void testExponent3() {
+        test(EXPONENT, 2, -1, 0.5);
+    }
+
+    @Test public void testExponent4() {
+        test(EXPONENT, 2, 2, 4);
+    }
 }
