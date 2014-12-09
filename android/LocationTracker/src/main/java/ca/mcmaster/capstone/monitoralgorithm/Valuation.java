@@ -10,7 +10,7 @@ public class Valuation<T> {
         this.valuation.put(variableName, value);
     }
 
-    public Valuation(Valuation valuation) {
+    public Valuation(final Valuation<T> valuation) {
         this.valuation.putAll(valuation.valuation);
     }
 
