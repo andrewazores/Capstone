@@ -1,7 +1,5 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
-import java.util.Arrays;
-
 public class BooleanExpressionTree {
     private interface Node {}
     private interface Operator<T, R> {

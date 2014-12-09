@@ -48,7 +48,7 @@ public class AutomatonTransition {
     }
 
     public List<Conjunct> getConjuncts() {
-        return conjuncts;
+        return new ArrayList<>(conjuncts);
     }
 
     /*
@@ -72,8 +72,8 @@ public class AutomatonTransition {
      * @return A set of process ids.
      */
     public Set<Integer> getParticipatingProcesses() {
-        Set<Integer> ret = new HashSet<>();
-        for (Conjunct conjunct : conjuncts) {
+        final Set<Integer> ret = new HashSet<>();
+        for (final Conjunct conjunct : conjuncts) {
             ret.addAll(conjunct.getOwnerProcesses());
         }
         return ret;
@@ -85,9 +85,9 @@ public class AutomatonTransition {
      * @return A set of process ids.
      */
     public Set<Integer> getForbiddingProcesses(final GlobalView gv) {
-        Set<Integer> ret = new HashSet<>();
-        for (ProcessState state : gv.getStates()) {
-            for (Conjunct conjunct : conjuncts) {
+        final Set<Integer> ret = new HashSet<>();
+        for (final ProcessState state : gv.getStates()) {
+            for (final Conjunct conjunct : conjuncts) {
                 if (conjunct.evaluate(state) == Conjunct.Evaluation.FALSE) {
                     ret.add(state.getId());
                     break;

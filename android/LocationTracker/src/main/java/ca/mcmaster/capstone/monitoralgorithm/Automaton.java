@@ -6,7 +6,7 @@ import java.util.Set;
 
 /* Class to represent an Automaton.*/
 public class Automaton {
-    public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED};
+    public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED}
 
     private final static AutomatonState initialState = new AutomatonState("Start", Evaluation.UNDECIDED);
     private final static Set<AutomatonState> stateList = new HashSet<>();
