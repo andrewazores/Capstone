@@ -6,7 +6,7 @@ import java.util.Map;
 public class Valuation<T> {
     private final Map<String, T> valuation = new HashMap<>();
 
-    public Valuation(String variableName, T value) {
+    public Valuation(final String variableName, final T value) {
         this.valuation.put(variableName, value);
     }
 
@@ -14,11 +14,11 @@ public class Valuation<T> {
         this.valuation.putAll(valuation.valuation);
     }
 
-    public T add(String variableName, T value) {
+    public T add(final String variableName, final T value) {
         return this.valuation.put(variableName, value);
     }
 
-    public T getValue(String name){
+    public T getValue(final String name){
         return valuation.get(name);
     }
 }
