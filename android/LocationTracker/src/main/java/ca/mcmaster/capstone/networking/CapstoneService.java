@@ -241,6 +241,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
         logv("Done");
     }
 
+    @Override
     public NsdServiceInfo getLocalNsdServiceInfo() {
         final NsdServiceInfo nsdServiceInfo = new NsdServiceInfo();
         nsdServiceInfo.setServiceName(getLocalNsdServiceName());
@@ -502,6 +503,9 @@ public final class CapstoneService extends Service implements NetworkLayer {
         postDataToPeer(destination, info, successListener, errorListener, requestMethod);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void sendTokenToPeer(final HashableNsdServiceInfo destination, final Token token) {
         final Response.Listener<JSONObject> successListener = j -> {};
@@ -511,15 +515,25 @@ public final class CapstoneService extends Service implements NetworkLayer {
         postDataToPeer(destination, token, successListener, errorListener, requestMethod);
     }
 
-    void receiveTokenInternal(final Token token) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void receiveTokenInternal(final Token token) {
         this.tokenQueue.add(token);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Token receiveToken() throws InterruptedException {
         return this.tokenQueue.take();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void receiveEventInternal(final Event event) {
         for (final HashableNsdServiceInfo peer : nsdPeers) {
@@ -535,11 +549,18 @@ public final class CapstoneService extends Service implements NetworkLayer {
         postDataToPeer(destination, event, successListener, errorListener, requestMethod);
     }
 
-    void receiveEventExternal(final Event event) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void receiveEventExternal(final Event event) {
         logv("Received event over the network: " + event);
         this.incomingEventQueue.add(event);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Event receiveEvent() throws InterruptedException {
         logv("Serving up event!");
