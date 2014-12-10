@@ -58,11 +58,12 @@ import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.DeviceLocation;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import ca.mcmaster.capstone.networking.structures.PayloadObject;
+import ca.mcmaster.capstone.networking.util.NetworkLayer;
 import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 
-public final  class CapstoneService extends Service {
+public final class CapstoneService extends Service implements NetworkLayer {
 
     private static final String NSD_LOCATION_SERVICE_NAME = "CapstoneLocationNSD";
     private static final String NSD_LOCATION_SERVICE_TYPE = "_http._tcp.";
@@ -501,6 +502,7 @@ public final  class CapstoneService extends Service {
         postDataToPeer(destination, info, successListener, errorListener, requestMethod);
     }
 
+    @Override
     public void sendTokenToPeer(final HashableNsdServiceInfo destination, final Token token) {
         final Response.Listener<JSONObject> successListener = j -> {};
         final Response.ErrorListener errorListener = error -> logv("Volley POST info error: " + error);
@@ -513,11 +515,13 @@ public final  class CapstoneService extends Service {
         this.tokenQueue.add(token);
     }
 
+    @Override
     public Token receiveToken() throws InterruptedException {
         return this.tokenQueue.take();
     }
 
-    void receiveEventInternal(final Event event) {
+    @Override
+    public void receiveEventInternal(final Event event) {
         for (final HashableNsdServiceInfo peer : nsdPeers) {
             sendEvent(peer, event);
         }
@@ -536,6 +540,7 @@ public final  class CapstoneService extends Service {
         this.incomingEventQueue.add(event);
     }
 
+    @Override
     public Event receiveEvent() throws InterruptedException {
         logv("Serving up event!");
         return this.incomingEventQueue.take();
