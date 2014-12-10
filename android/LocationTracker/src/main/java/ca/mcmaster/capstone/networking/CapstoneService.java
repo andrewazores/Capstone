@@ -503,9 +503,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     /**
-     * Broadcasts a Token to a specific peer
-     * @param destination
-     * @param token
+     * {@inheritDoc}
      */
     @Override
     public void sendTokenToPeer(final HashableNsdServiceInfo destination, final Token token) {
@@ -517,8 +515,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     /**
-     * Called by the Server when a Token is received over the network
-     * @param token
+     * {@inheritDoc}
      */
     @Override
     public void receiveTokenInternal(final Token token) {
@@ -526,11 +523,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     /**
-     * Called by the local monitoring process when it wishes to poll for tokens.
-     * This is a blocking call - if no tokens are available, the calling thread
-     * will wait until there is one.
-     * @return the first token in the queue
-     * @throws InterruptedException
+     * {@inheritDoc}
      */
     @Override
     public Token receiveToken() throws InterruptedException {
@@ -538,8 +531,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     /**
-     * Called by the local process when an event occurs which is to be broadcast to peers
-     * @param event
+     * {@inheritDoc}
      */
     @Override
     public void receiveEventInternal(final Event event) {
@@ -557,8 +549,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     /**
-     * Called by the Server when an Event is received over the network
-     * @param event
+     * {@inheritDoc}
      */
     @Override
     public void receiveEventExternal(final Event event) {
@@ -567,11 +558,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     /**
-     * Called by the local monitoring process when it wishes to poll for events.
-     * This is a blocking call - if no events are available, the calling thread
-     * will wait until there is one.
-     * @return the first event in the queue
-     * @throws InterruptedException
+     * {@inheritDoc}
      */
     @Override
     public Event receiveEvent() throws InterruptedException {
