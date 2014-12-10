@@ -1,10 +1,14 @@
 package ca.mcmaster.capstone.networking.util;
 
+import android.net.nsd.NsdServiceInfo;
+
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 public interface NetworkLayer {
+
+    NsdServiceInfo getLocalNsdServiceInfo();
 
     /**
      * Broadcasts a Token to a specific peer

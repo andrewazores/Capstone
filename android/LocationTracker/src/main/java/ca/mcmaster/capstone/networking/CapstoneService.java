@@ -241,6 +241,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
         logv("Done");
     }
 
+    @Override
     public NsdServiceInfo getLocalNsdServiceInfo() {
         final NsdServiceInfo nsdServiceInfo = new NsdServiceInfo();
         nsdServiceInfo.setServiceName(getLocalNsdServiceName());
