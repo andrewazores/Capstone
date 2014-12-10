@@ -16,6 +16,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.monitoralgorithm.Monitor;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
@@ -38,7 +39,8 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     protected ListView listView;
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
     private final List<HashableNsdServiceInfo> nsdPeers = new ArrayList<>();
-    private Intent serviceIntent;
+    private Intent networkServiceIntent;
+    private Intent monitorServiceIntent;
 
     public HashableNsdServiceInfo getLocalNsdServiceInfo() {
         return localNsdServiceInfo;
@@ -52,7 +54,8 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         log("Starting");
         setContentView(R.layout.activity_location);
 
-        serviceIntent = new Intent(this, CapstoneService.class);
+        networkServiceIntent = new Intent(this, CapstoneService.class);
+        monitorServiceIntent = new Intent(this, Monitor.class);
 
         listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nsdPeers));
@@ -126,7 +129,8 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         }
         jsonTextView.setText("Not connected to Capstone Service");
         nsdUpdate(Collections.<HashableNsdServiceInfo>emptySet());
-        stopService(serviceIntent);
+        stopService(networkServiceIntent);
+        stopService(monitorServiceIntent);
         disconnect();
         Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();
     }
@@ -144,8 +148,9 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     }
 
     private void reconnect() {
-        startService(serviceIntent);
-        getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
+        startService(networkServiceIntent);
+        startService(monitorServiceIntent);
+        getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
     }
 
     private void disconnect() {

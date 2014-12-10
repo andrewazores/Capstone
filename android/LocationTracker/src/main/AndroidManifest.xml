@@ -23,7 +23,14 @@
             android:enabled="true"
             android:name=".networking.CapstoneService">
             <intent-filter>
-                <action android:name="ca.mcmaster.capstone.core.CapstoneService" />
+                <action android:name="ca.mcmaster.capstone.networking.CapstoneService" />
+            </intent-filter>
+        </service>
+        <service
+            android:enabled="true"
+            android:name=".monitoralgorithm.Monitor">
+            <intent-filter>
+                <action android:name="ca.mcmaster.capstone.monitoralgorithm.Monitor" />
             </intent-filter>
         </service>
 

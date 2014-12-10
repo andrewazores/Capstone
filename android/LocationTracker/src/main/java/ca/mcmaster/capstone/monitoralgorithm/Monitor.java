@@ -1,9 +1,14 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import android.app.Service;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,23 +17,66 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ca.mcmaster.capstone.networking.CapstoneService;
+import ca.mcmaster.capstone.networking.util.NetworkLayer;
+
 /* Class to hold the main algorithm code.*/
-public class Monitor {
+public class Monitor extends Service {
     private static final List<Event> history = new ArrayList<>();
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static final int monitorID = 0; // TODO: make this equal something reasonable
     private static final Set<GlobalView> GV = new LinkedHashSet<>();
     private static final int numProcesses = 10;
+    private static volatile boolean runMonitor = true;
+    private Thread thread;
+    private Intent networkServiceIntent;
+    private static final NetworkServiceConnection serviceConnection = new NetworkServiceConnection();
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return new MonitorBinder(this);
+    }
+
+    @Override
+    public void onCreate() {
+        networkServiceIntent = new Intent(this, CapstoneService.class);
+        getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        runMonitor = true;
+        thread = new Thread(() -> monitorLoop(Collections.emptyList()));
+        Log.d("thread", "Started monitor!");
+        thread.start();
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d("thread", "Stopped monitor!");
+        runMonitor = false;
+    }
 
     // Placeholders until it becomes clear where these methods will really come from.
     private static Token receive() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        while (serviceConnection.getNetworkLayer() == null) {
+            try {
+                Thread.sleep(1000);
+            } catch (final InterruptedException e) {
+                Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+            }
+        }
+        Token token = null;
+        while (token == null) {
+            try {
+                token = serviceConnection.getNetworkLayer().receiveToken();
+            } catch (InterruptedException e) {
+                Log.d("thread", "Woke up without a token, trying again: " + e.getLocalizedMessage());
+            }
+        }
+        return token;
     }
     private static Event read() {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
     private static void send(final Token token, final int pid) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+
     }
 
     // These methods are either not described in the paper or are described separately from the main
@@ -66,13 +114,14 @@ public class Monitor {
     public static void monitorLoop(final List<ProcessState> initialStates) {
         init(initialStates);
 
-        while (true) {
+        while (runMonitor) {
             final Token receivedToken = receive();
             // TODO: add check for empty token and empty event if it turns out such a thing is possible
             receiveToken(receivedToken);
             final Event localEvent = read();
             receiveEvent(localEvent);
         }
+        Log.d("thread", "Left monitor loop.");
     }
 
     /*
