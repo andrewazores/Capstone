@@ -8,9 +8,13 @@ public interface NetworkLayer {
 
     void sendTokenToPeer(HashableNsdServiceInfo destination, Token token);
 
+    void receiveTokenInternal(Token token);
+
     Token receiveToken() throws InterruptedException;
 
     void receiveEventInternal(Event event);
+
+    void receiveEventExternal(Event event);
 
     Event receiveEvent() throws InterruptedException;
 }

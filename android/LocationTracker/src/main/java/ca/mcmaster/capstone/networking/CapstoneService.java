@@ -502,6 +502,11 @@ public final class CapstoneService extends Service implements NetworkLayer {
         postDataToPeer(destination, info, successListener, errorListener, requestMethod);
     }
 
+    /**
+     * Broadcasts a Token to a specific peer
+     * @param destination
+     * @param token
+     */
     @Override
     public void sendTokenToPeer(final HashableNsdServiceInfo destination, final Token token) {
         final Response.Listener<JSONObject> successListener = j -> {};
@@ -511,15 +516,31 @@ public final class CapstoneService extends Service implements NetworkLayer {
         postDataToPeer(destination, token, successListener, errorListener, requestMethod);
     }
 
-    void receiveTokenInternal(final Token token) {
+    /**
+     * Called by the Server when a Token is received over the network
+     * @param token
+     */
+    @Override
+    public void receiveTokenInternal(final Token token) {
         this.tokenQueue.add(token);
     }
 
+    /**
+     * Called by the local monitoring process when it wishes to poll for tokens.
+     * This is a blocking call - if no tokens are available, the calling thread
+     * will wait until there is one.
+     * @return the first token in the queue
+     * @throws InterruptedException
+     */
     @Override
     public Token receiveToken() throws InterruptedException {
         return this.tokenQueue.take();
     }
 
+    /**
+     * Called by the local process when an event occurs which is to be broadcast to peers
+     * @param event
+     */
     @Override
     public void receiveEventInternal(final Event event) {
         for (final HashableNsdServiceInfo peer : nsdPeers) {
@@ -535,11 +556,23 @@ public final class CapstoneService extends Service implements NetworkLayer {
         postDataToPeer(destination, event, successListener, errorListener, requestMethod);
     }
 
-    void receiveEventExternal(final Event event) {
+    /**
+     * Called by the Server when an Event is received over the network
+     * @param event
+     */
+    @Override
+    public void receiveEventExternal(final Event event) {
         logv("Received event over the network: " + event);
         this.incomingEventQueue.add(event);
     }
 
+    /**
+     * Called by the local monitoring process when it wishes to poll for events.
+     * This is a blocking call - if no events are available, the calling thread
+     * will wait until there is one.
+     * @return the first event in the queue
+     * @throws InterruptedException
+     */
     @Override
     public Event receiveEvent() throws InterruptedException {
         logv("Serving up event!");
