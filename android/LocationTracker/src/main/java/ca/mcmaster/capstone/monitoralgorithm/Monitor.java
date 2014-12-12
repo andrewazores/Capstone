@@ -273,8 +273,8 @@ public class Monitor extends Service {
                         final GlobalView gvn2 = new GlobalView(globalView);
                         gvn1.setCurrentState(trans.getTo());
                         gvn2.setCurrentState(trans.getTo());
-                        gvn1.setTokens(new ArrayList<Token>());
-                        gvn2.setTokens(new ArrayList<Token>());
+                        gvn1.setTokens(new ArrayList<>());
+                        gvn2.setTokens(new ArrayList<>());
                         globalView.getPendingTransitions().remove(trans);
                         GV.add(gvn1);
                         GV.add(gvn2);
