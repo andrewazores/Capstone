@@ -24,7 +24,7 @@ public class Monitor extends Service {
     private static final List<Event> history = new ArrayList<>();
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static HashableNsdServiceInfo monitorID = null;
-    private static final Set<GlobalView> GV = new LinkedHashSet<>();
+    private static final Set<GlobalView> GV = new HashSet<>();
     private static final int numProcesses = 10;
     private static volatile boolean runMonitor = true;
     private Thread thread;
@@ -106,10 +106,6 @@ public class Monitor extends Service {
 
     // These methods are either not described in the paper or are described separately from the main
     // body of the algorithm. They will be implemented in a future commit.
-    private static void mergeSimilarGlobalViews(final Collection<GlobalView> views) {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
     private static boolean enabled(final AutomatonTransition transition, final List<Token> tokens){
         throw new UnsupportedOperationException("Not implemented yet.");
     }
@@ -165,14 +161,35 @@ public class Monitor extends Service {
                 i.remove();
             }
         }
-        mergeSimilarGlobalViews(GV);
+        Set<GlobalView> copyGV = new HashSet<>(GV);
+        GV.clear();
+        GV.addAll(mergeSimilarGlobalViews(copyGV));
         for (final GlobalView gv : GV) {
             gv.getPendingEvents().add(event);
             if (gv.getTokens().isEmpty()) {
-                //XXX: not really sure why the algorithm specifies these being passes separately.
                 processEvent(gv, gv.getPendingEvents().remove());
             }
         }
+    }
+
+    private static Set<GlobalView> mergeSimilarGlobalViews(final Collection<GlobalView> gv) {
+        final Iterator<GlobalView> it1 = gv.iterator();
+        final Iterator<GlobalView> it2 = gv.iterator();
+        Set<GlobalView> merged = new HashSet<>();
+        while (it1.hasNext()) {
+            final GlobalView gv1 = it1.next();
+            while (it2.hasNext()) {
+                final GlobalView gv2 = it1.next();
+                if (!gv1.equals(gv2)) {
+                    final GlobalView newGV = gv1.merge(gv2);
+                    if (newGV != null) {
+                        merged.add(newGV);
+                    }
+                }
+            }
+            merged.add(gv1);
+        }
+        return merged;
     }
 
     /*

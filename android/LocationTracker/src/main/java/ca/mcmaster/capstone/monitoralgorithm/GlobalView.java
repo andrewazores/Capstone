@@ -2,6 +2,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ public class GlobalView {
     private final Map<HashableNsdServiceInfo, ProcessState> states = new HashMap<>();
     private VectorClock cut;
     private AutomatonState currentState;
+    //FIXME: apparently these are supposed to be sets
     private final List<Token> tokens = new ArrayList<>();
     private final Queue<Event> pendingEvents = new ArrayDeque<>();
     private final List<AutomatonTransition> pendingTransitions = new ArrayList<>();
@@ -159,5 +161,38 @@ public class GlobalView {
             }
         }
         return ret;
+    }
+
+    /*
+     * Attempts to merge this GlobalView with gv by treating the members of each as sets,
+     * and taking the union.
+     *
+     * @param gv The GlobalView to merge with this one.
+     * @return Returns a new GlobalView if this can be merged with gv, null otherwise.
+     */
+    public GlobalView merge(GlobalView gv) {
+        VectorClock.Comparison compare = this.cut.compareToClock(gv.cut);
+        if (this.currentState == gv.currentState &&
+                (compare == VectorClock.Comparison.CONCURRENT || compare == VectorClock.Comparison.EQUAL)) {
+            GlobalView ret = new GlobalView();
+            //XXX: I'm not sure that these are guarenteed to be the same. We may be losing informations here.
+            //     For example, what happens if the states in gv differ from those in this object?
+            ret.states.putAll(this.states);
+            ret.states.putAll(gv.states);
+            ret.cut = this.cut.merge(gv.cut);
+            ret.currentState = this.currentState;
+            ret.tokens.addAll(unionMerge(this.tokens, gv.tokens));
+            ret.pendingEvents.addAll(unionMerge(this.pendingEvents, gv.pendingEvents));
+            ret.pendingTransitions.addAll(unionMerge(this.pendingTransitions, gv.pendingTransitions));
+            return ret;
+        }
+        return null;
+    }
+
+    private static <T> Set<T> unionMerge(final Collection<T> first, final Collection<T> second) {
+        final Set<T> firstSet = new HashSet<>(first);
+        final Set<T> secondSet = new HashSet<>(second);
+        firstSet.addAll(secondSet);
+        return firstSet;
     }
 }
