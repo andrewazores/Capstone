@@ -22,7 +22,8 @@ public class GlobalView {
     private final List<AutomatonTransition> pendingTransitions = new ArrayList<>();
 
     public GlobalView() {
-        this.cut = new VectorClock();
+        //TODO: construct correct default objects
+        //this.cut = new VectorClock();
         this.currentState = new AutomatonState("", Automaton.Evaluation.UNDECIDED);
     }
 

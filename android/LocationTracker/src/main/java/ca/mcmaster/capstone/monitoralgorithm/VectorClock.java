@@ -11,9 +11,6 @@ public class VectorClock {
 
     private final Map<HashableNsdServiceInfo, Integer> consistentCut = new HashMap<>();
 
-    /* This constructor should eventually be deleted once things are fully implemented */
-    public VectorClock() {}
-
     public VectorClock(final VectorClock vc) {
         this.consistentCut.putAll(vc.consistentCut);
     }

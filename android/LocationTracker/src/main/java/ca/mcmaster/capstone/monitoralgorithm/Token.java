@@ -14,7 +14,7 @@ public class Token {
         private final HashableNsdServiceInfo destination;
 
         private int targetEventId = 0;
-        private VectorClock cut = new VectorClock();
+        private VectorClock cut;
         private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
         private final Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
         private ProcessState targetProcessState = null;
