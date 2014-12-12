@@ -2,15 +2,19 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+
 /* Class to represent the local view of the global state.*/
 public class GlobalView {
-    private final List<ProcessState> states = new ArrayList<>();
+    private final Map<HashableNsdServiceInfo, ProcessState> states = new HashMap<>();
     private VectorClock cut;
     private AutomatonState currentState;
     private final List<Token> tokens = new ArrayList<>();
@@ -23,20 +27,20 @@ public class GlobalView {
     }
 
     public GlobalView(final GlobalView gv) {
-        this.states.addAll(gv.getStates());
-        this.cut = new VectorClock(gv.getCut());
-        this.currentState = new AutomatonState(gv.getCurrentState());
-        this.pendingEvents.addAll(gv.getPendingEvents());
-        this.pendingTransitions.addAll(gv.getPendingTransitions());
+        this.states.putAll(gv.states);
+        this.cut = new VectorClock(gv.cut);
+        this.currentState = new AutomatonState(gv.currentState);
+        this.pendingEvents.addAll(gv.pendingEvents);
+        this.pendingTransitions.addAll(gv.pendingTransitions);
     }
 
-    public List<ProcessState> getStates() {
+    public Map<HashableNsdServiceInfo, ProcessState> getStates() {
         return states;
     }
 
-    public void setStates(final List<ProcessState> states) {
+    public void setStates(final Map<HashableNsdServiceInfo, ProcessState> states) {
         this.states.clear();
-        this.states.addAll(states);
+        this.states.putAll(states);
     }
 
     public VectorClock getCut() {
@@ -79,7 +83,7 @@ public class GlobalView {
      */
     public void update(final Token token) {
         cut = cut.merge(token.getCut());
-        states.set(token.getTargetProcessState().getId(), token.getTargetProcessState());
+        states.put(token.getTargetProcessState().getId(), token.getTargetProcessState());
         // If any pending transitions are also in the token, and are evaluated in the token, remove them
         for (Iterator<AutomatonTransition> it = pendingTransitions.iterator(); it.hasNext();) {
             final AutomatonTransition pending = it.next();
@@ -97,7 +101,8 @@ public class GlobalView {
     public boolean isConsistent() {
         boolean consistent = true;
         for (int i = 0; i < cut.size(); ++i) {
-            consistent &= this.states.get(i).getId() == this.cut.process(i);
+            //TODO: I'm pretty sure this is wrong.
+            //consistent &= this.states.get(i).getId() == this.cut.process(i);
         }
         return consistent;
     }
@@ -143,9 +148,10 @@ public class GlobalView {
      *
      * @return A set of process ids, for inconsistent processes.
      */
-    public Set<Integer> getInconsistentProcesses() {
-        final Set<Integer> ret = new HashSet<>();
-        for (final ProcessState state : this.states) {
+    public Set<HashableNsdServiceInfo> getInconsistentProcesses() {
+        final Set<HashableNsdServiceInfo> ret = new HashSet<>();
+        for (final Map.Entry<HashableNsdServiceInfo, ProcessState> entry : this.states.entrySet()) {
+            ProcessState state = entry.getValue();
             if (this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.BIGGER ||
                     this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.SMALLER) {
                 ret.add(state.getId());

@@ -5,11 +5,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+
 /* Class to represent the computation slicing tokens.*/
 public class Token {
     public static class Builder {
-        private final int owner;
-        private final int destination;
+        private final HashableNsdServiceInfo owner;
+        private final HashableNsdServiceInfo destination;
 
         private int targetEventId = 0;
         private VectorClock cut = new VectorClock();
@@ -19,7 +21,7 @@ public class Token {
         public boolean returned = false;
         public boolean sent = false;
 
-        public Builder(final int owner, final int destination) {
+        public Builder(final HashableNsdServiceInfo owner, final HashableNsdServiceInfo destination) {
             this.owner = owner;
             this.destination = destination;
         }
@@ -76,8 +78,8 @@ public class Token {
         }
     }
 
-    private final int owner;
-    private final int destination;
+    private final HashableNsdServiceInfo owner;
+    private final HashableNsdServiceInfo destination;
     private final int targetEventId;
     private final VectorClock cut;
     private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
@@ -96,7 +98,7 @@ public class Token {
         this.targetProcessState = builder.targetProcessState;
     }
 
-    public int getOwner() {
+    public HashableNsdServiceInfo getOwner() {
         return owner;
     }
 
@@ -108,7 +110,7 @@ public class Token {
         return new HashMap<>(conjuncts);
     }
 
-    public int getDestination() {
+    public HashableNsdServiceInfo getDestination() {
         return destination;
     }
 

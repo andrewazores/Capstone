@@ -1,21 +1,21 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 /* Class to represent a vector clock.*/
-public class VectorClock implements Iterable<Integer> {
+public class VectorClock {
     public static enum Comparison { EQUAL, BIGGER, SMALLER, CONCURRENT };
 
-    private final List<Integer> consistentCut = new ArrayList<>();
+    private final Map<HashableNsdServiceInfo, Integer> consistentCut = new HashMap<>();
 
     /* This constructor should eventually be deleted once things are fully implemented */
-    public VectorClock() {
-    }
+    public VectorClock() {}
 
     public VectorClock(final VectorClock vc) {
-        this.consistentCut.addAll(vc.consistentCut);
+        this.consistentCut.putAll(vc.consistentCut);
     }
 
     /*
@@ -23,8 +23,8 @@ public class VectorClock implements Iterable<Integer> {
      *
      * @param consistentCut A List of Integers representing a consistent cut of all known processes.
      */
-    public VectorClock(final List<Integer> consistentCut) {
-        this.consistentCut.addAll(consistentCut);
+    public VectorClock(final Map<HashableNsdServiceInfo, Integer> consistentCut) {
+        this.consistentCut.putAll(consistentCut);
     }
 
     /*
@@ -42,10 +42,10 @@ public class VectorClock implements Iterable<Integer> {
 
         boolean bigger = false;
         boolean smaller = false;
-        for (int i = 0; i < this.size(); ++i) {
-            if (this.process(i) > clock.process(i)) {
+        for (Map.Entry<HashableNsdServiceInfo, Integer> entry : this.consistentCut.entrySet()) {
+            if (entry.getValue() > clock.process(entry.getKey())) {
                 bigger = true;
-            } else if (this.process(i) < clock.process(i)) {
+            } else if (entry.getValue() < clock.process(entry.getKey())) {
                 smaller = true;
             }
         }
@@ -58,10 +58,6 @@ public class VectorClock implements Iterable<Integer> {
             return Comparison.CONCURRENT;
         }
         return Comparison.EQUAL;
-    }
-
-    public Iterator<Integer> iterator() {
-        return consistentCut.iterator();
     }
 
     /*
@@ -78,12 +74,12 @@ public class VectorClock implements Iterable<Integer> {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }
 
-        final List<Integer> merged = new ArrayList<>();
-        for (int i = 0; i < consistentCut.size(); ++i) {
-            if (this.process(i) > clock.process(i)) {
-                merged.add(this.process(i));
+        final Map<HashableNsdServiceInfo, Integer> merged = new HashMap<>();
+        for (Map.Entry<HashableNsdServiceInfo, Integer> entry : this.consistentCut.entrySet()) {
+            if (entry.getValue() > clock.process(entry.getKey())) {
+                merged.put(entry.getKey(), entry.getValue());
             } else {
-                merged.add(clock.process(i));
+                merged.put(entry.getKey(), clock.process(entry.getKey()));
             }
         }
 
@@ -96,8 +92,8 @@ public class VectorClock implements Iterable<Integer> {
      * @param i The index of the process whose clock to return.
      * @return The clock for the ith process.
      */
-    public int process(final int i) {
-        return consistentCut.get(i);
+    public int process(final HashableNsdServiceInfo pid) {
+        return consistentCut.get(pid);
     }
 
     /*

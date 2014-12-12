@@ -3,7 +3,10 @@ package ca.mcmaster.capstone.monitoralgorithm;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 /* Class to represent an automaton transition.*/
 public class AutomatonTransition {
@@ -71,8 +74,8 @@ public class AutomatonTransition {
      *
      * @return A set of process ids.
      */
-    public Set<Integer> getParticipatingProcesses() {
-        final Set<Integer> ret = new HashSet<>();
+    public Set<HashableNsdServiceInfo> getParticipatingProcesses() {
+        final Set<HashableNsdServiceInfo> ret = new HashSet<>();
         for (final Conjunct conjunct : conjuncts) {
             ret.addAll(conjunct.getOwnerProcesses());
         }
@@ -84,9 +87,10 @@ public class AutomatonTransition {
      *
      * @return A set of process ids.
      */
-    public Set<Integer> getForbiddingProcesses(final GlobalView gv) {
-        final Set<Integer> ret = new HashSet<>();
-        for (final ProcessState state : gv.getStates()) {
+    public Set<HashableNsdServiceInfo> getForbiddingProcesses(final GlobalView gv) {
+        final Set<HashableNsdServiceInfo> ret = new HashSet<>();
+        for (final Map.Entry<HashableNsdServiceInfo, ProcessState> entry : gv.getStates().entrySet()) {
+            ProcessState state = entry.getValue();
             for (final Conjunct conjunct : conjuncts) {
                 if (conjunct.evaluate(state) == Conjunct.Evaluation.FALSE) {
                     ret.add(state.getId());

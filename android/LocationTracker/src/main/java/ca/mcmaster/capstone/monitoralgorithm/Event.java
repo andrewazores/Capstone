@@ -1,15 +1,17 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+
 public final class Event {
     public static enum EventType {SEND, RECEIVE, INTERNAL}
 
     private final int eid;
-    private final int pid;
+    private final HashableNsdServiceInfo pid;
     private final EventType type;
     private final Valuation<?> val;
     private final VectorClock VC;
 
-    public Event(final int eid, final int pid, final EventType type, final Valuation<?> val, final VectorClock VC) {
+    public Event(final int eid, final HashableNsdServiceInfo pid, final EventType type, final Valuation<?> val, final VectorClock VC) {
         this.eid = eid;
         this.pid = pid;
         this.type = type;
@@ -21,7 +23,7 @@ public final class Event {
         return eid;
     }
 
-    public int pid() {
+    public HashableNsdServiceInfo pid() {
         return pid;
     }
 

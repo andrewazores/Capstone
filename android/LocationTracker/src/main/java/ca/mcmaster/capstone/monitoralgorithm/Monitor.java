@@ -2,7 +2,6 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -18,13 +17,13 @@ import java.util.Map;
 import java.util.Set;
 
 import ca.mcmaster.capstone.networking.CapstoneService;
-import ca.mcmaster.capstone.networking.util.NetworkLayer;
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 /* Class to hold the main algorithm code.*/
 public class Monitor extends Service {
     private static final List<Event> history = new ArrayList<>();
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
-    private static final int monitorID = 0; // TODO: make this equal something reasonable
+    private static HashableNsdServiceInfo monitorID = null;
     private static final Set<GlobalView> GV = new LinkedHashSet<>();
     private static final int numProcesses = 10;
     private static volatile boolean runMonitor = true;
@@ -42,7 +41,7 @@ public class Monitor extends Service {
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         runMonitor = true;
-        thread = new Thread(() -> monitorLoop(Collections.emptyList()));
+        thread = new Thread(() -> monitorLoop(Collections.emptyMap()));
         Log.d("thread", "Started monitor!");
         thread.start();
     }
@@ -53,7 +52,6 @@ public class Monitor extends Service {
         runMonitor = false;
     }
 
-    // Placeholders until it becomes clear where these methods will really come from.
     private static Token receive() {
         while (serviceConnection.getNetworkLayer() == null) {
             try {
@@ -72,11 +70,22 @@ public class Monitor extends Service {
         }
         return token;
     }
+
     private static Event read() {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
-    private static void send(final Token token, final int pid) {
 
+    private static void send(final Token token, final HashableNsdServiceInfo pid) {
+        while (serviceConnection.getNetworkLayer() == null) {
+            try {
+                Thread.sleep(1000);
+            } catch (final InterruptedException e) {
+                Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+            }
+        }
+        while (token == null) {
+            serviceConnection.getNetworkLayer().sendTokenToPeer(token.getDestination(), token);
+        }
     }
 
     // These methods are either not described in the paper or are described separately from the main
@@ -99,8 +108,10 @@ public class Monitor extends Service {
      *
      * @param initialStates The initial state of each known process.
      */
-    public static void init(final List<ProcessState> initialStates) {
+    public static void init(final Map<HashableNsdServiceInfo, ProcessState> initialStates) {
         final GlobalView initialGV = new GlobalView();
+        monitorID = HashableNsdServiceInfo.get(serviceConnection.getNetworkLayer().getLocalNsdServiceInfo());
+
         initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
         initialGV.setCurrentState(Automaton.advance(initialGV));
@@ -111,7 +122,7 @@ public class Monitor extends Service {
      *
      * @param initialStates The initial state of each known process.
      */
-    public static void monitorLoop(final List<ProcessState> initialStates) {
+    public static void monitorLoop(final Map<HashableNsdServiceInfo, ProcessState> initialStates) {
         init(initialStates);
 
         while (runMonitor) {
@@ -159,7 +170,7 @@ public class Monitor extends Service {
     public static void processEvent(final GlobalView gv, final Event event) {
         gv.setCut(gv.getCut().merge(event.getVC()));
         final ProcessState state = gv.getStates().get(monitorID);
-        gv.getStates().set(monitorID, state.update(event));
+        gv.getStates().put(monitorID, state.update(event));
         if (gv.isConsistent()) {
             gv.setCurrentState(Automaton.advance(gv));
             if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
@@ -179,46 +190,44 @@ public class Monitor extends Service {
      * @param event The event to find concurrent events for.
      */
     private static void checkOutgoingTransitions(final GlobalView gv, final Event event) {
-        final List<Set<AutomatonTransition>> consult = new ArrayList<>();
-        for (int i = 0; i < numProcesses; ++i) {
-            consult.add(new HashSet<>());
-        }
+        final Map<HashableNsdServiceInfo, Set<AutomatonTransition>> consult = new HashMap<>();
         for (AutomatonTransition trans : Automaton.getTransitions()) {
             final AutomatonState current = gv.getCurrentState();
             if (trans.getFrom() == current && trans.getTo() != current) {
-                final Set<Integer> participating = trans.getParticipatingProcesses();
-                final Set<Integer> forbidding = trans.getForbiddingProcesses(gv);
+                final Set<HashableNsdServiceInfo> participating = trans.getParticipatingProcesses();
+                final Set<HashableNsdServiceInfo> forbidding = trans.getForbiddingProcesses(gv);
                 if (!forbidding.contains(monitorID)) {
-                    final Set<Integer> inconsistent = gv.getInconsistentProcesses();
+                    final Set<HashableNsdServiceInfo> inconsistent = gv.getInconsistentProcesses();
                     // intersection
                     participating.retainAll(inconsistent);
                     // union
                     forbidding.addAll(participating);
-                    for (final Integer process : forbidding) {
+                    for (final HashableNsdServiceInfo process : forbidding) {
                         gv.getPendingTransitions().add(trans);
+                        if (consult.get(process) == null) {
+                            consult.put(process, new HashSet<>());
+                        }
                         consult.get(process).add(trans);
                     }
                 }
             }
         }
 
-        for (int j = 0; j < numProcesses; ++j) {
-            if (!consult.get(j).isEmpty()) {
-                // Get all the conjuncts for process j
-                final Set<Conjunct> conjuncts = new HashSet<>();
-                for (final AutomatonTransition trans : consult.get(j)) {
-                    conjuncts.addAll(trans.getConjuncts());
-                }
-                //Build map to add to token
-                final Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
-                for (final Conjunct conjunct : conjuncts) {
-                    forToken.put(conjunct, Conjunct.Evaluation.NONE);
-                }
-                final Token token = new Token.Builder(monitorID, j).targetEventId(gv.getCut().process(j) + 1)
-                        .cut(event.getVC()).conjuncts(forToken).automatonTransitions(consult.get(j))
-                        .build();
-                gv.getTokens().add(token);
+        for (Map.Entry<HashableNsdServiceInfo, Set<AutomatonTransition>> entry : consult.entrySet()) {
+            // Get all the conjuncts for process j
+            final Set<Conjunct> conjuncts = new HashSet<>();
+            for (final AutomatonTransition trans : entry.getValue()) {
+                conjuncts.addAll(trans.getConjuncts());
             }
+            //Build map to add to token
+            final Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
+            for (final Conjunct conjunct : conjuncts) {
+                forToken.put(conjunct, Conjunct.Evaluation.NONE);
+            }
+            final Token token = new Token.Builder(monitorID, entry.getKey()).targetEventId(gv.getCut().process(entry.getKey()) + 1)
+                    .cut(event.getVC()).conjuncts(forToken).automatonTransitions(entry.getValue())
+                    .build();
+            gv.getTokens().add(token);
         }
         Token token = gv.getTokenWithMostConjuncts();
         send(token, token.getDestination());

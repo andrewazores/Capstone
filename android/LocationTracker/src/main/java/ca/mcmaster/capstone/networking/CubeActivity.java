@@ -30,7 +30,6 @@ import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 public class CubeActivity extends Activity {
 
-    private GLSurfaceView mGLSurfaceView;
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private SensorEventListener mSensorEventListener;
@@ -44,8 +43,6 @@ public class CubeActivity extends Activity {
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
     private Intent serviceIntent = null;
     private boolean back = false;
-
-    private EventLog.Event event;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,7 +81,7 @@ public class CubeActivity extends Activity {
         networkGet.execute();
     }
 
-    HashMap<Integer, Boolean> deviceMap = new HashMap<>();
+    HashMap<HashableNsdServiceInfo, Boolean> deviceMap = new HashMap<>();
     public void getEvent() throws InterruptedException {
         if (serviceConnection.getService() == null) {
             return;
@@ -202,7 +199,8 @@ public class CubeActivity extends Activity {
                 return;
             }
             final Valuation<?> valuation = new Valuation<>("isFlat", isFlat);
-            Event e = new Event(flatnessCounter, NSD.hashCode(), Event.EventType.INTERNAL, valuation, new VectorClock(new ArrayList<Integer>() {{ add(1); add(7); add(42);}}));
+            Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation, new VectorClock(
+                    new HashMap<HashableNsdServiceInfo, Integer>() {{ put(HashableNsdServiceInfo.get(serviceConnection.getService().getLocalNsdServiceInfo()), flatnessCounter); }}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
             serviceConnection.getService().receiveEventInternal(e);
         }

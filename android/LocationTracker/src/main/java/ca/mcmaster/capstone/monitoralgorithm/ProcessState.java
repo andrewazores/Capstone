@@ -1,7 +1,9 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+
 public class ProcessState {
-    private final int id;
+    private final HashableNsdServiceInfo id;
     private final Valuation<?> val;
     private final VectorClock VC;
 
@@ -12,7 +14,7 @@ public class ProcessState {
      * @param val The valuation of the process' variables.
      * @param VC The vector clock for the process.
      */
-    public ProcessState(final int id, final Valuation<?> val, final VectorClock VC) {
+    public ProcessState(final HashableNsdServiceInfo id, final Valuation<?> val, final VectorClock VC) {
         this.id = id;
         this.val = val;
         this.VC = VC;
@@ -24,7 +26,7 @@ public class ProcessState {
         this.VC = new VectorClock(state.VC);
     }
 
-    public int getId() {
+    public HashableNsdServiceInfo getId() {
         return id;
     }
 
