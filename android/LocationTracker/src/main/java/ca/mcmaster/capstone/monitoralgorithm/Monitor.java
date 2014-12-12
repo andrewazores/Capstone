@@ -307,7 +307,7 @@ public class Monitor extends Service {
                 send(maxConjuncts, maxConjuncts.getDestination());
                 maxConjuncts.setSent(true);
             }
-        } else if (token.getOwner() != monitorID) {
+        } else {
             boolean hasTarget = false;
             for (final Event event : history) {
                 if (event.eid() == token.getTargetEventId()) {
