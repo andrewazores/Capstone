@@ -79,9 +79,7 @@ public class Monitor extends Service {
                 Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
-        while (token == null) {
-            serviceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
-        }
+        serviceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
     }
 
 
