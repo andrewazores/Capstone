@@ -71,10 +71,6 @@ public class Monitor extends Service {
         return token;
     }
 
-    private static Event read() {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
     private static void send(final Token token, final HashableNsdServiceInfo pid) {
         while (serviceConnection.getNetworkLayer() == null) {
             try {
@@ -86,6 +82,26 @@ public class Monitor extends Service {
         while (token == null) {
             serviceConnection.getNetworkLayer().sendTokenToPeer(token.getDestination(), token);
         }
+    }
+
+
+    private static Event read() {
+        while (serviceConnection.getNetworkLayer() == null) {
+            try {
+                Thread.sleep(1000);
+            } catch (final InterruptedException e) {
+                Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+            }
+        }
+        Event event = null;
+        while (event == null) {
+            try {
+                event = serviceConnection.getNetworkLayer().receiveEvent();
+            } catch (InterruptedException e) {
+                Log.d("thread", "Woke up without an event, trying again: " + e.getLocalizedMessage());
+            }
+        }
+        return event;
     }
 
     // These methods are either not described in the paper or are described separately from the main
