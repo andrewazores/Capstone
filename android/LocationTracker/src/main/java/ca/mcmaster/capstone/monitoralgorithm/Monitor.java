@@ -80,7 +80,7 @@ public class Monitor extends Service {
             }
         }
         while (token == null) {
-            serviceConnection.getNetworkLayer().sendTokenToPeer(/*FIXME: should this be pid?*/token.getDestination(), token);
+            serviceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
         }
     }
 
@@ -310,7 +310,7 @@ public class Monitor extends Service {
                     boolean hasEnabled = false;
                     for (final AutomatonTransition gvTrans : globalView.getPendingTransitions()) {
                         if (gvTrans.getEvaluation() == Conjunct.Evaluation.TRUE) {
-                            GV.remove(globalViews); // FIXME: GV is Set<GlobalView>, globalViews is List<GlobalView>. Should this be removeAll() instead?
+                            GV.removeAll(globalViews);
                             hasEnabled = true;
                             break;
                         }
