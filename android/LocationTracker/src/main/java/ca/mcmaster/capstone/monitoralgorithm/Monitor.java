@@ -299,7 +299,7 @@ public class Monitor extends Service {
                         }
                     }
                     if (!hasEnabled) {
-                        globalView.setTokens(new ArrayList<Token>());
+                        globalView.setTokens(new ArrayList<>());
                         processEvent(globalView, globalView.getPendingEvents().remove());
                     }
                 }
