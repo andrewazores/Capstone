@@ -51,7 +51,7 @@ public class VectorClock {
             return Comparison.BIGGER;
         } else if (smaller) {
             return Comparison.SMALLER;
-        } else if (bigger && smaller) {
+        } else if (bigger && smaller) { // FIXME: this can never be the case
             return Comparison.CONCURRENT;
         }
         return Comparison.EQUAL;
