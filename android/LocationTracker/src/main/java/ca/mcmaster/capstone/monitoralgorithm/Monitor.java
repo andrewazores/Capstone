@@ -293,7 +293,7 @@ public class Monitor extends Service {
                     boolean hasEnabled = false;
                     for (final AutomatonTransition gvTrans : globalView.getPendingTransitions()) {
                         if (gvTrans.getEvaluation() == Conjunct.Evaluation.TRUE) {
-                            GV.remove(globalViews);
+                            GV.remove(globalViews); // FIXME: GV is Set<GlobalView>, globalViews is List<GlobalView>. Should this be removeAll() instead?
                             hasEnabled = true;
                             break;
                         }
