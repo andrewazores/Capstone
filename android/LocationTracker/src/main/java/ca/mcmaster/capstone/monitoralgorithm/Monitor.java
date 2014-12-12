@@ -80,7 +80,7 @@ public class Monitor extends Service {
             }
         }
         while (token == null) {
-            serviceConnection.getNetworkLayer().sendTokenToPeer(token.getDestination(), token);
+            serviceConnection.getNetworkLayer().sendTokenToPeer(/*FIXME: should this be pid?*/token.getDestination(), token);
         }
     }
 
