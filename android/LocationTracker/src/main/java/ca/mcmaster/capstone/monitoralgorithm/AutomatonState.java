@@ -11,7 +11,7 @@ public class AutomatonState {
     }
 
     public AutomatonState(final AutomatonState state) {
-        this.stateName = new String(state.stateName);
+        this.stateName = state.stateName;
         this.stateType = state.stateType;
     }
 
