@@ -107,11 +107,6 @@ public class Monitor extends Service {
     private static boolean enabled(final AutomatonTransition transition, final List<Token> tokens){
         throw new UnsupportedOperationException("Not implemented yet.");
     }
-    // Checks to make sure the vector clock of each token is consistent with this process's
-    private static boolean consistent(final List<Token> tokens){
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
 
     /*
      * Perform some basic initialization.
@@ -280,7 +275,7 @@ public class Monitor extends Service {
                 for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
-                    if (enabled(trans, tokens) && consistent(tokens)) {
+                    if (enabled(trans, tokens) && consistent(globalView, tokens)) {
                         for (final Token tok : tokens) {
                             globalView.update(tok);
                         }
@@ -335,6 +330,25 @@ public class Monitor extends Service {
                 waitingTokens.remove(token);
             }
         }
+    }
+
+    /*
+     * Checks that the vector clock in each token is consistent with gv's vector clock. Consistent
+     * means that the clocks are either equal or concurrent.
+     *
+     * @param gv The GlobalView whose vector clock will be compared.
+     * @param tokens The tokens whose vector clocks to compare.
+     * @return True if all tokens' vector clocks are consistent with gv's. False otherwise.
+     */
+    private static boolean consistent(final GlobalView gv, final List<Token> tokens){
+        VectorClock viewCut = gv.getCut();
+        boolean consistent = true;
+        for (Token token : tokens) {
+            VectorClock tokenClock = token.getCut();
+            consistent &= (tokenClock.compareToClock(viewCut) == VectorClock.Comparison.CONCURRENT ||
+                    tokenClock.compareToClock(viewCut) == VectorClock.Comparison.EQUAL);
+        }
+        return consistent;
     }
 
     /*
