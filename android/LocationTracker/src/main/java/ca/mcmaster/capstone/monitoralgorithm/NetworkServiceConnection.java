@@ -12,7 +12,7 @@ public class NetworkServiceConnection implements ServiceConnection {
 
     @Override
     public void onServiceConnected(final ComponentName componentName, final IBinder iBinder) {
-        this.networkLayer = (NetworkLayer) iBinder;
+        this.networkLayer = (NetworkLayer) iBinder; //FIXME: This cast fails
     }
 
     @Override
