@@ -18,10 +18,9 @@ public class GlobalView {
     private final Map<HashableNsdServiceInfo, ProcessState> states = new HashMap<>();
     private VectorClock cut;
     private AutomatonState currentState;
-    //FIXME: apparently these are supposed to be sets
-    private final List<Token> tokens = new ArrayList<>();
+    private final Set<Token> tokens = new HashSet<>();
     private final Queue<Event> pendingEvents = new ArrayDeque<>();
-    private final List<AutomatonTransition> pendingTransitions = new ArrayList<>();
+    private final Set<AutomatonTransition> pendingTransitions = new HashSet<>();
 
     public GlobalView() {
         //TODO: construct correct default objects
@@ -62,7 +61,7 @@ public class GlobalView {
         this.currentState = state;
     }
 
-    public List<Token> getTokens() {
+    public Set<Token> getTokens() {
         return tokens;
     }
 
@@ -116,8 +115,12 @@ public class GlobalView {
      * @return A reference to The token with the most conjuncts requested to be evaluated.
      */
     public Token getTokenWithMostConjuncts() {
-        Token ret = this.tokens.get(0);
+        Token ret = null;
         for (final Token token : this.tokens) {
+            if (ret == null) {
+                ret = token;
+                break;
+            }
             if (token.getConjuncts().size() > ret.getConjuncts().size()) {
                 ret = token;
             }
@@ -175,7 +178,7 @@ public class GlobalView {
         if (this.currentState == gv.currentState &&
                 (compare == VectorClock.Comparison.CONCURRENT || compare == VectorClock.Comparison.EQUAL)) {
             GlobalView ret = new GlobalView();
-            //XXX: I'm not sure that these are guarenteed to be the same. We may be losing informations here.
+            //XXX: I'm not sure that these are guaranteed to be the same. We may be losing information here.
             //     For example, what happens if the states in gv differ from those in this object?
             ret.states.putAll(this.states);
             ret.states.putAll(gv.states);
