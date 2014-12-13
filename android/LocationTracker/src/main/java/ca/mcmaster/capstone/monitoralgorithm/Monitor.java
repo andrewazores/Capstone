@@ -109,6 +109,13 @@ public class Monitor extends Service {
      */
     public static void init(final Map<HashableNsdServiceInfo, ProcessState> initialStates) {
         final GlobalView initialGV = new GlobalView();
+        while (serviceConnection.getNetworkLayer() == null) {
+            try {
+                Thread.sleep(1000);
+            } catch (final InterruptedException e) {
+                Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+            }
+        }
         monitorID = HashableNsdServiceInfo.get(serviceConnection.getNetworkLayer().getLocalNsdServiceInfo());
 
         initialGV.setCurrentState(Automaton.getInitialState());
