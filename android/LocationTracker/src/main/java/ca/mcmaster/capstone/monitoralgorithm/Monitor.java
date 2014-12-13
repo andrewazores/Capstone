@@ -341,10 +341,10 @@ public class Monitor extends Service {
      * @return True if all tokens' vector clocks are consistent with gv's. False otherwise.
      */
     private static boolean consistent(final GlobalView gv, final List<Token> tokens){
-        VectorClock viewCut = gv.getCut();
+        final VectorClock viewCut = gv.getCut();
         boolean consistent = true;
-        for (Token token : tokens) {
-            VectorClock tokenClock = token.getCut();
+        for (final Token token : tokens) {
+            final VectorClock tokenClock = token.getCut();
             consistent &= (tokenClock.compareToClock(viewCut) == VectorClock.Comparison.CONCURRENT ||
                     tokenClock.compareToClock(viewCut) == VectorClock.Comparison.EQUAL);
         }

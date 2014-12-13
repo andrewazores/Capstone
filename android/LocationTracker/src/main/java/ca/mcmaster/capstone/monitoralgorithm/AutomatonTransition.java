@@ -103,9 +103,9 @@ public class AutomatonTransition {
     }
 
     public boolean enabled(final List<Token> tokens) throws Exception {
-        Map<Conjunct, Conjunct.Evaluation> enabled = new HashMap<>();
-        for (Token token : tokens) {
-            for (Conjunct conjunct : token.getConjuncts()) {
+        final Map<Conjunct, Conjunct.Evaluation> enabled = new HashMap<>();
+        for (final Token token : tokens) {
+            for (final Conjunct conjunct : token.getConjuncts()) {
                 if (this.conjuncts.contains(conjunct)) {
                     enabled.put(conjunct, token.getConjunctsMap().get(conjunct));
                 }
