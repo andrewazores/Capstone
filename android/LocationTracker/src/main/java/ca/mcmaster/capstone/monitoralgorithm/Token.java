@@ -122,10 +122,6 @@ public class Token {
         return cut;
     }
 
-    public void setReturned(boolean returned) {
-        this.returned = returned;
-    }
-
     public void setSent(boolean sent) {
         this.sent = sent;
     }

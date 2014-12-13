@@ -102,12 +102,6 @@ public class Monitor extends Service {
         return event;
     }
 
-    // These methods are either not described in the paper or are described separately from the main
-    // body of the algorithm. They will be implemented in a future commit.
-    private static boolean enabled(final AutomatonTransition transition, final List<Token> tokens){
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
     /*
      * Perform some basic initialization.
      *
@@ -275,7 +269,13 @@ public class Monitor extends Service {
                 for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
-                    if (enabled(trans, tokens) && consistent(globalView, tokens)) {
+                    boolean enabled = false;
+                    try {
+                        enabled = trans.enabled(tokens);
+                    } catch (Exception e) {
+                        Log.d("enabled", "Exceptions while checking that transition is enabled: " + e.getLocalizedMessage());
+                    }
+                    if (enabled && consistent(globalView, tokens)) {
                         for (final Token tok : tokens) {
                             globalView.update(tok);
                         }

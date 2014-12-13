@@ -1,6 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -99,5 +100,23 @@ public class AutomatonTransition {
             }
         }
         return ret;
+    }
+
+    public boolean enabled(final List<Token> tokens) throws Exception {
+        Map<Conjunct, Conjunct.Evaluation> enabled = new HashMap<>();
+        for (Token token : tokens) {
+            for (Conjunct conjunct : token.getConjuncts()) {
+                if (this.conjuncts.contains(conjunct)) {
+                    enabled.put(conjunct, token.getConjunctsMap().get(conjunct));
+                }
+            }
+        }
+        if (enabled.values().contains(Conjunct.Evaluation.NONE)) {
+            throw new Exception("Found an unevaluated conjunct where all should be evaluated.");
+        }
+        if (enabled.values().contains(Conjunct.Evaluation.FALSE)) {
+            return false;
+        }
+        return true;
     }
 }
