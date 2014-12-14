@@ -17,47 +17,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 /* Class to hold the main algorithm code.*/
 public class Monitor extends Service {
-    //FIXME: These should be able to be refactored into one class but I can't figure out how
-    private static class TokenReceiver implements Runnable {
-        private static Queue<Token> receivedTokens = new ArrayDeque<>();
-        private static boolean run = true;
 
+    private static class Receiver<T> implements Runnable {
+        private final Callable<T> callable;
+        private final Queue<T> receiveQueue = new ArrayDeque<>();
+        private volatile boolean run = true;
+
+        public Receiver(final Callable<T> callable) {
+            this.callable = callable;
+        }
+
+        @Override
         public void run() {
             while (run) {
-                receivedTokens.add(Monitor.receive());
+                try {
+                    receiveQueue.add(callable.call());
+                } catch (final Exception e) {
+                    Log.v("MonitorService", "Receiver helper thread failed to call callable: " + e.getLocalizedMessage());
+                }
             }
         }
 
-        public static synchronized Token receive() {
-            return receivedTokens.poll();
+        public synchronized T receive() {
+            return receiveQueue.poll();
         }
 
-        public static synchronized void requestStop() {
-            run = false;
-        }
-    }
-
-    private static class EventReceiver implements Runnable {
-        private static Queue<Event> receivedEvents = new ArrayDeque<>();
-        private static boolean run = true;
-
-        public void run() {
-            while (run) {
-                receivedEvents.add(Monitor.read());
-            }
-        }
-
-        public static synchronized Event receive() {
-            return receivedEvents.poll();
-        }
-
-        public static synchronized void requestStop() {
+        public synchronized void stop() {
             run = false;
         }
     }
@@ -180,22 +172,24 @@ public class Monitor extends Service {
     public static void monitorLoop(final Map<HashableNsdServiceInfo, ProcessState> initialStates) {
         init(initialStates);
 
-        final Thread tokens = new Thread(new TokenReceiver());
-        final Thread events = new Thread(new EventReceiver());
+        final Receiver<Token> tokenReceiver = new Receiver<>(Monitor::receive);
+        final Thread tokens = new Thread(tokenReceiver);
+        final Receiver<Event> eventReceiver = new Receiver<>(Monitor::read);
+        final Thread events = new Thread(eventReceiver);
         tokens.start();
         events.start();
         while (runMonitor) {
-            final Token receivedToken = TokenReceiver.receive();
+            final Token receivedToken = tokenReceiver.receive();
             if (receivedToken != null) {
                 receiveToken(receivedToken);
             }
-            final Event localEvent = EventReceiver.receive();
+            final Event localEvent = eventReceiver.receive();
             if (localEvent != null) {
                 receiveEvent(localEvent);
             }
         }
-        TokenReceiver.requestStop();
-        EventReceiver.requestStop();
+        tokenReceiver.stop();
+        eventReceiver.stop();
         Log.d("monitor", "Left monitor loop.");
     }
 
