@@ -239,14 +239,12 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     public class MonitorServiceConnection implements ServiceConnection {
 
         private Monitor service;
-        private MonitorBinder binder;
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             Toast.makeText(CapstoneActivity.this, "Monitor service connected", Toast.LENGTH_LONG).show();
             log("Service connected");
 
-            this.binder = (MonitorBinder) service;
             this.service = ((MonitorBinder) service).getMonitor();
         }
 
