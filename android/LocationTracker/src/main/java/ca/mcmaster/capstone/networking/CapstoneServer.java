@@ -75,7 +75,7 @@ public class CapstoneServer extends NanoHTTPD {
             session.parseBody(contentBody);
         } catch (final ResponseException | IOException e) {
             log("Error parsing body: " + contentBody);
-            log(e.getLocalizedMessage());
+            log("Stack trace: (" + e.getClass() + ")" + e.getLocalizedMessage());
             return genericError();
         }
         log("Method: " + method);
