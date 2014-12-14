@@ -535,18 +535,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
      * {@inheritDoc}
      */
     @Override
-    public void receiveEventInternal(final Event event) {
-        for (final HashableNsdServiceInfo peer : nsdPeers) {
-            sendEvent(peer, event);
-        }
-    }
-
-    private void sendEvent(final HashableNsdServiceInfo destination, final Event event) {
-        final Response.Listener<JSONObject> successListener = j -> {};
-        final Response.ErrorListener errorListener = error -> logv("Volley POST info error: " + error);
-        final CapstoneServer.RequestMethod requestMethod = CapstoneServer.RequestMethod.SEND_EVENT;
-
-        postDataToPeer(destination, event, successListener, errorListener, requestMethod);
+    public void sendEventToMonitor(final Event event) {
+        this.incomingEventQueue.add(event);
     }
 
     /**

@@ -33,10 +33,10 @@ public interface NetworkLayer {
     Token receiveToken() throws InterruptedException;
 
     /**
-     * Called by the local process when an event occurs which is to be broadcast to peers
+     * Sends an event to the monitor. Must be called by the monitored process when an event occurs.
      * @param event
      */
-    void receiveEventInternal(Event event);
+    void sendEventToMonitor(Event event);
 
     /**
      * Called by the Server when an Event is received over the network
