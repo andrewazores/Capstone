@@ -36,7 +36,7 @@ public final class Event {
     }
 
     public VectorClock getVC() {
-        return VC;
+        return new VectorClock(VC);
     }
 
     /*

@@ -2,6 +2,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
@@ -21,6 +22,7 @@ public class VectorClock {
      * @param consistentCut A List of Integers representing a consistent cut of all known processes.
      */
     public VectorClock(final Map<HashableNsdServiceInfo, Integer> consistentCut) {
+        Objects.requireNonNull(consistentCut, "Passed null map to VectorClock()");
         this.consistentCut.putAll(consistentCut);
     }
 
@@ -33,6 +35,7 @@ public class VectorClock {
      * @throws IllegalArgumentException If the clocks are of different size this exception is thrown.
      */
     public Comparison compareToClock(final VectorClock clock) {
+        Objects.requireNonNull(clock, "Passed null VectorClock to compareToClock().");
         if (this.size() != clock.size()) {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }
@@ -67,6 +70,7 @@ public class VectorClock {
      * @throws IllegalArgumentException If the clocks are of different size this exception is thrown.
      */
     public VectorClock merge(final VectorClock clock) {
+        Objects.requireNonNull(clock, "Passed null VectorClock to merge().");
         if (this.size() != clock.size()) {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }

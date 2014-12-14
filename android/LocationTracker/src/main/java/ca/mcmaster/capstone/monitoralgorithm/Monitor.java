@@ -83,6 +83,7 @@ public class Monitor extends Service {
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         runMonitor = true;
+
         thread = new Thread(() -> monitorLoop(Collections.emptyMap()));
         Log.d("thread", "Started monitor!");
         thread.start();
@@ -166,6 +167,8 @@ public class Monitor extends Service {
         initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
         initialGV.setCurrentState(Automaton.advance(initialGV));
+        initialGV.setCut(new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{ put(monitorID, 0); }}));
+        GV.add(initialGV);
         Log.d("monitor", "Finished initializing monitor");
     }
 
@@ -230,7 +233,7 @@ public class Monitor extends Service {
         while (it1.hasNext()) {
             final GlobalView gv1 = it1.next();
             while (it2.hasNext()) {
-                final GlobalView gv2 = it1.next();
+                final GlobalView gv2 = it2.next();
                 if (!gv1.equals(gv2)) {
                     final GlobalView newGV = gv1.merge(gv2);
                     if (newGV != null) {
