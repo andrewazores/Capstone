@@ -9,26 +9,27 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import ca.mcmaster.capstone.R;
-import ca.mcmaster.capstone.monitoralgorithm.Monitor;
-import ca.mcmaster.capstone.monitoralgorithm.MonitorBinder;
-import ca.mcmaster.capstone.networking.structures.DeviceInfo;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
-import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
-import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
-import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
+
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.monitoralgorithm.Monitor;
+import ca.mcmaster.capstone.monitoralgorithm.MonitorBinder;
+import ca.mcmaster.capstone.networking.structures.DeviceInfo;
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 
 public class CapstoneActivity extends Activity implements SensorUpdateCallbackReceiver<DeviceInfo>,
                                                                           NsdUpdateCallbackReceiver,
