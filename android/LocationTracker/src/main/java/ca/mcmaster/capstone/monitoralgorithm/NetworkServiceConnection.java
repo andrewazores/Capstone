@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 
-import ca.mcmaster.capstone.networking.CapstoneActivity;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.util.NetworkLayer;
 
@@ -14,7 +13,7 @@ public class NetworkServiceConnection implements ServiceConnection {
 
     @Override
     public void onServiceConnected(final ComponentName componentName, final IBinder iBinder) {
-        this.networkLayer = ((CapstoneService.CapstoneLocationServiceBinder) iBinder).getService();
+        this.networkLayer = ((CapstoneService.CapstoneNetworkServiceBinder) iBinder).getService();
     }
 
     @Override

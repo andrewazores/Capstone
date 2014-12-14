@@ -78,7 +78,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     private double barometerPressure;
 
     private Location lastLocation;
-    private final CapstoneLocationServiceBinder serviceBinder = new CapstoneLocationServiceBinder();
+    private final CapstoneNetworkServiceBinder serviceBinder = new CapstoneNetworkServiceBinder();
     private BarometerEventListener barometerEventListener;
     private GravitySensorEventListener gravitySensorEventListener;
     private CapstoneLocationListener locationListener;
@@ -681,7 +681,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
         Log.d("CapstoneService", message);
     }
 
-    public class CapstoneLocationServiceBinder extends Binder {
+    public class CapstoneNetworkServiceBinder extends Binder {
         private int clients;
 
         public CapstoneService getService() {

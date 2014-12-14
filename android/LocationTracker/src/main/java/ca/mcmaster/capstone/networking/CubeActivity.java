@@ -13,14 +13,12 @@ import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.EventLog;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import ca.mcmaster.capstone.monitoralgorithm.Event;
@@ -257,15 +255,15 @@ public class CubeActivity extends Activity {
     public class LocationServiceConnection implements ServiceConnection {
 
         public CapstoneService service;
-        private CapstoneService.CapstoneLocationServiceBinder binder;
+        private CapstoneService.CapstoneNetworkServiceBinder binder;
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             Toast.makeText(CubeActivity.this, "Service connected", Toast.LENGTH_LONG).show();
 //            log("Service connected");
 
-            this.binder = (CapstoneService.CapstoneLocationServiceBinder) service;
-            this.service = ((CapstoneService.CapstoneLocationServiceBinder) service).getService();
+            this.binder = (CapstoneService.CapstoneNetworkServiceBinder) service;
+            this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
 //            this.service.registerSensorUpdateCallback(CubeActivity.this);
 //            this.service.registerNsdUpdateCallback(CubeActivity.this);
             CubeActivity.this.NSD = HashableNsdServiceInfo.get(this.service.getLocalNsdServiceInfo());
