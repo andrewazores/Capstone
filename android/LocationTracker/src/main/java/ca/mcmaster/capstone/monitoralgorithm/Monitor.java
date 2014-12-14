@@ -179,6 +179,11 @@ public class Monitor extends Service {
         final Thread events = new Thread(eventReceiver);
         events.start();
         while (runMonitor) {
+            try {
+                Thread.sleep(500); // FIXME: should refactor this to use an ExecutorService or something in the future. Good enough for now...
+            } catch (final InterruptedException ie) {
+                // don't care
+            }
             final Token receivedToken = tokenReceiver.receive();
             if (receivedToken != null) {
                 receiveToken(receivedToken);
