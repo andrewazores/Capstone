@@ -82,16 +82,13 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         });
 
         final Button cubeButton = (Button) findViewById(R.id.cube);
-        cubeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(localNsdServiceInfo != null) {
-                    Intent i = new Intent(CapstoneActivity.this, CubeActivity.class);
-                    startActivity(i);
-                }
-                else
-                    Toast.makeText(CapstoneActivity.this, "NSD Conenction invalid", Toast.LENGTH_SHORT).show();
+        cubeButton.setOnClickListener(v -> {
+            if(localNsdServiceInfo != null) {
+                Intent i = new Intent(CapstoneActivity.this, CubeActivity.class);
+                startActivity(i);
             }
+            else
+                Toast.makeText(CapstoneActivity.this, "NSD Conenction invalid", Toast.LENGTH_SHORT).show();
         });
     }
 
