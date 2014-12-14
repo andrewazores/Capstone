@@ -38,6 +38,7 @@ public class Monitor extends Service {
 
     @Override
     public void onCreate() {
+        super.onCreate();
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         runMonitor = true;
@@ -48,8 +49,10 @@ public class Monitor extends Service {
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
         Log.d("thread", "Stopped monitor!");
         runMonitor = false;
+        getApplicationContext().unbindService(serviceConnection);
     }
 
     private static Token receive() {
