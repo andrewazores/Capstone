@@ -62,7 +62,7 @@ public class Monitor extends Service {
         }
     }
 
-    private static final List<Event> history = new ArrayList<>();
+    private static final Map<Integer, Event> history = new HashMap<>();
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static HashableNsdServiceInfo monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
@@ -203,7 +203,7 @@ public class Monitor extends Service {
      */
     public static void receiveEvent(final Event event) {
         Log.d("monitor", "Entering receiveEvent");
-        history.add(event.eid(), event);
+        history.put(event.eid(), event);
         for (Iterator<Token> i = waitingTokens.iterator(); i.hasNext();) {
             final Token t = i.next();
             if (t.getTargetEventId() == event.eid()) {
@@ -386,7 +386,7 @@ public class Monitor extends Service {
             }
         } else {
             boolean hasTarget = false;
-            for (final Event event : history) {
+            for (final Event event : history.values()) {
                 if (event.eid() == token.getTargetEventId()) {
                     processToken(token, event);
                     hasTarget = true;
