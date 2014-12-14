@@ -35,6 +35,7 @@ public class BooleanExpressionTree {
         LESS_THAN(x -> x[0] < x[1]),
         GREATER_THAN(x -> x[0] > x[1]),
         EQUAL(x -> x[0].equals(x[1])),
+        NOT_EQUAL(x -> !EQUAL.apply(x)),
         LESS_OR_EQUAL(x -> LESS_THAN.apply(x) || EQUAL.apply(x)),
         GREATER_OR_EQUAL(x -> GREATER_THAN.apply(x) || EQUAL.apply(x));
 
