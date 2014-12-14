@@ -83,6 +83,22 @@ public class ComparisonOperatorTest {
         test(Double.POSITIVE_INFINITY, EQUAL, Double.POSITIVE_INFINITY, true);
     }
 
+    @Test public void testNotEqual1() {
+        test(1, NOT_EQUAL, 1, false);
+    }
+
+    @Test public void testNotEqual2() {
+        test(0, NOT_EQUAL, 1, true);
+    }
+
+    @Test public void testNotEqual3() {
+        test(Double.POSITIVE_INFINITY, NOT_EQUAL, 0, true);
+    }
+
+    @Test public void testNotEqual4() {
+        test(Double.POSITIVE_INFINITY, NOT_EQUAL, Double.POSITIVE_INFINITY, false);
+    }
+
     @Test public void testLessOrEqual1() {
         test(1, LESS_OR_EQUAL, 2, true);
     }
