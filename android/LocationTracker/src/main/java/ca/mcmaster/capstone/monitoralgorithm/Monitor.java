@@ -174,9 +174,9 @@ public class Monitor extends Service {
 
         final Receiver<Token> tokenReceiver = new Receiver<>(Monitor::receive);
         final Thread tokens = new Thread(tokenReceiver);
+        tokens.start();
         final Receiver<Event> eventReceiver = new Receiver<>(Monitor::read);
         final Thread events = new Thread(eventReceiver);
-        tokens.start();
         events.start();
         while (runMonitor) {
             final Token receivedToken = tokenReceiver.receive();
