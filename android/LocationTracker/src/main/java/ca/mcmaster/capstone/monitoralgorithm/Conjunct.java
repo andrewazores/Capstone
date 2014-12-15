@@ -1,22 +1,20 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 public class Conjunct {
     public static enum Evaluation {TRUE, FALSE, NONE}
 
-    private final Set<HashableNsdServiceInfo> ownerProcesses = new HashSet<>();
-    private final BooleanExpressionTree expression = new BooleanExpressionTree();
+    private final HashableNsdServiceInfo ownerProcess;
+    private final BooleanExpressionTree expression;
 
-    public Conjunct(final Set<HashableNsdServiceInfo> ownerProcesses) {
-        this.ownerProcesses.addAll(ownerProcesses);
+    public Conjunct(final HashableNsdServiceInfo ownerProcess, String expression) {
+        this.ownerProcess = ownerProcess;
+        this.expression = new BooleanExpressionTree(expression);
     }
 
-    public Set<HashableNsdServiceInfo> getOwnerProcesses() {
-        return new HashSet<>(ownerProcesses);
+    public HashableNsdServiceInfo getOwnerProcess() {
+        return ownerProcess;
     }
 
     public Evaluation evaluate(final ProcessState state) {

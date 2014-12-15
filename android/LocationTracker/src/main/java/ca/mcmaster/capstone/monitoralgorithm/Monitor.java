@@ -8,7 +8,6 @@ import android.util.Log;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -76,7 +75,7 @@ public class Monitor extends Service {
         getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         runMonitor = true;
 
-        thread = new Thread(() -> monitorLoop(Collections.emptyMap()));
+        thread = new Thread(() -> monitorLoop());
         Log.d("thread", "Started monitor!");
         thread.start();
     }
@@ -144,7 +143,7 @@ public class Monitor extends Service {
      *
      * @param initialStates The initial state of each known process.
      */
-    public static void init(final Map<HashableNsdServiceInfo, ProcessState> initialStates) {
+    public static void init() {
         Log.d("monitor", "Initializing monitor");
         final GlobalView initialGV = new GlobalView();
         while (serviceConnection.getNetworkLayer() == null) {
@@ -155,6 +154,19 @@ public class Monitor extends Service {
             }
         }
         monitorID = HashableNsdServiceInfo.get(serviceConnection.getNetworkLayer().getLocalNsdServiceInfo());
+
+        //FIXME: this is garbage. Like actually. WOW.
+        while (serviceConnection.getNetworkLayer().getNsdPeers().isEmpty());
+        Automaton.build(monitorID, serviceConnection.getNetworkLayer().getNsdPeers().iterator().next());
+
+        //TODO: Eventually this will be constructed from a text file or something.
+        final Valuation val = new Valuation("isFlat", 0.0);
+        final VectorClock vec = new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
+            put(monitorID, 0);
+        }});
+        final Map<HashableNsdServiceInfo, ProcessState> initialStates = new HashMap<HashableNsdServiceInfo, ProcessState>() {{
+            put(monitorID, new ProcessState(monitorID, val, vec));
+        }};
 
         initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
@@ -169,8 +181,8 @@ public class Monitor extends Service {
      *
      * @param initialStates The initial state of each known process.
      */
-    public static void monitorLoop(final Map<HashableNsdServiceInfo, ProcessState> initialStates) {
-        init(initialStates);
+    public static void monitorLoop() {
+        init();
 
         final Receiver<Token> tokenReceiver = new Receiver<>(Monitor::receive);
         final Thread tokens = new Thread(tokenReceiver);
@@ -279,7 +291,7 @@ public class Monitor extends Service {
     private static void checkOutgoingTransitions(final GlobalView gv, final Event event) {
         Log.d("monitor", "Entering checkOutgoingTransitions");
         final Map<HashableNsdServiceInfo, Set<AutomatonTransition>> consult = new HashMap<>();
-        for (AutomatonTransition trans : Automaton.getTransitions()) {
+        for (final AutomatonTransition trans : Automaton.getTransitions()) {
             final AutomatonState current = gv.getCurrentState();
             if (trans.getFrom() == current && trans.getTo() != current) {
                 final Set<HashableNsdServiceInfo> participating = trans.getParticipatingProcesses();
@@ -301,7 +313,7 @@ public class Monitor extends Service {
             }
         }
 
-        for (Map.Entry<HashableNsdServiceInfo, Set<AutomatonTransition>> entry : consult.entrySet()) {
+        for (final Map.Entry<HashableNsdServiceInfo, Set<AutomatonTransition>> entry : consult.entrySet()) {
             // Get all the conjuncts for process j
             final Set<Conjunct> conjuncts = new HashSet<>();
             for (final AutomatonTransition trans : entry.getValue()) {
@@ -317,7 +329,7 @@ public class Monitor extends Service {
                     .build();
             gv.getTokens().add(token);
         }
-        Token token = gv.getTokenWithMostConjuncts();
+        final Token token = gv.getTokenWithMostConjuncts();
         send(token, token.getDestination());
         token.setSent(true);
     }

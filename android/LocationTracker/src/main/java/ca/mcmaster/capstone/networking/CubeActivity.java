@@ -33,6 +33,7 @@ public class CubeActivity extends Activity {
     private SensorEventListener mSensorEventListener;
     private int flatnessCounter = 0;
     private boolean isFlat = true;
+    private double flat = 1.0;
     private HashableNsdServiceInfo NSD;
 
     private final float[] gravity = new float[3];
@@ -188,15 +189,20 @@ public class CubeActivity extends Activity {
             }
             if (previouslyFlat != isFlat) {
                 ++flatnessCounter;
-                sendEvent(isFlat);
+                if (flat == 0.0) {
+                    flat = 1.0;
+                } else {
+                    flat = 0.0;
+                }
+                sendEvent(flat);
             }
         }
 
-        public void sendEvent(boolean event){
+        public void sendEvent(double value){
             if (serviceConnection.getService() == null) {
                 return;
             }
-            final Valuation<?> valuation = new Valuation<>("isFlat", isFlat);
+            final Valuation<?> valuation = new Valuation<>("isFlat", value);
             Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation, new VectorClock(
                     new HashMap<HashableNsdServiceInfo, Integer>() {{ put(HashableNsdServiceInfo.get(serviceConnection.getService().getLocalNsdServiceInfo()), flatnessCounter); }}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();

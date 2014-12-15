@@ -85,7 +85,7 @@ public class AutomatonTransition {
     public Set<HashableNsdServiceInfo> getParticipatingProcesses() {
         final Set<HashableNsdServiceInfo> ret = new HashSet<>();
         for (final Conjunct conjunct : conjuncts) {
-            ret.addAll(conjunct.getOwnerProcesses());
+            ret.add(conjunct.getOwnerProcess());
         }
         return ret;
     }

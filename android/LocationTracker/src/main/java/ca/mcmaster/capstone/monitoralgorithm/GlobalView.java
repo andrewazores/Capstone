@@ -37,7 +37,7 @@ public class GlobalView {
     }
 
     public Map<HashableNsdServiceInfo, ProcessState> getStates() {
-        return states;
+        return new HashMap<>(states);
     }
 
     public void setStates(final Map<HashableNsdServiceInfo, ProcessState> states) {

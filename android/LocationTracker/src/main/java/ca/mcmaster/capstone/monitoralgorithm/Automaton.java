@@ -1,15 +1,44 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
+import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 
 /* Class to represent an Automaton.*/
 public class Automaton {
     public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED}
 
-    private final static AutomatonState initialState = new AutomatonState("Start", Evaluation.UNDECIDED);
-    private final static Set<AutomatonState> states = new HashSet<>();
-    private final static Set<AutomatonTransition> transitions = new HashSet<>();
+    private static AutomatonState initialState;
+    private static Map<String, AutomatonState> states;
+    private static Set<AutomatonTransition> transitions;
+
+    //FIXME: This is garbage.
+    public static void build(HashableNsdServiceInfo id1, HashableNsdServiceInfo id2) {
+        initialState = new AutomatonState("Start", Evaluation.UNDECIDED);
+        states = new HashMap<String, AutomatonState>() {{
+            put("2", new AutomatonState("2", Evaluation.UNDECIDED));
+            put("3", new AutomatonState("3", Evaluation.UNDECIDED));
+            put("1", new AutomatonState("1", Evaluation.SATISFIED));
+            put("0", new AutomatonState("0", Evaluation.SATISFIED));
+        }};
+        transitions = new HashSet<AutomatonTransition>() {{
+            add(new AutomatonTransition(states.get("2"), states.get("0"), new ArrayList<Conjunct>() {{
+                add(new Conjunct(id2, "x2 == 1.0"));
+            }}));
+            add(new AutomatonTransition(states.get("2"), states.get("3"), new ArrayList<Conjunct>() {{
+                add(new Conjunct(id1, "x1 == 0.0"));
+                add(new Conjunct(id2, "x2 != 1.0"));
+            }}));
+            add(new AutomatonTransition(states.get("3"), states.get("1"), new ArrayList<Conjunct>() {{
+                add(new Conjunct(id1, "x1 = 0"));
+                add(new Conjunct(id2, "x2 = 1"));
+            }}));
+        }};
+    }
 
     /*
      * Gets the initial state of the automaton.

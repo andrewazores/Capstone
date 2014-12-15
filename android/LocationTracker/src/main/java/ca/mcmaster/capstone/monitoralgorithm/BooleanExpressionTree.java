@@ -89,10 +89,10 @@ public class BooleanExpressionTree {
     }
 
     /* A leaf node */
-    private static class LeafNode implements Node {
+    private static class VariableNode implements Node {
         private final String variableName;
 
-        public LeafNode(final String variableName) {
+        public VariableNode(final String variableName) {
             this.variableName = variableName;
         }
 
@@ -102,7 +102,36 @@ public class BooleanExpressionTree {
         }
     }
 
-    private final RootNode root = new RootNode(null, null, ComparisonOperator.EQUAL);
+    /* A leaf node */
+    private static class ValueNode implements Node {
+        private final Double value;
+
+        public ValueNode(final Double value) {
+            this.value = value;
+        }
+
+        public Double evaluate(ProcessState state) {
+            //TODO: refactor Valuation to use Double
+            return value;
+        }
+    }
+
+    private final RootNode root;
+
+    //FIXME: This is garbage.
+    /*
+     * Very limited parsing of expression string of the form 'varibale' [==.!=] 'value'.
+     */
+    public BooleanExpressionTree(String expression) {
+        String[] tokens = expression.split(" ");
+        ComparisonOperator op = ComparisonOperator.EQUAL;
+        if (tokens[1] == "==") {
+            op = ComparisonOperator.EQUAL;
+        } else if (tokens[1] == "!=") {
+            op = ComparisonOperator.NOT_EQUAL;
+        }
+        root = new RootNode(new VariableNode(tokens[0]), new ValueNode(Double.parseDouble(tokens[2])), op);
+    }
 
     public Conjunct.Evaluation evaluate(ProcessState state) {
         boolean evaluation = root.evaluate(state);
