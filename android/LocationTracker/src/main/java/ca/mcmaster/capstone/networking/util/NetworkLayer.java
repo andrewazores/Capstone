@@ -2,6 +2,8 @@ package ca.mcmaster.capstone.networking.util;
 
 import android.net.nsd.NsdServiceInfo;
 
+import java.util.Set;
+
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
@@ -52,4 +54,6 @@ public interface NetworkLayer {
      * @throws InterruptedException
      */
     Event receiveEvent() throws InterruptedException;
+
+    Set<HashableNsdServiceInfo> getNsdPeers();
 }

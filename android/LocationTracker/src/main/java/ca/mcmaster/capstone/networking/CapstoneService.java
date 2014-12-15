@@ -613,7 +613,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
         return getNsdServiceName() + "-" + Build.SERIAL;
     }
 
-    Set<HashableNsdServiceInfo> getNsdPeers() {
+    @Override
+    public Set<HashableNsdServiceInfo> getNsdPeers() {
         return new HashSet<>(nsdPeers);
     }
 
