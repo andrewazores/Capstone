@@ -299,7 +299,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
         if (locationServer != null && locationServer.wasStarted()) {
             locationServer.stop();
         }
-        locationServer = new CapstoneServer(this);
+        locationServer = new CapstoneServer(this.getIpAddress(), this);
         try {
             locationServer.start();
         } catch (final IOException ioe) {
@@ -637,21 +637,20 @@ public final class CapstoneService extends Service implements NetworkLayer {
         // we weren't able to determine our WiFi IP... try looking for any other available IPs, even
         // though they probably aren't going to actually work for us
         try {
-            InetAddress myAddr = null;
-
             for (final NetworkInterface networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-
-                for (final InetAddress ipAddress : Collections.list(networkInterface.getInetAddresses())) {
-                    if (!ipAddress.isLoopbackAddress()) {
-                        myAddr = ipAddress;
-                        logv("Identified local network interface " + networkInterface + " with IP address " + ipAddress);
+                if (networkInterface.getName().toLowerCase().startsWith("wl") || networkInterface.getName().toLowerCase().startsWith("ap")) {
+                    for (final InetAddress ipAddress : Collections.list(networkInterface.getInetAddresses())) {
+                        if (!ipAddress.isLoopbackAddress()) {
+                            logv("Identified local network interface " + networkInterface + " with IP address " + ipAddress);
+                            return ipAddress;
+                        }
                     }
                 }
             }
-            return myAddr;
         } catch (final SocketException se) {
             Log.e("CapstoneService", "Error when attempting to determine local IP", se);
         }
+        logv("Could not determine any valid local network interface!");
         return null;
     }
 

@@ -99,7 +99,7 @@ public abstract class NanoHTTPD {
      * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
      */
     private static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
-    private final String hostname;
+    private final InetAddress inetAddress;
     private final int myPort;
     private ServerSocket myServerSocket;
     private Set<Socket> openConnections = new HashSet<Socket>();
@@ -123,8 +123,8 @@ public abstract class NanoHTTPD {
     /**
      * Constructs an HTTP server on given hostname and port.
      */
-    public NanoHTTPD(String hostname, int port) {
-        this.hostname = hostname;
+    public NanoHTTPD(InetAddress inetAddress, int port) {
+        this.inetAddress = inetAddress;
         this.myPort = port;
         setTempFileManagerFactory(new DefaultTempFileManagerFactory());
         setAsyncRunner(new DefaultAsyncRunner());
@@ -164,7 +164,7 @@ public abstract class NanoHTTPD {
      */
     public void start() throws IOException {
         myServerSocket = new ServerSocket();
-        myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+        myServerSocket.bind((inetAddress != null) ? new InetSocketAddress(inetAddress, myPort) : new InetSocketAddress(myPort));
 
         myThread = new Thread(new Runnable() {
             @Override

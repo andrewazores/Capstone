@@ -6,6 +6,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,22 +44,25 @@ public class CapstoneServer extends NanoHTTPD {
         public String toString() {
             return getContentType();
         }
+
     }
 
     public static final String KEY_REQUEST_METHOD = "request_method";
+    private final InetAddress inetAddress;
     private final Gson gson = new Gson();
     private final CapstoneService capstoneService;
 
-    public CapstoneServer(final CapstoneService capstoneService) {
-        super(0);
+    public CapstoneServer(final InetAddress inetAddress, final CapstoneService capstoneService) {
+        super(inetAddress, 0);
         this.capstoneService = capstoneService;
+        this.inetAddress = inetAddress;
         log("Created");
     }
 
     @Override
     public void start() throws IOException {
         super.start();
-        log("Started on port " + getListeningPort());
+        log("Started on " + this.inetAddress + ": " + getListeningPort());
     }
 
     @Override
