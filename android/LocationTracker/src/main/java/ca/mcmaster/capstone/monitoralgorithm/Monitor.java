@@ -169,7 +169,7 @@ public class Monitor extends Service {
         Automaton.build(monitorID, serviceConnection.getNetworkLayer().getNsdPeers().iterator().next());
 
         //TODO: Eventually this will be constructed from a text file or something.
-        final Valuation val = new Valuation("isFlat", 0.0);
+        final Valuation val = new Valuation("isFlat", 0.0); // FIXME: should be parametrized?
         final VectorClock vec = new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
             put(monitorID, 0);
         }});
