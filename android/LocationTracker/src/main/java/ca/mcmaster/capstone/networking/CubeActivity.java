@@ -87,7 +87,7 @@ public class CubeActivity extends Activity {
         }
         Event e = serviceConnection.getService().receiveEvent();
 
-        deviceMap.put(e.pid(), (Boolean)e.getVal().getValue("isFlat"));
+        deviceMap.put(e.getPid(), (Boolean)e.getVal().getValue("isFlat"));
 
         int i = 0;
         StringBuilder sb = new StringBuilder();
