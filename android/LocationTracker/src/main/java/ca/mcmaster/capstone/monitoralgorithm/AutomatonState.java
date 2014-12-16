@@ -1,25 +1,17 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.Value;
+
 /* Class to represent an automaton state.*/
+@Value @AllArgsConstructor
 public class AutomatonState {
-    private String stateName;
-    private Automaton.Evaluation stateType;
+    @NonNull String stateName;
+    @NonNull Automaton.Evaluation stateType;
 
-    public AutomatonState(final String stateName, final Automaton.Evaluation stateType) {
-        this.stateName = stateName;
-        this.stateType = stateType;
-    }
-
-    public AutomatonState(final AutomatonState state) {
+    public AutomatonState(@NonNull final AutomatonState state) {
         this.stateName = state.stateName;
         this.stateType = state.stateType;
-    }
-
-    public Automaton.Evaluation getStateType() {
-        return stateType;
-    }
-
-    public String getStateName() {
-        return stateName;
     }
 }

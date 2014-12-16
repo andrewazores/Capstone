@@ -6,8 +6,14 @@ import java.util.Map;
 import java.util.Set;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
 
 /* Class to represent the computation slicing tokens.*/
+@EqualsAndHashCode @ToString
 public class Token {
     public static class Builder {
         private final HashableNsdServiceInfo owner;
@@ -78,17 +84,17 @@ public class Token {
         }
     }
 
-    private final HashableNsdServiceInfo owner;
-    private final HashableNsdServiceInfo destination;
-    private final int targetEventId;
-    private final VectorClock cut;
+    @NonNull @Getter private final HashableNsdServiceInfo owner;
+    @NonNull @Getter private final HashableNsdServiceInfo destination;
+    @Getter private final int targetEventId;
+    @NonNull @Getter private final VectorClock cut;
     private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
     private final Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
-    private final ProcessState targetProcessState;
-    private boolean returned = false;
-    private boolean sent = false;
+    @NonNull @Getter private final ProcessState targetProcessState;
+    @Setter private boolean returned = false;
+    @Setter private boolean sent = false;
 
-    public Token(final Builder builder) {
+    public Token(@NonNull final Builder builder) {
         this.owner = builder.owner;
         this.destination = builder.destination;
         this.targetEventId = builder.targetEventId;
@@ -96,10 +102,6 @@ public class Token {
         this.automatonTransitions.addAll(builder.automatonTransitions);
         this.conjuncts.putAll(builder.conjuncts);
         this.targetProcessState = builder.targetProcessState;
-    }
-
-    public HashableNsdServiceInfo getOwner() {
-        return owner;
     }
 
     public Set<Conjunct> getConjuncts() {
@@ -110,28 +112,8 @@ public class Token {
         return new HashMap<>(conjuncts);
     }
 
-    public HashableNsdServiceInfo getDestination() {
-        return destination;
-    }
-
-    public int getTargetEventId() {
-        return targetEventId;
-    }
-
-    public VectorClock getCut() {
-        return cut;
-    }
-
-    public void setSent(boolean sent) {
-        this.sent = sent;
-    }
-
     public Set<AutomatonTransition> getAutomatonTransitions() {
         return new HashSet<>(automatonTransitions);
-    }
-
-    public ProcessState getTargetProcessState() {
-        return targetProcessState;
     }
 
     /*
@@ -148,7 +130,7 @@ public class Token {
      *
      * @param event The event to use to evaluate the transitions.
      */
-    public void evaluateConjuncts(final Event event) {
+    public void evaluateConjuncts(@NonNull final Event event) {
         for (final Conjunct conjunct : conjuncts.keySet()) {
             conjuncts.put(conjunct, conjunct.evaluate(event.getState()));
         }

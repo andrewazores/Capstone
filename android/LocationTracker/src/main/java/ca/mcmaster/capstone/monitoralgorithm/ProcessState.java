@@ -1,11 +1,16 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.ToString;
 
+@EqualsAndHashCode @ToString
 public class ProcessState {
-    private final HashableNsdServiceInfo id;
-    private final Valuation<?> val;
-    private final VectorClock VC;
+    @NonNull @Getter private final HashableNsdServiceInfo id;
+    @NonNull private final Valuation<?> val;
+    @NonNull private final VectorClock VC;
 
     /*
      * Construct a new ProcessState.
@@ -14,20 +19,16 @@ public class ProcessState {
      * @param val The valuation of the process' variables.
      * @param VC The vector clock for the process.
      */
-    public ProcessState(final HashableNsdServiceInfo id, final Valuation<?> val, final VectorClock VC) {
+    public ProcessState(@NonNull final HashableNsdServiceInfo id, @NonNull final Valuation<?> val, @NonNull final VectorClock VC) {
         this.id = id;
         this.val = val;
         this.VC = VC;
     }
 
-    public ProcessState(final ProcessState state) {
+    public ProcessState(@NonNull final ProcessState state) {
         this.id = state.id;
         this.val = new Valuation<>(state.val);
         this.VC = new VectorClock(state.VC);
-    }
-
-    public HashableNsdServiceInfo getId() {
-        return id;
     }
 
     public Valuation<?> getVal() {
@@ -44,7 +45,7 @@ public class ProcessState {
          * @param event The event to update to.
          * @return A new ProcessState updated with event.
          */
-    public ProcessState update(final Event event) {
+    public ProcessState update(@NonNull final Event event) {
         return new ProcessState(this.id, event.getVal(), event.getVC());
     }
 }

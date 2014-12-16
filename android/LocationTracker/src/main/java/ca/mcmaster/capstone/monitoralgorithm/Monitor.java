@@ -20,16 +20,23 @@ import java.util.concurrent.Callable;
 
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import lombok.NonNull;
+import lombok.Synchronized;
 
 /* Class to hold the main algorithm code.*/
+// TODO: refactor Service components out into MonitorService to separate from actual Monitor logic
 public class Monitor extends Service {
 
     private static class Receiver<T> implements Runnable {
-        private final Callable<T> callable;
+        private final Object queueLock = new Object();
+        /**
+         * Should be a blocking call, else the Thread running this Receiver will spend a lot of time spinning
+         */
+        @NonNull private final Callable<T> callable;
         private final Queue<T> receiveQueue = new ArrayDeque<>();
         private volatile boolean run = true;
 
-        public Receiver(final Callable<T> callable) {
+        public Receiver(@NonNull final Callable<T> callable) {
             this.callable = callable;
         }
 
@@ -37,18 +44,20 @@ public class Monitor extends Service {
         public void run() {
             while (run) {
                 try {
-                    receiveQueue.add(callable.call());
+                    synchronized (queueLock) {
+                        receiveQueue.add(callable.call());
+                    }
                 } catch (final Exception e) {
                     Log.v("MonitorService", "Receiver helper thread failed to call callable: " + e.getLocalizedMessage());
                 }
             }
         }
 
-        public synchronized T receive() {
+        @Synchronized("queueLock") public T receive() {
             return receiveQueue.poll();
         }
 
-        public synchronized void stop() {
+        public void stop() {
             run = false;
         }
     }
@@ -75,7 +84,7 @@ public class Monitor extends Service {
         getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         runMonitor = true;
 
-        thread = new Thread(() -> monitorLoop());
+        thread = new Thread(Monitor::monitorLoop);
         Log.d("thread", "Started monitor!");
         thread.start();
     }
@@ -107,7 +116,7 @@ public class Monitor extends Service {
         return token;
     }
 
-    private static void send(final Token token, final HashableNsdServiceInfo pid) {
+    private static void send(@NonNull final Token token, @NonNull final HashableNsdServiceInfo pid) {
         while (serviceConnection.getNetworkLayer() == null) {
             try {
                 Thread.sleep(1000);
@@ -215,17 +224,17 @@ public class Monitor extends Service {
      *
      * @param event The event to be processed.
      */
-    public static void receiveEvent(final Event event) {
+    public static void receiveEvent(@NonNull final Event event) {
         Log.d("monitor", "Entering receiveEvent");
-        history.put(event.eid(), event);
-        for (Iterator<Token> i = waitingTokens.iterator(); i.hasNext();) {
+        history.put(event.getEid(), event);
+        for (final Iterator<Token> i = waitingTokens.iterator(); i.hasNext();) {
             final Token t = i.next();
-            if (t.getTargetEventId() == event.eid()) {
+            if (t.getTargetEventId() == event.getEid()) {
                 processToken(t, event);
                 i.remove();
             }
         }
-        Set<GlobalView> copyGV = new HashSet<>(GV);
+        final Set<GlobalView> copyGV = new HashSet<>(GV);
         GV.clear();
         GV.addAll(mergeSimilarGlobalViews(copyGV));
         for (final GlobalView gv : GV) {
@@ -236,11 +245,11 @@ public class Monitor extends Service {
         }
     }
 
-    private static Set<GlobalView> mergeSimilarGlobalViews(final Collection<GlobalView> gv) {
+    private static Set<GlobalView> mergeSimilarGlobalViews(@NonNull final Collection<GlobalView> gv) {
         Log.d("monitor", "Entering mergeSimilarGlobalViews");
         final Iterator<GlobalView> it1 = gv.iterator();
         final Iterator<GlobalView> it2 = gv.iterator();
-        Set<GlobalView> merged = new HashSet<>();
+        final Set<GlobalView> merged = new HashSet<>();
         while (it1.hasNext()) {
             final GlobalView gv1 = it1.next();
             while (it2.hasNext()) {
@@ -265,7 +274,7 @@ public class Monitor extends Service {
      * @param gv The global view to compute the next monitor state for.
      * @param event The event to be evaluated.
      */
-    public static void processEvent(final GlobalView gv, final Event event) {
+    public static void processEvent(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering processEvent");
         gv.setCut(gv.getCut().merge(event.getVC()));
         final ProcessState state = gv.getStates().get(monitorID);
@@ -288,7 +297,7 @@ public class Monitor extends Service {
      * @param gv The global view to use for finding concurrent events.
      * @param event The event to find concurrent events for.
      */
-    private static void checkOutgoingTransitions(final GlobalView gv, final Event event) {
+    private static void checkOutgoingTransitions(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering checkOutgoingTransitions");
         final Map<HashableNsdServiceInfo, Set<AutomatonTransition>> consult = new HashMap<>();
         for (final AutomatonTransition trans : Automaton.getTransitions()) {
@@ -341,7 +350,7 @@ public class Monitor extends Service {
      *
      * @param token The token being received.
      */
-    public static void receiveToken(final Token token) {
+    public static void receiveToken(@NonNull final Token token) {
         Log.d("monitor", "Entering receiveToken");
         if (token.getOwner() == monitorID) {
             final List<GlobalView> globalViews = getGlobalView(token);
@@ -394,14 +403,14 @@ public class Monitor extends Service {
                         processEvent(globalView, globalView.getPendingEvents().remove());
                     }
                 }
-                Token maxConjuncts = globalView.getTokenWithMostConjuncts();
+                final Token maxConjuncts = globalView.getTokenWithMostConjuncts();
                 send(maxConjuncts, maxConjuncts.getDestination());
                 maxConjuncts.setSent(true);
             }
         } else {
             boolean hasTarget = false;
             for (final Event event : history.values()) {
-                if (event.eid() == token.getTargetEventId()) {
+                if (event.getEid() == token.getTargetEventId()) {
                     processToken(token, event);
                     hasTarget = true;
                     break;
@@ -421,7 +430,7 @@ public class Monitor extends Service {
      * @param tokens The tokens whose vector clocks to compare.
      * @return True if all tokens' vector clocks are consistent with gv's. False otherwise.
      */
-    private static boolean consistent(final GlobalView gv, final List<Token> tokens) {
+    private static boolean consistent(@NonNull final GlobalView gv, @NonNull final List<Token> tokens) {
         final VectorClock viewCut = gv.getCut();
         boolean consistent = true;
         for (final Token token : tokens) {
@@ -438,7 +447,7 @@ public class Monitor extends Service {
      * @param token The token to process.
      * @param event The event to update token with.
      */
-    public static void processToken(final Token token, final Event event) {
+    public static void processToken(@NonNull final Token token, @NonNull final Event event) {
         Log.d("monitor", "Entering processToken");
         if (event.getVC().compareToClock(token.getCut()) == VectorClock.Comparison.CONCURRENT) {
             evaluateToken(token, event);
@@ -460,7 +469,7 @@ public class Monitor extends Service {
      * @param event The event to use to evaluate the token.
      */
     //FIXME: This needs to be refactored
-    public static void evaluateToken(final Token token, final Event event) {
+    public static void evaluateToken(@NonNull final Token token, @NonNull final Event event) {
         token.evaluateConjuncts(event);
         if (token.anyConjunctSatisfied()) {
             final Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
@@ -476,7 +485,7 @@ public class Monitor extends Service {
      * @param token The token to search for.
      * @return A list of GlobalViews that have a copy of token.
      */
-    private static List<GlobalView> getGlobalView(final Token token) {
+    private static List<GlobalView> getGlobalView(@NonNull final Token token) {
         final List<GlobalView> ret = new ArrayList<>();
         for (final GlobalView gv : GV) {
             for (final Token t : gv.getTokens()) {

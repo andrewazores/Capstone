@@ -7,8 +7,13 @@ import java.util.Map;
 import java.util.Set;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.ToString;
 
 /* Class to represent an Automaton.*/
+@EqualsAndHashCode @ToString
+// FIXME: re-implement using Singleton pattern rather than static everything
 public class Automaton {
     public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED}
 
@@ -17,7 +22,7 @@ public class Automaton {
     private static Set<AutomatonTransition> transitions;
 
     //FIXME: This is garbage.
-    public static void build(HashableNsdServiceInfo id1, HashableNsdServiceInfo id2) {
+    public static void build(@NonNull final HashableNsdServiceInfo id1, @NonNull final HashableNsdServiceInfo id2) {
         initialState = new AutomatonState("Start", Evaluation.UNDECIDED);
         states = new HashMap<String, AutomatonState>() {{
             put("2", new AutomatonState("2", Evaluation.UNDECIDED));
@@ -55,8 +60,8 @@ public class Automaton {
      * @param gv The GlobalView to use to compute the next state.
      * @return The next state of the automaton.
      */
-    public static AutomatonState advance(final GlobalView gv) {
-        for (AutomatonTransition transition : transitions) {
+    public static AutomatonState advance(@NonNull final GlobalView gv) {
+        for (final AutomatonTransition transition : transitions) {
             if (transition.getFrom() == gv.getCurrentState() && transition.getFrom() != transition.getTo()) {
                 if (transition.evaluate(gv.getStates().values()) == Conjunct.Evaluation.TRUE) {
                     return transition.getTo();

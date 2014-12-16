@@ -5,14 +5,18 @@ import java.util.Map;
 import java.util.Objects;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.ToString;
 
 /* Class to represent a vector clock.*/
+@EqualsAndHashCode @ToString
 public class VectorClock {
     public static enum Comparison { EQUAL, BIGGER, SMALLER, CONCURRENT };
 
     private final Map<HashableNsdServiceInfo, Integer> consistentCut = new HashMap<>();
 
-    public VectorClock(final VectorClock vc) {
+    public VectorClock(@NonNull final VectorClock vc) {
         this.consistentCut.putAll(vc.consistentCut);
     }
 
@@ -21,8 +25,7 @@ public class VectorClock {
      *
      * @param consistentCut A List of Integers representing a consistent cut of all known processes.
      */
-    public VectorClock(final Map<HashableNsdServiceInfo, Integer> consistentCut) {
-        Objects.requireNonNull(consistentCut, "Passed null map to VectorClock()");
+    public VectorClock(@NonNull final Map<HashableNsdServiceInfo, Integer> consistentCut) {
         this.consistentCut.putAll(consistentCut);
     }
 
@@ -34,15 +37,14 @@ public class VectorClock {
      *         if clock has a more recent event, CONCURRENT each has some more recent events.
      * @throws IllegalArgumentException If the clocks are of different size this exception is thrown.
      */
-    public Comparison compareToClock(final VectorClock clock) {
-        Objects.requireNonNull(clock, "Passed null VectorClock to compareToClock().");
+    public Comparison compareToClock(@NonNull final VectorClock clock) {
         if (this.size() != clock.size()) {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }
 
         boolean bigger = false;
         boolean smaller = false;
-        for (Map.Entry<HashableNsdServiceInfo, Integer> entry : this.consistentCut.entrySet()) {
+        for (final Map.Entry<HashableNsdServiceInfo, Integer> entry : this.consistentCut.entrySet()) {
             if (entry.getValue() > clock.process(entry.getKey())) {
                 bigger = true;
             } else if (entry.getValue() < clock.process(entry.getKey())) {
@@ -69,14 +71,13 @@ public class VectorClock {
      *         each clock being merged.
      * @throws IllegalArgumentException If the clocks are of different size this exception is thrown.
      */
-    public VectorClock merge(final VectorClock clock) {
-        Objects.requireNonNull(clock, "Passed null VectorClock to merge().");
+    public VectorClock merge(@NonNull final VectorClock clock) {
         if (this.size() != clock.size()) {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }
 
         final Map<HashableNsdServiceInfo, Integer> merged = new HashMap<>();
-        for (Map.Entry<HashableNsdServiceInfo, Integer> entry : this.consistentCut.entrySet()) {
+        for (final Map.Entry<HashableNsdServiceInfo, Integer> entry : this.consistentCut.entrySet()) {
             if (entry.getValue() > clock.process(entry.getKey())) {
                 merged.put(entry.getKey(), entry.getValue());
             } else {
@@ -93,7 +94,7 @@ public class VectorClock {
      * @param i The index of the process whose clock to return.
      * @return The clock for the ith process.
      */
-    public int process(final HashableNsdServiceInfo pid) {
+    public int process(@NonNull final HashableNsdServiceInfo pid) {
         return consistentCut.get(pid);
     }
 

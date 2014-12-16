@@ -9,47 +9,22 @@ import java.util.Map;
 import java.util.Set;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.ToString;
 
 /* Class to represent an automaton transition.*/
+@EqualsAndHashCode @ToString
 public class AutomatonTransition {
-    private AutomatonState from;
-    private AutomatonState to;
+    @NonNull @Getter private AutomatonState from;
+    @NonNull @Getter private AutomatonState to;
     private List<Conjunct> conjuncts = new ArrayList<>();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        AutomatonTransition that = (AutomatonTransition) o;
-
-        if (!conjuncts.equals(that.conjuncts)) return false;
-        if (from != null ? !from.equals(that.from) : that.from != null) return false;
-        if (to != null ? !to.equals(that.to) : that.to != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = from != null ? from.hashCode() : 0;
-        result = 31 * result + (to != null ? to.hashCode() : 0);
-        result = 31 * result + conjuncts.hashCode();
-        return result;
-    }
-
-    public AutomatonTransition(final AutomatonState from, final AutomatonState to, final List<Conjunct> conjuncts) {
+    public AutomatonTransition(@NonNull final AutomatonState from, @NonNull final AutomatonState to, @NonNull final List<Conjunct> conjuncts) {
         this.from = from;
         this.to = to;
         this.conjuncts.addAll(conjuncts);
-    }
-
-    public AutomatonState getTo() {
-        return to;
-    }
-
-    public AutomatonState getFrom() {
-        return from;
     }
 
     public List<Conjunct> getConjuncts() {
@@ -61,10 +36,10 @@ public class AutomatonTransition {
      *
      * @return The evaluation of the transition based on its conjuncts.
      */
-    public Conjunct.Evaluation evaluate(Collection<ProcessState> processStates) {
-        Map<Conjunct, Conjunct.Evaluation> evaluations = new HashMap<>();
-        for (ProcessState state : processStates) {
-            for (Conjunct conjunct : this.conjuncts) {
+    public Conjunct.Evaluation evaluate(@NonNull final Collection<ProcessState> processStates) {
+        final Map<Conjunct, Conjunct.Evaluation> evaluations = new HashMap<>();
+        for (final ProcessState state : processStates) {
+            for (final Conjunct conjunct : this.conjuncts) {
                 evaluations.put(conjunct, conjunct.evaluate(state));
             }
         }
@@ -95,10 +70,10 @@ public class AutomatonTransition {
      *
      * @return A set of process ids.
      */
-    public Set<HashableNsdServiceInfo> getForbiddingProcesses(final GlobalView gv) {
+    public Set<HashableNsdServiceInfo> getForbiddingProcesses(@NonNull final GlobalView gv) {
         final Set<HashableNsdServiceInfo> ret = new HashSet<>();
         for (final Map.Entry<HashableNsdServiceInfo, ProcessState> entry : gv.getStates().entrySet()) {
-            ProcessState state = entry.getValue();
+            final ProcessState state = entry.getValue();
             for (final Conjunct conjunct : conjuncts) {
                 if (conjunct.evaluate(state) == Conjunct.Evaluation.FALSE) {
                     ret.add(state.getId());
@@ -109,7 +84,7 @@ public class AutomatonTransition {
         return ret;
     }
 
-    public boolean enabled(final List<Token> tokens) throws Exception {
+    public boolean enabled(@NonNull final List<Token> tokens) throws Exception {
         final Map<Conjunct, Conjunct.Evaluation> enabled = new HashMap<>();
         for (final Token token : tokens) {
             for (final Conjunct conjunct : token.getConjuncts()) {

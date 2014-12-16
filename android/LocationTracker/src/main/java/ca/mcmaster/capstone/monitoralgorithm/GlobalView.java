@@ -12,12 +12,16 @@ import java.util.Queue;
 import java.util.Set;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.ToString;
 
 /* Class to represent the local view of the global state.*/
+@EqualsAndHashCode @ToString
 public class GlobalView {
     private final Map<HashableNsdServiceInfo, ProcessState> states = new HashMap<>();
-    private VectorClock cut;
-    private AutomatonState currentState;
+    @NonNull private VectorClock cut;
+    @NonNull private AutomatonState currentState;
     private final Set<Token> tokens = new HashSet<>();
     private final Queue<Event> pendingEvents = new ArrayDeque<>();
     private final Set<AutomatonTransition> pendingTransitions = new HashSet<>();
@@ -28,7 +32,7 @@ public class GlobalView {
         this.currentState = new AutomatonState("", Automaton.Evaluation.UNDECIDED);
     }
 
-    public GlobalView(final GlobalView gv) {
+    public GlobalView(@NonNull final GlobalView gv) {
         this.states.putAll(gv.states);
         this.cut = new VectorClock(gv.cut);
         this.currentState = new AutomatonState(gv.currentState);
@@ -40,7 +44,7 @@ public class GlobalView {
         return new HashMap<>(states);
     }
 
-    public void setStates(final Map<HashableNsdServiceInfo, ProcessState> states) {
+    public void setStates(@NonNull final Map<HashableNsdServiceInfo, ProcessState> states) {
         this.states.clear();
         this.states.putAll(states);
     }
@@ -49,7 +53,7 @@ public class GlobalView {
         return cut;
     }
 
-    public void setCut(final VectorClock cut) {
+    public void setCut(@NonNull final VectorClock cut) {
         this.cut = cut;
     }
 
@@ -57,7 +61,7 @@ public class GlobalView {
         return currentState;
     }
 
-    public void setCurrentState(final AutomatonState state) {
+    public void setCurrentState(@NonNull final AutomatonState state) {
         this.currentState = state;
     }
 
@@ -65,7 +69,7 @@ public class GlobalView {
         return tokens;
     }
 
-    public void setTokens(final List<Token> tokens) {
+    public void setTokens(@NonNull final List<Token> tokens) {
         this.tokens.clear();
         this.tokens.addAll(tokens);
     }
@@ -83,11 +87,11 @@ public class GlobalView {
      *
      * @param token The token to use to update the global view.
      */
-    public void update(final Token token) {
+    public void update(@NonNull final Token token) {
         cut = cut.merge(token.getCut());
         states.put(token.getTargetProcessState().getId(), token.getTargetProcessState());
         // If any pending transitions are also in the token, and are evaluated in the token, remove them
-        for (Iterator<AutomatonTransition> it = pendingTransitions.iterator(); it.hasNext();) {
+        for (final Iterator<AutomatonTransition> it = pendingTransitions.iterator(); it.hasNext();) {
             final AutomatonTransition pending = it.next();
             if (token.getAutomatonTransitions().contains(pending) && pending.evaluate(this.states.values()) != Conjunct.Evaluation.NONE) {
                 it.remove();
@@ -117,7 +121,7 @@ public class GlobalView {
     public Token getTokenWithMostConjuncts() {
         Token ret = null;
         for (final Token token : this.tokens) {
-            if (ret == null) {
+            if (ret == null) { // FIXME: ret is always null
                 ret = token;
                 break;
             }
@@ -134,11 +138,11 @@ public class GlobalView {
      * @param transition The transition to match tokens against.
      * @return A list of tokens which are associated with transition.
      */
-    public List<Token> getTokensForTransition(AutomatonTransition transition) {
+    public List<Token> getTokensForTransition(@NonNull final AutomatonTransition transition) {
         final List<Token> ret = new ArrayList<>();
         final List<Conjunct> transConjuncts = transition.getConjuncts();
-        for (Token token : this.tokens) {
-            for (Conjunct conjunct : token.getConjuncts()) {
+        for (final Token token : this.tokens) {
+            for (final Conjunct conjunct : token.getConjuncts()) {
                 if (transConjuncts.contains(conjunct)) {
                     ret.add(token);
                     break;
@@ -157,7 +161,7 @@ public class GlobalView {
     public Set<HashableNsdServiceInfo> getInconsistentProcesses() {
         final Set<HashableNsdServiceInfo> ret = new HashSet<>();
         for (final Map.Entry<HashableNsdServiceInfo, ProcessState> entry : this.states.entrySet()) {
-            ProcessState state = entry.getValue();
+            final ProcessState state = entry.getValue();
             if (this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.BIGGER ||
                     this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.SMALLER) {
                 ret.add(state.getId());
@@ -173,11 +177,11 @@ public class GlobalView {
      * @param gv The GlobalView to merge with this one.
      * @return Returns a new GlobalView if this can be merged with gv, null otherwise.
      */
-    public GlobalView merge(GlobalView gv) {
-        VectorClock.Comparison compare = this.cut.compareToClock(gv.cut);
+    public GlobalView merge(@NonNull final GlobalView gv) {
+        final VectorClock.Comparison compare = this.cut.compareToClock(gv.cut);
         if (this.currentState == gv.currentState &&
                 (compare == VectorClock.Comparison.CONCURRENT || compare == VectorClock.Comparison.EQUAL)) {
-            GlobalView ret = new GlobalView();
+            final GlobalView ret = new GlobalView();
             //XXX: I'm not sure that these are guaranteed to be the same. We may be losing information here.
             //     For example, what happens if the states in gv differ from those in this object?
             ret.states.putAll(this.states);
@@ -192,7 +196,7 @@ public class GlobalView {
         return null;
     }
 
-    private static <T> Set<T> unionMerge(final Collection<T> first, final Collection<T> second) {
+    private static <T> Set<T> unionMerge(@NonNull final Collection<T> first, @NonNull final Collection<T> second) {
         final Set<T> firstSet = new HashSet<>(first);
         final Set<T> secondSet = new HashSet<>(second);
         firstSet.addAll(secondSet);
