@@ -12,7 +12,7 @@ import lombok.ToString;
 /* Class to represent a vector clock.*/
 @EqualsAndHashCode @ToString
 public class VectorClock {
-    public static enum Comparison { EQUAL, BIGGER, SMALLER, CONCURRENT };
+    public static enum Comparison { EQUAL, BIGGER, SMALLER, CONCURRENT }
 
     private final Map<HashableNsdServiceInfo, Integer> consistentCut = new HashMap<>();
 
