@@ -4,8 +4,9 @@ import android.location.Location;
 
 import lombok.ToString;
 import lombok.Value;
+import lombok.experimental.Builder;
 
-@Value @ToString(includeFieldNames = true)
+@Builder @Value @ToString(includeFieldNames = true)
 public class DeviceLocation {
     double latitude, longitude, altitude, barometerPressure, speed;
     float bearing, accuracy;

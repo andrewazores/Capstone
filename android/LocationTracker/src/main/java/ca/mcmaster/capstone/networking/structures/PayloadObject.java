@@ -7,8 +7,9 @@ import java.util.Set;
 
 import lombok.NonNull;
 import lombok.Value;
+import lombok.experimental.Builder;
 
-@Value
+@Builder @Value
 public class PayloadObject<T> implements Serializable {
 
     public enum Status {
