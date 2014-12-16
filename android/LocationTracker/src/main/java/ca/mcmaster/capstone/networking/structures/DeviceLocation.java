@@ -2,12 +2,14 @@ package ca.mcmaster.capstone.networking.structures;
 
 import android.location.Location;
 
+import lombok.ToString;
+import lombok.Value;
+
+@Value @ToString(includeFieldNames = true)
 public class DeviceLocation {
-
-    private final double latitude, longitude, altitude, barometerPressure, speed;
-    private final float bearing, accuracy;
-
-    private final float[] gravity, linearAccleration;
+    double latitude, longitude, altitude, barometerPressure, speed;
+    float bearing, accuracy;
+    float[] gravity, linearAccleration;
 
     public DeviceLocation(final Location location, final double barometerPressure, final float[] gravity, final float[] linearAccleration) {
         final double latitude, longitude, altitude, speed;
@@ -36,41 +38,5 @@ public class DeviceLocation {
         this.speed = speed;
         this.gravity = gravity;
         this.linearAccleration = linearAccleration;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public double getAltitude() {
-        return altitude;
-    }
-
-    public double getBarometerPressure() {
-        return barometerPressure;
-    }
-
-    public float getBearing() {
-        return bearing;
-    }
-
-    public float getAccuracy() {
-        return accuracy;
-    }
-
-    public double getSpeed() {
-        return speed;
-    }
-
-    public float[] getGravity() {
-        return gravity;
-    }
-
-    public float[] getLinearAccleration() {
-        return linearAccleration;
     }
 }

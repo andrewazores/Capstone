@@ -2,33 +2,14 @@ package ca.mcmaster.capstone.networking.structures;
 
 import android.os.Build;
 
+import lombok.Getter;
+import lombok.ToString;
+import lombok.Value;
+
+@Value @ToString(includeFieldNames = true)
 public class DeviceInfo {
-
-    private final String serial = Build.SERIAL;
-    private final String ip;
-    private final int port;
-    private final DeviceLocation location;
-
-    public DeviceInfo(final String ip, final int port, final DeviceLocation location) {
-        this.ip = ip;
-        this.port = port;
-        this.location = location;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public DeviceLocation getLocation() {
-        return location;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public String getSerial() {
-        return serial;
-    }
-
+    @Getter private static final String serial = Build.SERIAL;
+    String ip;
+    int port;
+    DeviceLocation location;
 }
