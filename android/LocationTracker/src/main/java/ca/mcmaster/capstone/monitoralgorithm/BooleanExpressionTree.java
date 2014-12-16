@@ -1,5 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import java.util.Objects;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -110,9 +112,9 @@ public class BooleanExpressionTree {
     public BooleanExpressionTree(@NonNull final String expression) {
         final String[] tokens = expression.split(" ");
         ComparisonOperator op = ComparisonOperator.EQUAL;
-        if (tokens[1] == "==") {
+        if (Objects.equals(tokens[1], "==")) {
             op = ComparisonOperator.EQUAL;
-        } else if (tokens[1] == "!=") {
+        } else if (Objects.equals(tokens[1], "!=")) {
             op = ComparisonOperator.NOT_EQUAL;
         }
         root = new RootNode(new VariableNode(tokens[0]), new ValueNode(Double.parseDouble(tokens[2])), op);
