@@ -55,6 +55,7 @@ dependencies {
     compile 'com.mcxiaoke.volley:library:1.0.6@aar'
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-lang3:3.3.2'
+    provided 'pl.mg6.hrisey:hrisey:0.3.+'
 
     androidTestCompile 'junit:junit:4.11'
     androidTestCompile 'org.robolectric:robolectric:2.4'
