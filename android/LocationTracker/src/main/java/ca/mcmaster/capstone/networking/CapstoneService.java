@@ -443,7 +443,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
         }
     }
 
-    private void postDataToPeer(@NonNull final HashableNsdServiceInfo peer, @NonNull final Object data,
+    private void postDataToPeer(@NonNull final HashableNsdServiceInfo peer,
+                                    final Object data,
                                     @NonNull final Response.Listener<JSONObject> successListener,
                                     @NonNull final Response.ErrorListener errorListener,
                                     @NonNull final CapstoneServer.RequestMethod requestMethod) {
@@ -462,7 +463,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     private void queueVolleyRequest(final int method,
                                     @NonNull final HashableNsdServiceInfo peer,
-                                    @NonNull final JSONObject payload,
+                                    final JSONObject payload,
                                     @NonNull final CapstoneServer.RequestMethod requestMethod,
                                     @NonNull final Response.Listener<JSONObject> successListener,
                                     @NonNull final Response.ErrorListener errorListener) {
