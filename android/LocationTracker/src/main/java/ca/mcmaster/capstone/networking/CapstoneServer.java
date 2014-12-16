@@ -16,6 +16,9 @@ import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import ca.mcmaster.capstone.networking.structures.PayloadObject;
 import fi.iki.elonen.NanoHTTPD;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
 
 public class CapstoneServer extends NanoHTTPD {
 
@@ -26,19 +29,11 @@ public class CapstoneServer extends NanoHTTPD {
         SEND_EVENT,
     }
 
+    @AllArgsConstructor
     public enum MimeType {
         APPLICATION_JSON("application/json; charset=utf-8"),
         TEXT_PLAIN("text/plain; charset=utf-8");
-
-        private final String contentType;
-
-        private MimeType(final String contentType) {
-            this.contentType = contentType;
-        }
-
-        public String getContentType() {
-            return contentType;
-        }
+        @NonNull @Getter private final String contentType;
 
         @Override
         public String toString() {
@@ -52,7 +47,7 @@ public class CapstoneServer extends NanoHTTPD {
     private final Gson gson = new Gson();
     private final CapstoneService capstoneService;
 
-    public CapstoneServer(final InetAddress inetAddress, final CapstoneService capstoneService) {
+    public CapstoneServer(@NonNull final InetAddress inetAddress, @NonNull final CapstoneService capstoneService) {
         super(inetAddress, 0);
         this.capstoneService = capstoneService;
         this.inetAddress = inetAddress;
@@ -66,7 +61,7 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(final IHTTPSession session) {
+    public Response serve(@NonNull final IHTTPSession session) {
         log("Got " + session.getMethod() + " request on " + session.getUri());
         if (!(session.getMethod().equals(Method.GET) || session.getMethod().equals(Method.POST))) {
             return errorResponse("Only GET and POST requests are supported");
@@ -118,33 +113,33 @@ public class CapstoneServer extends NanoHTTPD {
         return JSONResponse(Response.Status.OK, getRequestResponse);
     }
 
-    private static <T> T parseContentBody(final Gson gson, final Map<String, String> contentBody, final Class<T> type) {
+    private static <T> T parseContentBody(@NonNull final Gson gson, @NonNull final Map<String, String> contentBody, @NonNull final Class<T> type) {
         final String postData = contentBody.get("postData");
         final T t = gson.fromJson(postData, type);
         log("Parsed POST data as: " + t);
         return t;
     }
 
-    private Response servePostIdentify(final Map<String, String> contentBody) {
+    private Response servePostIdentify(@NonNull final Map<String, String> contentBody) {
         final HashableNsdServiceInfo peerNsdServiceInfo = parseContentBody(gson, contentBody, HashableNsdServiceInfo.class);
         capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
         final PayloadObject<NsdServiceInfo> postIdentifyResponse = new PayloadObject<>(capstoneService.getLocalNsdServiceInfo(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
         return JSONResponse(Response.Status.OK, postIdentifyResponse);
     }
 
-    private Response servePostReceiveToken(final Map<String, String> contentBody) {
+    private Response servePostReceiveToken(@NonNull final Map<String, String> contentBody) {
         final Token token = parseContentBody(gson, contentBody, Token.class);
         capstoneService.receiveTokenInternal(token);
         return genericSuccess();
     }
 
-    private Response servePostReceiveEvent(final Map<String, String> contentBody) {
+    private Response servePostReceiveEvent(@NonNull final Map<String, String> contentBody) {
         final Event event = parseContentBody(gson, contentBody, Event.class);
         capstoneService.receiveEventExternal(event);
         return genericSuccess();
     }
 
-    private Response errorResponse(final String errorMessage) {
+    private Response errorResponse(@NonNull final String errorMessage) {
         final PayloadObject<String> errorPayload = new PayloadObject<>(errorMessage, capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
         return JSONResponse(Response.Status.BAD_REQUEST, errorPayload);
     }
@@ -159,7 +154,7 @@ public class CapstoneServer extends NanoHTTPD {
         return JSONResponse(Response.Status.OK, successPayload);
     }
 
-    private static Response JSONResponse(final Response.Status status, final Object object) {
+    private static Response JSONResponse(@NonNull final Response.Status status, @NonNull final Object object) {
         return new Response(status, MimeType.APPLICATION_JSON.getContentType(), object.toString());
     }
 
