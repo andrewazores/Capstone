@@ -1,9 +1,7 @@
 package ca.mcmaster.capstone.networking;
 
-import android.opengl.EGLConfig;
-import android.opengl.GLSurfaceView;
-import android.opengl.GLU;
 import android.opengl.GLSurfaceView.Renderer;
+import android.opengl.GLU;
 
 import javax.microedition.khronos.opengles.GL10;
 

@@ -3,7 +3,7 @@ package ca.mcmaster.capstone.networking.structures;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Parcel;
 import android.os.Parcelable;
-import org.apache.commons.lang3.builder.EqualsBuilder;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.net.InetAddress;

@@ -2,7 +2,6 @@ package ca.mcmaster.capstone.monitoralgorithm;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import lombok.EqualsAndHashCode;
