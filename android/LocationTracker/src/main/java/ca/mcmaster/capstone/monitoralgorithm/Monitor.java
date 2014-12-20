@@ -8,6 +8,7 @@ import android.util.Log;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -66,7 +67,7 @@ public class Monitor extends Service {
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static HashableNsdServiceInfo monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
-    private static final int numProcesses = 10;
+    private static final int numProcesses = 2;
     private static volatile boolean runMonitor = true;
     private Thread thread;
     private Intent networkServiceIntent;
@@ -127,7 +128,6 @@ public class Monitor extends Service {
         serviceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
     }
 
-
     private static Event read() {
         while (serviceConnection.getNetworkLayer() == null) {
             try {
@@ -154,7 +154,6 @@ public class Monitor extends Service {
      */
     public static void init() {
         Log.d("monitor", "Initializing monitor");
-        final GlobalView initialGV = new GlobalView();
         while (serviceConnection.getNetworkLayer() == null) {
             try {
                 Thread.sleep(1000);
@@ -164,12 +163,15 @@ public class Monitor extends Service {
         }
         monitorID = HashableNsdServiceInfo.get(serviceConnection.getNetworkLayer().getLocalNsdServiceInfo());
 
-        //FIXME: this is garbage. Like actually. WOW.
-        while (serviceConnection.getNetworkLayer().getNsdPeers().isEmpty());
-        Automaton.build(monitorID, serviceConnection.getNetworkLayer().getNsdPeers().iterator().next());
+        final Map<String, HashableNsdServiceInfo> virtualIdentifiers = generateVirtualIdentifiers();
+        Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
 
         //TODO: Eventually this will be constructed from a text file or something.
-        final Valuation val = new Valuation("isFlat", 0.0); // FIXME: should be parametrized?
+        final Valuation val = new Valuation(new HashMap<String, Double>() {{
+            put("x1", 0.0);
+            put("x2", 0.0);
+        }}); // FIXME: should be parametrized?
+
         final VectorClock vec = new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
             put(monitorID, 0);
         }});
@@ -177,12 +179,38 @@ public class Monitor extends Service {
             put(monitorID, new ProcessState(monitorID, val, vec));
         }};
 
+        final GlobalView initialGV = new GlobalView();
         initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
         initialGV.setCurrentState(Automaton.advance(initialGV));
         initialGV.setCut(new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{ put(monitorID, 0); }}));
         GV.add(initialGV);
         Log.d("monitor", "Finished initializing monitor");
+    }
+
+    //FIXME: This method requires certain elements of global state to be initialized before it is called.
+    private static Map<String, HashableNsdServiceInfo> generateVirtualIdentifiers() {
+        final Map<String, HashableNsdServiceInfo> virtualIdentifiers = new HashMap<>();
+        while (true) {
+            if (serviceConnection.getNetworkLayer().getNsdPeers().size() == numProcesses - 1) {
+                break;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                //Don't care
+            }
+        }
+        final List<HashableNsdServiceInfo> sortedIdentifiers = new ArrayList() {{
+            add(monitorID);
+            addAll(serviceConnection.getNetworkLayer().getNsdPeers());
+        }};
+        Collections.sort(sortedIdentifiers, (f, s) -> Integer.compare(f.hashCode(), s.hashCode()));
+        for (final HashableNsdServiceInfo hashableNsdServiceInfo : sortedIdentifiers) {
+            final String virtualIdentifier = "x" + (sortedIdentifiers.indexOf(hashableNsdServiceInfo) + 1);
+            virtualIdentifiers.put(virtualIdentifier, hashableNsdServiceInfo);
+        }
+        return virtualIdentifiers;
     }
 
     /*
@@ -199,6 +227,7 @@ public class Monitor extends Service {
         final Receiver<Event> eventReceiver = new Receiver<>(Monitor::read);
         final Thread events = new Thread(eventReceiver);
         events.start();
+        Log.d("monitor", "Starting main loop.");
         while (runMonitor) {
             try {
                 Thread.sleep(500); // FIXME: should refactor this to use an ExecutorService or something in the future. Good enough for now...
@@ -209,10 +238,12 @@ public class Monitor extends Service {
             if (receivedToken != null) {
                 receiveToken(receivedToken);
             }
+            Log.d("monitor", "Tried to receive event without blocking");
             final Event localEvent = eventReceiver.receive();
             if (localEvent != null) {
                 receiveEvent(localEvent);
             }
+            Log.d("monitor", "Tried to receive event without blocking");
         }
         tokenReceiver.stop();
         eventReceiver.stop();
@@ -301,17 +332,23 @@ public class Monitor extends Service {
         Log.d("monitor", "Entering checkOutgoingTransitions");
         final Map<HashableNsdServiceInfo, Set<AutomatonTransition>> consult = new HashMap<>();
         for (final AutomatonTransition trans : Automaton.getTransitions()) {
+            Log.d("monitor", "Got here 1");
             final AutomatonState current = gv.getCurrentState();
-            if (trans.getFrom() == current && trans.getTo() != current) {
+            Log.d("monitor", current.toString());
+            Log.d("monitor", trans.toString());
+            if (trans.getFrom().equals(current) && !trans.getTo().equals(current)) {
+                Log.d("monitor", "Got here 2");
                 final Set<HashableNsdServiceInfo> participating = trans.getParticipatingProcesses();
                 final Set<HashableNsdServiceInfo> forbidding = trans.getForbiddingProcesses(gv);
                 if (!forbidding.contains(monitorID)) {
+                    Log.d("monitor", "Got here 3");
                     final Set<HashableNsdServiceInfo> inconsistent = gv.getInconsistentProcesses();
                     // intersection
                     participating.retainAll(inconsistent);
                     // union
                     forbidding.addAll(participating);
                     for (final HashableNsdServiceInfo process : forbidding) {
+                        Log.d("monitor", "Got here 4");
                         gv.getPendingTransitions().add(trans);
                         if (consult.get(process) == null) {
                             consult.put(process, new HashSet<>());
@@ -323,14 +360,17 @@ public class Monitor extends Service {
         }
 
         for (final Map.Entry<HashableNsdServiceInfo, Set<AutomatonTransition>> entry : consult.entrySet()) {
+            Log.d("monitor", "Got here 5");
             // Get all the conjuncts for process j
             final Set<Conjunct> conjuncts = new HashSet<>();
             for (final AutomatonTransition trans : entry.getValue()) {
+                Log.d("monitor", "Got here 6");
                 conjuncts.addAll(trans.getConjuncts());
             }
             //Build map to add to token
             final Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
             for (final Conjunct conjunct : conjuncts) {
+                Log.d("monitor", "Got here 7");
                 forToken.put(conjunct, Conjunct.Evaluation.NONE);
             }
             final Token token = new Token.Builder(monitorID, entry.getKey()).targetEventId(gv.getCut().process(entry.getKey()) + 1)

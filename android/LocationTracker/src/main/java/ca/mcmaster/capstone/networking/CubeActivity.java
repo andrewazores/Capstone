@@ -80,28 +80,24 @@ public class CubeActivity extends Activity {
         networkGet.execute();
     }
 
-    HashMap<HashableNsdServiceInfo, Boolean> deviceMap = new HashMap<>();
+    HashMap<HashableNsdServiceInfo, Double> deviceMap = new HashMap<>();
     public void getEvent() throws InterruptedException {
         if (serviceConnection.getService() == null) {
             return;
         }
         Event e = serviceConnection.getService().receiveEvent();
 
-        deviceMap.put(e.getPid(), (Boolean)e.getVal().getValue("isFlat"));
+        deviceMap.put(e.getPid(), (Double)e.getVal().getValue("isFlat"));
 
         int i = 0;
         StringBuilder sb = new StringBuilder();
-        for(Boolean b : deviceMap.values()){
+        for(Double d : deviceMap.values()){
             sb.append(" Device ").append(i).append(": ");
-            sb.append(b);
+            sb.append(d);
             ++i;
         }
 
         runOnUiThread(() -> Toast.makeText(CubeActivity.this, sb.toString(), Toast.LENGTH_SHORT).show());
-
-        if(e.getVal().getValue("isFlat").equals(true)){
-
-        }
     }
 
     private void setupGravitySensorService() {
@@ -202,7 +198,9 @@ public class CubeActivity extends Activity {
             if (serviceConnection.getService() == null) {
                 return;
             }
-            final Valuation<?> valuation = new Valuation<>("isFlat", value);
+            final Valuation<?> valuation = new Valuation<Double>(new HashMap() {{
+                put("isFlat", value);
+            }});
             Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation, new VectorClock(
                     new HashMap<HashableNsdServiceInfo, Integer>() {{ put(HashableNsdServiceInfo.get(serviceConnection.getService().getLocalNsdServiceInfo()), flatnessCounter); }}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();

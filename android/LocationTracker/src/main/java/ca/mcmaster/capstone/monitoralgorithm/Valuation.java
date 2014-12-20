@@ -11,8 +11,8 @@ import lombok.ToString;
 public class Valuation<T> {
     private final Map<String, T> valuation = new HashMap<>();
 
-    public Valuation(@NonNull final String variableName, @NonNull final T value) {
-        this.valuation.put(variableName, value);
+    public Valuation(@NonNull final Map<String, T> valuation) {
+        this.valuation.putAll(valuation);
     }
 
     public Valuation(@NonNull final Valuation<T> valuation) {

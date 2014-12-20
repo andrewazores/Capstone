@@ -23,7 +23,7 @@ public class Automaton {
 
     //FIXME: This is garbage.
     public static void build(@NonNull final HashableNsdServiceInfo id1, @NonNull final HashableNsdServiceInfo id2) {
-        initialState = new AutomatonState("Start", Evaluation.UNDECIDED);
+        initialState = new AutomatonState("2", Evaluation.UNDECIDED);
         states = new HashMap<String, AutomatonState>() {{
             put("2", new AutomatonState("2", Evaluation.UNDECIDED));
             put("3", new AutomatonState("3", Evaluation.UNDECIDED));
