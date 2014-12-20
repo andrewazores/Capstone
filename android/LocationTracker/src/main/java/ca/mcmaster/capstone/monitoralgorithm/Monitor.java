@@ -67,7 +67,7 @@ public class Monitor extends Service {
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static HashableNsdServiceInfo monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
-    private static final int numProcesses = 2;
+    private static final int numPeers = 1;
     private static volatile boolean runMonitor = true;
     private Thread thread;
     private Intent networkServiceIntent;
@@ -192,7 +192,7 @@ public class Monitor extends Service {
     private static Map<String, HashableNsdServiceInfo> generateVirtualIdentifiers() {
         final Map<String, HashableNsdServiceInfo> virtualIdentifiers = new HashMap<>();
         while (true) {
-            if (serviceConnection.getNetworkLayer().getNsdPeers().size() == numProcesses - 1) {
+            if (serviceConnection.getNetworkLayer().getNsdPeers().size() == numPeers) {
                 break;
             }
             try {
@@ -332,23 +332,19 @@ public class Monitor extends Service {
         Log.d("monitor", "Entering checkOutgoingTransitions");
         final Map<HashableNsdServiceInfo, Set<AutomatonTransition>> consult = new HashMap<>();
         for (final AutomatonTransition trans : Automaton.getTransitions()) {
-            Log.d("monitor", "Got here 1");
             final AutomatonState current = gv.getCurrentState();
             Log.d("monitor", current.toString());
             Log.d("monitor", trans.toString());
             if (trans.getFrom().equals(current) && !trans.getTo().equals(current)) {
-                Log.d("monitor", "Got here 2");
                 final Set<HashableNsdServiceInfo> participating = trans.getParticipatingProcesses();
                 final Set<HashableNsdServiceInfo> forbidding = trans.getForbiddingProcesses(gv);
                 if (!forbidding.contains(monitorID)) {
-                    Log.d("monitor", "Got here 3");
                     final Set<HashableNsdServiceInfo> inconsistent = gv.getInconsistentProcesses();
                     // intersection
                     participating.retainAll(inconsistent);
                     // union
                     forbidding.addAll(participating);
                     for (final HashableNsdServiceInfo process : forbidding) {
-                        Log.d("monitor", "Got here 4");
                         gv.getPendingTransitions().add(trans);
                         if (consult.get(process) == null) {
                             consult.put(process, new HashSet<>());
