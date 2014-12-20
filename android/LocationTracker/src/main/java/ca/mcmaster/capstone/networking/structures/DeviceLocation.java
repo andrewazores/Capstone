@@ -12,6 +12,7 @@ public class DeviceLocation {
     float bearing, accuracy;
     float[] gravity, linearAccleration;
 
+    @Builder
     public DeviceLocation(final Location location, final double barometerPressure, final float[] gravity, final float[] linearAccleration) {
         final double latitude, longitude, altitude, speed;
         final float bearing, accuracy;

@@ -23,6 +23,7 @@ public class PayloadObject<T> implements Serializable {
     int nsdPeersSetCount;
     @NonNull Status status;
 
+    @Builder
     public PayloadObject(@NonNull final T payload, @NonNull final Set<HashableNsdServiceInfo> nsdPeers, @NonNull final Status status) {
         this.payload = payload;
         this.nsdPeersSetCount = nsdPeers.size();
