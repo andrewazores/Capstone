@@ -9,7 +9,7 @@ import lombok.NonNull;
 import lombok.Value;
 import lombok.experimental.Builder;
 
-@Builder @Value
+@Value
 public class PayloadObject<T> implements Serializable {
 
     public enum Status {
