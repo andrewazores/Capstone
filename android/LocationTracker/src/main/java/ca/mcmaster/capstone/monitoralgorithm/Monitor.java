@@ -199,7 +199,7 @@ public class Monitor extends Service {
                 //Don't care
             }
         }
-        final List<HashableNsdServiceInfo> sortedIdentifiers = new ArrayList() {{
+        final List<HashableNsdServiceInfo> sortedIdentifiers = new ArrayList<HashableNsdServiceInfo>() {{
             add(monitorID);
             addAll(serviceConnection.getNetworkLayer().getNsdPeers());
         }};
