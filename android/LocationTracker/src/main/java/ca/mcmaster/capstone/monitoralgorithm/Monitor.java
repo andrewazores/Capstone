@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
@@ -29,12 +30,11 @@ import lombok.Synchronized;
 public class Monitor extends Service {
 
     private static class Receiver<T> implements Runnable {
-        private final Object queueLock = new Object();
         /**
          * Should be a blocking call, else the Thread running this Receiver will spend a lot of time spinning
          */
         @NonNull private final Callable<T> callable;
-        private final Queue<T> receiveQueue = new ArrayDeque<>();
+        private final Queue<T> receiveQueue = new ConcurrentLinkedQueue<>();
         private volatile boolean run = true;
 
         public Receiver(@NonNull final Callable<T> callable) {
@@ -45,16 +45,14 @@ public class Monitor extends Service {
         public void run() {
             while (run) {
                 try {
-                    synchronized (queueLock) {
-                        receiveQueue.add(callable.call());
-                    }
+                    receiveQueue.add(callable.call());
                 } catch (final Exception e) {
                     Log.v("MonitorService", "Receiver helper thread failed to call callable: " + e.getLocalizedMessage());
                 }
             }
         }
 
-        @Synchronized("queueLock") public T receive() {
+        public T receive() {
             return receiveQueue.poll();
         }
 
