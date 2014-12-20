@@ -236,12 +236,10 @@ public class Monitor extends Service {
             if (receivedToken != null) {
                 receiveToken(receivedToken);
             }
-            Log.d("monitor", "Tried to receive event without blocking");
             final Event localEvent = eventReceiver.receive();
             if (localEvent != null) {
                 receiveEvent(localEvent);
             }
-            Log.d("monitor", "Tried to receive event without blocking");
         }
         tokenReceiver.stop();
         eventReceiver.stop();
