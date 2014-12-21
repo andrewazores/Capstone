@@ -1,9 +1,10 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import lombok.ToString;
 import lombok.Value;
 
-@Value
+@Value @ToString
 public final class Event {
     public static enum EventType {SEND, RECEIVE, INTERNAL}
 
