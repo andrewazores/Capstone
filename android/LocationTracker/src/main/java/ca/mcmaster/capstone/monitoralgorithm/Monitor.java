@@ -352,17 +352,14 @@ public class Monitor extends Service {
         }
 
         for (final Map.Entry<HashableNsdServiceInfo, Set<AutomatonTransition>> entry : consult.entrySet()) {
-            Log.d("monitor", "Got here 5");
             // Get all the conjuncts for process j
             final Set<Conjunct> conjuncts = new HashSet<>();
             for (final AutomatonTransition trans : entry.getValue()) {
-                Log.d("monitor", "Got here 6");
                 conjuncts.addAll(trans.getConjuncts());
             }
             //Build map to add to token
             final Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
             for (final Conjunct conjunct : conjuncts) {
-                Log.d("monitor", "Got here 7");
                 forToken.put(conjunct, Conjunct.Evaluation.NONE);
             }
             final Token token = new Token.Builder(monitorID, entry.getKey()).targetEventId(gv.getCut().process(entry.getKey()) + 1)
