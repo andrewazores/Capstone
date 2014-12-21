@@ -39,8 +39,8 @@ public class Automaton {
                 add(new Conjunct(id2, "x2 != 1.0"));
             }}));
             add(new AutomatonTransition(states.get("3"), states.get("1"), new ArrayList<Conjunct>() {{
-                add(new Conjunct(id1, "x1 = 0"));
-                add(new Conjunct(id2, "x2 = 1"));
+                add(new Conjunct(id1, "x1 == 0"));
+                add(new Conjunct(id2, "x2 == 1"));
             }}));
         }};
     }
