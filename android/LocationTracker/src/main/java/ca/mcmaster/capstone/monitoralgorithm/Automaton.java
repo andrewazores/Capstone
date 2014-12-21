@@ -23,13 +23,13 @@ public class Automaton {
 
     //FIXME: This is garbage.
     public static void build(@NonNull final HashableNsdServiceInfo id1, @NonNull final HashableNsdServiceInfo id2) {
-        initialState = new AutomatonState("2", Evaluation.UNDECIDED);
         states = new HashMap<String, AutomatonState>() {{
             put("2", new AutomatonState("2", Evaluation.UNDECIDED));
             put("3", new AutomatonState("3", Evaluation.UNDECIDED));
             put("1", new AutomatonState("1", Evaluation.SATISFIED));
             put("0", new AutomatonState("0", Evaluation.SATISFIED));
         }};
+        initialState = states.get("2");
         transitions = new HashSet<AutomatonTransition>() {{
             add(new AutomatonTransition(states.get("2"), states.get("0"), new ArrayList<Conjunct>() {{
                 add(new Conjunct(id2, "x2 == 1.0"));
