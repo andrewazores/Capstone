@@ -40,7 +40,9 @@ public class AutomatonTransition {
         final Map<Conjunct, Conjunct.Evaluation> evaluations = new HashMap<>();
         for (final ProcessState state : processStates) {
             for (final Conjunct conjunct : this.conjuncts) {
-                evaluations.put(conjunct, conjunct.evaluate(state));
+                if (conjunct.getOwnerProcess() == state.getId()) {
+                    evaluations.put(conjunct, conjunct.evaluate(state));
+                }
             }
         }
         if (evaluations.values().contains(Conjunct.Evaluation.FALSE)) {
@@ -75,7 +77,8 @@ public class AutomatonTransition {
         for (final Map.Entry<HashableNsdServiceInfo, ProcessState> entry : gv.getStates().entrySet()) {
             final ProcessState state = entry.getValue();
             for (final Conjunct conjunct : conjuncts) {
-                if (conjunct.evaluate(state) == Conjunct.Evaluation.FALSE) {
+                if (conjunct.getOwnerProcess() == state.getId()
+                        && conjunct.evaluate(state) == Conjunct.Evaluation.FALSE) {
                     ret.add(state.getId());
                     break;
                 }

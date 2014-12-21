@@ -165,10 +165,12 @@ public class Monitor extends Service {
         Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
 
         //TODO: Eventually this will be constructed from a text file or something.
-        final Valuation val = new Valuation(new HashMap<String, Double>() {{
+        final Valuation val1 = new Valuation(new HashMap<String, Double>() {{
             put("x1", 0.0);
-            put("x2", 0.0);
         }}); // FIXME: should be parametrized?
+        final Valuation val2 = new Valuation(new HashMap<String, Double>() {{
+            put("x2", 0.0);
+        }});
 
         final VectorClock vec = new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
             put(virtualIdentifiers.get("x1"), 0);
@@ -176,8 +178,8 @@ public class Monitor extends Service {
         }});
         final Map<HashableNsdServiceInfo, ProcessState> initialStates = new HashMap<HashableNsdServiceInfo, ProcessState>() {{
             //FIXME: Double use of virtualIdentifiers on each line makes me think there's some possible refactoring here
-            put(virtualIdentifiers.get("x1"), new ProcessState(virtualIdentifiers.get("x1"), val, vec));
-            put(virtualIdentifiers.get("x2"), new ProcessState(virtualIdentifiers.get("x2"), val, vec));
+            put(virtualIdentifiers.get("x1"), new ProcessState(virtualIdentifiers.get("x1"), val1, vec));
+            put(virtualIdentifiers.get("x2"), new ProcessState(virtualIdentifiers.get("x2"), val2, vec));
         }};
 
         final GlobalView initialGV = new GlobalView();
