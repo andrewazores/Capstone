@@ -114,18 +114,15 @@ public class GlobalView {
     }
 
     /*
-     * Finds and returns a reference to the token that has the most conjuncts requested to be evaluated.
+     * Finds the token that has the most conjuncts requested to be evaluated.
      *
-     * @return A reference to The token with the most conjuncts requested to be evaluated.
+     * @return A reference to The token with the most conjuncts requested to be evaluated, or null if
+     *         there are no tokens in this global view.
      */
     public Token getTokenWithMostConjuncts() {
         Token ret = null;
         for (final Token token : this.tokens) {
-            if (ret == null) { // FIXME: ret is always null
-                ret = token;
-                break;
-            }
-            if (token.getConjuncts().size() > ret.getConjuncts().size()) {
+            if (token.getConjuncts().size() > ret.getConjuncts().size() || ret == null) {
                 ret = token;
             }
         }
