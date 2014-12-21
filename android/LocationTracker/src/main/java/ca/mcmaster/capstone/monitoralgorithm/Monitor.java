@@ -171,10 +171,13 @@ public class Monitor extends Service {
         }}); // FIXME: should be parametrized?
 
         final VectorClock vec = new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
-            put(monitorID, 0);
+            put(virtualIdentifiers.get("x1"), 0);
+            put(virtualIdentifiers.get("x2"), 0);
         }});
         final Map<HashableNsdServiceInfo, ProcessState> initialStates = new HashMap<HashableNsdServiceInfo, ProcessState>() {{
-            put(monitorID, new ProcessState(monitorID, val, vec));
+            //FIXME: Double use of virtualIdentifiers on each line makes me think there's some possible refactoring here
+            put(virtualIdentifiers.get("x1"), new ProcessState(virtualIdentifiers.get("x1"), val, vec));
+            put(virtualIdentifiers.get("x2"), new ProcessState(virtualIdentifiers.get("x2"), val, vec));
         }};
 
         final GlobalView initialGV = new GlobalView();
