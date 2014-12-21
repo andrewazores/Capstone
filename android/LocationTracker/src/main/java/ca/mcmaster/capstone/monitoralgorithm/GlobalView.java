@@ -122,7 +122,7 @@ public class GlobalView {
     public Token getTokenWithMostConjuncts() {
         Token ret = null;
         for (final Token token : this.tokens) {
-            if (token.getConjuncts().size() > ret.getConjuncts().size() || ret == null) {
+            if (ret == null || token.getConjuncts().size() > ret.getConjuncts().size()) {
                 ret = token;
             }
         }
