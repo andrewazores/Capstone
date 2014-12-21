@@ -201,8 +201,10 @@ public class CubeActivity extends Activity {
             final Valuation<?> valuation = new Valuation<Double>(new HashMap() {{
                 put("isFlat", value);
             }});
-            Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation, new VectorClock(
-                    new HashMap<HashableNsdServiceInfo, Integer>() {{ put(HashableNsdServiceInfo.get(serviceConnection.getService().getLocalNsdServiceInfo()), flatnessCounter); }}));
+            Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation,
+                    new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
+                        put(HashableNsdServiceInfo.get(serviceConnection.getService().getLocalNsdServiceInfo()), flatnessCounter);
+                    }}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
             serviceConnection.getService().sendEventToMonitor(e);
         }

@@ -186,7 +186,10 @@ public class Monitor extends Service {
         initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
         initialGV.setCurrentState(Automaton.advance(initialGV));
-        initialGV.setCut(new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{ put(monitorID, 0); }}));
+        initialGV.setCut(new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
+            put(virtualIdentifiers.get("x1"), 0);
+            put(virtualIdentifiers.get("x2"), 0);
+        }}));
         GV.add(initialGV);
         Log.d("monitor", "Finished initializing monitor");
     }
