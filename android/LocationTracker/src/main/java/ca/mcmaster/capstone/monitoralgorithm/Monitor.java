@@ -376,8 +376,12 @@ public class Monitor extends Service {
             gv.getTokens().add(token);
         }
         final Token token = gv.getTokenWithMostConjuncts();
-        send(token, token.getDestination());
-        token.setSent(true);
+        //XXX: This may not be correct. More investigation required.
+        if (token != null) {
+            Log.d("monitor", "Sending a nice shiney token!");
+            send(token, token.getDestination());
+            token.setSent(true);
+        }
     }
 
     /*
