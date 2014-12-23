@@ -5,7 +5,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static ca.mcmaster.capstone.monitoralgorithm.BooleanExpressionTree.ArithmeticOperator.*;
+import ca.mcmaster.capstone.monitoralgorithm.tree.ArithmeticOperator;
+
+import static ca.mcmaster.capstone.monitoralgorithm.tree.ArithmeticOperator.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -13,7 +15,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(RobolectricTestRunner.class)
 public class ArithmeticOperatorTest {
 
-    private static void test(final double first, final BooleanExpressionTree.ArithmeticOperator operator,
+    private static void test(final double first, final ArithmeticOperator operator,
                              final double second, final double expected) {
         final double result = operator.apply(first, second);
         assertThat(String.format("%s is broke for (%f, %f)!", operator, first, second), result, is(expected));
