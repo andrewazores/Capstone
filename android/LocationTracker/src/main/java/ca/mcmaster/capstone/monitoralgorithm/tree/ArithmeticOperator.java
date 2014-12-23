@@ -14,8 +14,7 @@ public enum ArithmeticOperator implements Operator<Double, Double>, BinaryOperat
     MULTIPLY(x -> x[0] * x[1]),
     EXPONENT(x -> Math.pow(x[0], x[1]));
 
-    @NonNull
-    private final Operator<Double, Double> operator;
+    @NonNull private final Operator<Double, Double> operator;
 
     @Override
     public Double apply(final Double ... args) {

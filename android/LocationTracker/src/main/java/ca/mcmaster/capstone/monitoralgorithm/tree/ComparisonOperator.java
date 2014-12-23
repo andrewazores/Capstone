@@ -15,8 +15,7 @@ public enum ComparisonOperator implements Operator<Double, Boolean>, BinaryOpera
     LESS_OR_EQUAL(x -> LESS_THAN.apply(x) || EQUAL.apply(x)),
     GREATER_OR_EQUAL(x -> GREATER_THAN.apply(x) || EQUAL.apply(x));
 
-    @NonNull
-    private final Operator<Double, Boolean> operator;
+    @NonNull private final Operator<Double, Boolean> operator;
 
     @Override
     public Boolean apply(@NonNull final Double ... args) {
