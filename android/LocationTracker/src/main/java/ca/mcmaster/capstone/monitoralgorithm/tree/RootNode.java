@@ -7,13 +7,11 @@ import lombok.NonNull;
 import lombok.ToString;
 
 /* Root node must be a comparison */
-@AllArgsConstructor
-@ToString
+@AllArgsConstructor @ToString
 public class RootNode {
     @NonNull Node left;
     @NonNull Node right;
-    @NonNull
-    ComparisonOperator op;
+    @NonNull ComparisonOperator op;
 
     public Boolean evaluate(@NonNull final ProcessState state) {
         return op.apply(left.evaluate(state), right.evaluate(state));

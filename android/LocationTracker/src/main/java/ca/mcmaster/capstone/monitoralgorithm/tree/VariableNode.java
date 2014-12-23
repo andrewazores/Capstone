@@ -7,13 +7,12 @@ import lombok.NonNull;
 import lombok.ToString;
 
 /* A leaf node */
-@AllArgsConstructor
-@ToString
+@AllArgsConstructor @ToString
 public class VariableNode implements Node {
-    @NonNull
-    String variableName;
+    @NonNull String variableName;
 
-    @Override public Double evaluate(@NonNull final ProcessState state) {
+    @Override
+    public Double evaluate(@NonNull final ProcessState state) {
         //TODO: refactor Valuation to use Double
         return (Double) state.getVal().getValue(variableName);
     }

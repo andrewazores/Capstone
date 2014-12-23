@@ -7,12 +7,11 @@ import lombok.NonNull;
 import lombok.ToString;
 
 /* A leaf node */
-@AllArgsConstructor
-@ToString
+@AllArgsConstructor @ToString
 public class ValueNode implements Node {
-    @NonNull
-    Double value;
+    @NonNull Double value;
 
+    @Override
     public Double evaluate(@NonNull final ProcessState state) {
         //TODO: refactor Valuation to use Double
         return value;

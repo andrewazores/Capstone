@@ -7,13 +7,11 @@ import lombok.NonNull;
 import lombok.ToString;
 
 /* An inner node */
-@AllArgsConstructor
-@ToString
+@AllArgsConstructor @ToString
 public class InnerNode implements Node {
     @NonNull Node left;
     @NonNull Node right;
-    @NonNull
-    ArithmeticOperator op;
+    @NonNull ArithmeticOperator op;
 
     @Override public Double evaluate(@NonNull final ProcessState state) {
         return op.apply(left.evaluate(state), right.evaluate(state));
