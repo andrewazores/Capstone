@@ -31,11 +31,11 @@ import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 
+import static ca.mcmaster.capstone.networking.util.JsonUtil.asJson;
+
 public class CapstoneActivity extends Activity implements SensorUpdateCallbackReceiver<DeviceInfo>,
                                                                           NsdUpdateCallbackReceiver,
                                                                           PeerUpdateCallbackReceiver<DeviceInfo> {
-
-    private final Gson gson = new Gson();
 
     protected TextView jsonTextView;
     protected ListView listView;
@@ -122,7 +122,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         }
         final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         dialogBuilder.setTitle(deviceInfo.getIp() + ":" + deviceInfo.getPort())
-                .setMessage(gson.toJson(deviceInfo))
+                .setMessage(asJson(deviceInfo))
                 .create().show();
     }
 

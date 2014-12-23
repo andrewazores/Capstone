@@ -66,6 +66,9 @@ import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 import lombok.NonNull;
 
+import static ca.mcmaster.capstone.networking.util.JsonUtil.asJson;
+import static ca.mcmaster.capstone.networking.util.JsonUtil.fromJson;
+
 public final class CapstoneService extends Service implements NetworkLayer {
 
     private static final String NSD_LOCATION_SERVICE_NAME = "CapstoneLocationNSD";
@@ -86,7 +89,6 @@ public final class CapstoneService extends Service implements NetworkLayer {
     private GravitySensorEventListener gravitySensorEventListener;
     private CapstoneLocationListener locationListener;
 
-    private final Gson gson = new Gson();
     private RequestQueue volleyRequestQueue;
     private CapstoneServer locationServer;
 
@@ -411,7 +413,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     String getStatusAsJson() {
         final DeviceInfo deviceInfo = getStatus();
-        return gson.toJson(deviceInfo);
+        return asJson(deviceInfo);
     }
 
     void registerSensorUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
@@ -447,7 +449,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
                                     @NonNull final Response.ErrorListener errorListener,
                                     @NonNull final CapstoneServer.RequestMethod requestMethod) {
 
-        final String contentBody = gson.toJson(data);
+        final String contentBody = asJson(data);
         final JSONObject payload;
         try {
             payload = new JSONObject(contentBody);
@@ -493,8 +495,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     private void sendNsdInfoToPeer(@NonNull final HashableNsdServiceInfo destination, @NonNull final HashableNsdServiceInfo info) {
         final Response.Listener<JSONObject> successListener = jsonObject -> {
-            final Type type = new TypeToken<PayloadObject<NsdServiceInfo>>(){}.getType();
-            final PayloadObject<NsdServiceInfo> payloadObject = gson.fromJson(jsonObject.toString(), type);
+            final TypeToken<PayloadObject<NsdServiceInfo>> type = new TypeToken<PayloadObject<NsdServiceInfo>>(){};
+            final PayloadObject<NsdServiceInfo> payloadObject = fromJson(jsonObject.toString(), type);
             logv("Received peer NSD info payload: " + payloadObject);
             if (payloadObject != null) {
                 final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(payloadObject.getPayload());
@@ -604,8 +606,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
                                @NonNull final PeerUpdateCallbackReceiver<DeviceInfo> callbackReceiver) {
         final Response.Listener<JSONObject> successListener = jsonObject -> {
             try {
-                final Type type = new TypeToken<PayloadObject<DeviceInfo>>(){}.getType();
-                final PayloadObject<DeviceInfo> payloadObject = gson.fromJson(jsonObject.toString(), type);
+                final TypeToken<PayloadObject<DeviceInfo>> type = new TypeToken<PayloadObject<DeviceInfo>>(){};
+                final PayloadObject<DeviceInfo> payloadObject = fromJson(jsonObject.toString(), type);
                 if (payloadObject != null) {
                     callbackReceiver.peerUpdate(payloadObject.getPayload());
                 }

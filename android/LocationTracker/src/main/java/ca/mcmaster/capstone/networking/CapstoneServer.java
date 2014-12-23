@@ -20,6 +20,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
+import static ca.mcmaster.capstone.networking.util.JsonUtil.fromJson;
+
 public class CapstoneServer extends NanoHTTPD {
 
     public enum RequestMethod {
@@ -44,7 +46,6 @@ public class CapstoneServer extends NanoHTTPD {
 
     public static final String KEY_REQUEST_METHOD = "request_method";
     private final InetAddress inetAddress;
-    private final Gson gson = new Gson();
     private final CapstoneService capstoneService;
 
     public CapstoneServer(@NonNull final InetAddress inetAddress, @NonNull final CapstoneService capstoneService) {
@@ -114,28 +115,28 @@ public class CapstoneServer extends NanoHTTPD {
         return JSONResponse(Response.Status.OK, getRequestResponse);
     }
 
-    private static <T> T parseContentBody(@NonNull final Gson gson, @NonNull final Map<String, String> contentBody, @NonNull final Class<T> type) {
+    private static <T> T parseContentBody(@NonNull final Map<String, String> contentBody, @NonNull final Class<T> type) {
         final String postData = contentBody.get("postData");
-        final T t = gson.fromJson(postData, type);
+        final T t = fromJson(postData, type);
         log("Parsed POST data as: " + t);
         return t;
     }
 
     private Response servePostIdentify(@NonNull final Map<String, String> contentBody) {
-        final HashableNsdServiceInfo peerNsdServiceInfo = parseContentBody(gson, contentBody, HashableNsdServiceInfo.class);
+        final HashableNsdServiceInfo peerNsdServiceInfo = parseContentBody(contentBody, HashableNsdServiceInfo.class);
         capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
         final PayloadObject<NsdServiceInfo> postIdentifyResponse = new PayloadObject<>(capstoneService.getLocalNsdServiceInfo(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
         return JSONResponse(Response.Status.OK, postIdentifyResponse);
     }
 
     private Response servePostReceiveToken(@NonNull final Map<String, String> contentBody) {
-        final Token token = parseContentBody(gson, contentBody, Token.class);
+        final Token token = parseContentBody(contentBody, Token.class);
         capstoneService.receiveTokenInternal(token);
         return genericSuccess();
     }
 
     private Response servePostReceiveEvent(@NonNull final Map<String, String> contentBody) {
-        final Event event = parseContentBody(gson, contentBody, Event.class);
+        final Event event = parseContentBody(contentBody, Event.class);
         capstoneService.receiveEventExternal(event);
         return genericSuccess();
     }

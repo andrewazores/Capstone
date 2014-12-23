@@ -9,6 +9,8 @@ import lombok.NonNull;
 import lombok.Value;
 import lombok.experimental.Builder;
 
+import static ca.mcmaster.capstone.networking.util.JsonUtil.asJson;
+
 @Value
 public class PayloadObject<T> implements Serializable {
 
@@ -34,6 +36,6 @@ public class PayloadObject<T> implements Serializable {
 
     @Override
     public String toString() {
-        return new Gson().toJson(this);
+        return asJson(this);
     }
 }
