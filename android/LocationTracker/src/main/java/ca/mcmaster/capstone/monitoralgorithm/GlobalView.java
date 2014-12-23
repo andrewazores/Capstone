@@ -17,7 +17,7 @@ import lombok.NonNull;
 import lombok.ToString;
 
 /* Class to represent the local view of the global state.*/
-@EqualsAndHashCode @ToString
+@ToString
 public class GlobalView {
     private final Map<HashableNsdServiceInfo, ProcessState> states = new HashMap<>();
     @NonNull private VectorClock cut;
@@ -198,5 +198,33 @@ public class GlobalView {
         final Set<T> secondSet = new HashSet<>(second);
         firstSet.addAll(secondSet);
         return firstSet;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GlobalView that = (GlobalView) o;
+
+        if (!currentState.equals(that.currentState)) return false;
+        if (!cut.equals(that.cut)) return false;
+        if (!pendingEvents.equals(that.pendingEvents)) return false;
+        if (!pendingTransitions.equals(that.pendingTransitions)) return false;
+        if (!states.equals(that.states)) return false;
+        if (!tokens.equals(that.tokens)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = states.hashCode();
+        result = 31 * result + cut.hashCode();
+        result = 31 * result + currentState.hashCode();
+        result = 31 * result + tokens.hashCode();
+        result = 31 * result + pendingEvents.hashCode();
+        result = 31 * result + pendingTransitions.hashCode();
+        return result;
     }
 }
