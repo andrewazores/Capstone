@@ -11,7 +11,7 @@ import lombok.Value;
 
 @EqualsAndHashCode @ToString
 public class BooleanExpressionTree {
-    private interface Node {
+    public interface Node {
         Double evaluate(ProcessState state);
     }
     private interface Operator<T, R> {
