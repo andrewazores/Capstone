@@ -44,24 +44,8 @@ public final class HashableNsdServiceInfo implements Parcelable {
         return nsdServiceInfo.getServiceType();
     }
 
-    public void setHost(@NonNull final InetAddress s) {
-        nsdServiceInfo.setHost(s);
-    }
-
     public int getPort() {
         return nsdServiceInfo.getPort();
-    }
-
-    public void setPort(final int p) {
-        nsdServiceInfo.setPort(p);
-    }
-
-    public void setServiceName(@NonNull final String s) {
-        nsdServiceInfo.setServiceName(s);
-    }
-
-    public void setServiceType(@NonNull final String s) {
-        nsdServiceInfo.setServiceType(s);
     }
 
     public InetAddress getHost() {
