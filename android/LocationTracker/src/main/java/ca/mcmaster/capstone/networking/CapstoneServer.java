@@ -146,12 +146,12 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private Response genericError() {
-        final PayloadObject<Void> errorPayload = new PayloadObject<>(null, capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
+        final PayloadObject<String> errorPayload = new PayloadObject<>("Error", capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
         return JSONResponse(Response.Status.BAD_REQUEST, errorPayload);
     }
 
     private Response genericSuccess() {
-        final PayloadObject<Void> successPayload = new PayloadObject<>(null, capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        final PayloadObject<String> successPayload = new PayloadObject<>("Success", capstoneService.getNsdPeers(), PayloadObject.Status.OK);
         return JSONResponse(Response.Status.OK, successPayload);
     }
 
