@@ -6,12 +6,13 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 
-import ca.mcmaster.capstone.monitoralgorithm.BooleanExpressionTree;
+import ca.mcmaster.capstone.monitoralgorithm.interfaces.Node;
 
 public class JsonUtil {
 
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(BooleanExpressionTree.Node.class, new InterfaceAdapter<BooleanExpressionTree.Node>())
+            .enableComplexMapKeySerialization()
+            .registerTypeAdapter(Node.class, new InterfaceAdapter<Node>())
             .create();
 
     public static <T> T fromJson(final String json, final TypeToken<T> type) {
