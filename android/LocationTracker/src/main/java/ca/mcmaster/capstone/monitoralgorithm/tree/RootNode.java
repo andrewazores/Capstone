@@ -2,40 +2,22 @@ package ca.mcmaster.capstone.monitoralgorithm.tree;
 
 import ca.mcmaster.capstone.monitoralgorithm.ProcessState;
 import ca.mcmaster.capstone.monitoralgorithm.interfaces.Node;
+import ca.mcmaster.capstone.monitoralgorithm.interfaces.Operator;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
+import lombok.Value;
 
 /* Root node must be a comparison */
-@AllArgsConstructor @ToString
-public class RootNode {
-    @NonNull Node left;
-    @NonNull Node right;
-    @NonNull ComparisonOperator op;
+@ToString @Getter @EqualsAndHashCode(callSuper = true)
+public class RootNode extends InnerNode<Boolean, Double> {
+    public RootNode(final Node<Double> left, final Node<Double> right, final Operator<Double, Boolean> operator) {
+        super(left, right, operator);
+    }
 
-    public Boolean evaluate(@NonNull final ProcessState state) {
+    @Override public Boolean evaluate(@NonNull final ProcessState state) {
         return op.apply(left.evaluate(state), right.evaluate(state));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RootNode rootNode = (RootNode) o;
-
-        if (!left.equals(rootNode.left)) return false;
-        if (op != rootNode.op) return false;
-        if (!right.equals(rootNode.right)) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = left.hashCode();
-        result = 31 * result + right.hashCode();
-        result = 31 * result + op.hashCode();
-        return result;
     }
 }

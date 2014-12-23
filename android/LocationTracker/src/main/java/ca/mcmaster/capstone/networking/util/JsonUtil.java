@@ -6,13 +6,17 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 
+import ca.mcmaster.capstone.monitoralgorithm.interfaces.BinaryOperator;
 import ca.mcmaster.capstone.monitoralgorithm.interfaces.Node;
+import ca.mcmaster.capstone.monitoralgorithm.interfaces.Operator;
 
 public class JsonUtil {
 
     private static final Gson GSON = new GsonBuilder()
             .enableComplexMapKeySerialization()
             .registerTypeAdapter(Node.class, new InterfaceAdapter<Node>())
+            .registerTypeAdapter(Operator.class, new InterfaceAdapter<Operator>())
+            .registerTypeAdapter(BinaryOperator.class, new InterfaceAdapter<BinaryOperator>())
             .create();
 
     public static <T> T fromJson(final String json, final TypeToken<T> type) {
