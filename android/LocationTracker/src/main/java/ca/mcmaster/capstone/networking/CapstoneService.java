@@ -40,7 +40,9 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteOrder;
@@ -208,21 +210,17 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
             @Override
             public void onServiceFound(final NsdServiceInfo nsdPeerInfo) {
-                logv("NSD discovery found: " + nsdPeerInfo);
-
                 if (nsdPeerInfo == null
                         || nsdPeerInfo.getServiceType() == null
                         || nsdPeerInfo.getServiceName() == null) {
-                    logv("Found invalid nsdPeerInfo: " + nsdPeerInfo);
                     return;
                 }
 
                 if (!nsdPeerInfo.getServiceType().equals(getNsdServiceType())) {
                     logv("Unknown Service Type: " + nsdPeerInfo);
                 } else if (nsdPeerInfo.getServiceName().contains(getLocalNsdServiceName())) {
-                    logv("Same machine: " + nsdPeerInfo);
-                } else if (nsdPeerInfo.getServiceName().contains(getNsdServiceName())){
-                    logv("Attempting to resolve: " + nsdPeerInfo);
+                    //logv("Same machine: " + nsdPeerInfo);
+                } else if (nsdPeerInfo.getServiceName().contains(getNsdServiceName())) {
                     nsdManager.resolveService(nsdPeerInfo, new NsdResolveListener());
                 } else {
                     logv("Could not register NSD service: " + nsdPeerInfo);
@@ -231,11 +229,11 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
             @Override
             public void onServiceLost(final NsdServiceInfo nsdServiceInfo) {
-                logv("NSD Service lost: " + nsdServiceInfo);
                 if (nsdServiceInfo.getHost() == null) {
-                    return; // useless data, we don't store these anyway
+                    return;
                 }
-                nsdPeers.remove(HashableNsdServiceInfo.get(nsdServiceInfo));
+                final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(nsdServiceInfo);
+                nsdPeers.remove(hashableNsdServiceInfo);
                 updateNsdCallbackListeners();
             }
         };
@@ -455,6 +453,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
             payload = new JSONObject(contentBody);
         } catch (final JSONException e) {
             logv("Could not POST data, JSONException: " + e.getLocalizedMessage());
+            logv("Data: " + data);
+            logv("As JSON: " + contentBody);
             return;
         }
 
@@ -484,6 +484,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
             public Map<String, String> getHeaders() {
                 final Map<String, String> headers = new HashMap<>();
                 headers.put(CapstoneServer.KEY_REQUEST_METHOD, requestMethod.toString());
+                headers.put("Accept-Encoding", "");
                 return headers;
             }
         };
@@ -495,7 +496,14 @@ public final class CapstoneService extends Service implements NetworkLayer {
             final Type type = new TypeToken<PayloadObject<NsdServiceInfo>>(){}.getType();
             final PayloadObject<NsdServiceInfo> payloadObject = gson.fromJson(jsonObject.toString(), type);
             logv("Received peer NSD info payload: " + payloadObject);
-            nsdDiscoveryListener.onServiceFound(payloadObject.getPayload());
+            if (payloadObject != null) {
+                final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(payloadObject.getPayload());
+                if (!nsdPeers.contains(hashableNsdServiceInfo)) {
+                    nsdDiscoveryListener.onServiceFound(payloadObject.getPayload());
+                }
+            } else {
+                logv("Payload object was null - refusing to hand off to NSD Discovery Listener");
+            }
         };
         final Response.ErrorListener errorListener = volleyError -> {
             logv("Volley POST info error: " + volleyError);
@@ -512,7 +520,12 @@ public final class CapstoneService extends Service implements NetworkLayer {
     @Override
     public void sendTokenToPeer(@NonNull final HashableNsdServiceInfo destination, @NonNull final Token token) {
         final Response.Listener<JSONObject> successListener = j -> {};
-        final Response.ErrorListener errorListener = error -> logv("Volley POST info error: " + error);
+        final Response.ErrorListener errorListener = error -> {
+            logv("Volley POST info error: " + error);
+            logd("sendTokenToPeer --");
+            logd("Destination: " + destination);
+            logd("Token: " + token);
+        };
         final CapstoneServer.RequestMethod requestMethod = CapstoneServer.RequestMethod.SEND_TOKEN;
 
         postDataToPeer(destination, token, successListener, errorListener, requestMethod);
@@ -547,7 +560,6 @@ public final class CapstoneService extends Service implements NetworkLayer {
      */
     @Override
     public void receiveEventExternal(@NonNull final Event event) {
-        logv("Received event over the network: " + event);
         this.incomingEventQueue.add(event);
     }
 
@@ -556,29 +568,32 @@ public final class CapstoneService extends Service implements NetworkLayer {
      */
     @Override
     public Event receiveEvent() throws InterruptedException {
-        logv("Serving up event!");
         return this.incomingEventQueue.take();
     }
 
     void addSelfIdentifiedPeer(@NonNull final HashableNsdServiceInfo peerNsdServiceInfo) {
-        logv("Learned about new self-identified peer: " + peerNsdServiceInfo);
         if (peerNsdServiceInfo == null
                 || peerNsdServiceInfo.getHost() == null
                 || peerNsdServiceInfo.getPort() == 0
                 || peerNsdServiceInfo.getServiceName() == null
                 || peerNsdServiceInfo.getServiceType() == null) {
-            logv("Invalid service info: " + peerNsdServiceInfo);
             return;
         }
         new NsdResolveListener().onServiceResolved(peerNsdServiceInfo.getNsdServiceInfo());
-        updateNsdCallbackListeners();
     }
 
     private void getDataFromPeer(@NonNull final HashableNsdServiceInfo peer,
                                      @NonNull final Response.Listener<JSONObject> successListener,
                                      @NonNull final Response.ErrorListener errorListener,
                                      @NonNull final CapstoneServer.RequestMethod requestMethod) {
-        queueVolleyRequest(Request.Method.GET, peer, null, requestMethod, successListener, errorListener);
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(getStatusAsJson());
+        } catch (final JSONException jse) {
+            logd("Could not serialize local device info as JSON: " + jse.getLocalizedMessage());
+            // FIXME: we don't actually use this data when we receive it, but we can probably find some actually useful metadata to include here
+        }
+        queueVolleyRequest(Request.Method.GET, peer, jsonObject, requestMethod, successListener, errorListener);
     }
 
     static String getUrlStringForPeer(@NonNull final HashableNsdServiceInfo peer) {
@@ -591,8 +606,9 @@ public final class CapstoneService extends Service implements NetworkLayer {
             try {
                 final Type type = new TypeToken<PayloadObject<DeviceInfo>>(){}.getType();
                 final PayloadObject<DeviceInfo> payloadObject = gson.fromJson(jsonObject.toString(), type);
-                logv("Received peer update payload: " + payloadObject);
-                callbackReceiver.peerUpdate(payloadObject.getPayload());
+                if (payloadObject != null) {
+                    callbackReceiver.peerUpdate(payloadObject.getPayload());
+                }
             } catch (final JsonSyntaxException jse) {
                 logv("Bad JSON syntax in peer response, got: " + jsonObject);
             }
@@ -761,26 +777,31 @@ public final class CapstoneService extends Service implements NetworkLayer {
     private class NsdResolveListener implements NsdManager.ResolveListener {
         @Override
         public void onResolveFailed(final NsdServiceInfo nsdServiceInfo, final int errorCode) {
-            logd("NSD resolve failed for: " + nsdServiceInfo + ". Error: " + errorCode);
         }
 
         @Override
         public void onServiceResolved(final NsdServiceInfo nsdServiceInfo) {
-            logd("NSD resolve succeeded for: " + nsdServiceInfo);
-
             if (nsdServiceInfo.getHost().getHostAddress().equals(getIpAddress().getHostAddress())
                     || nsdServiceInfo.getServiceName().contains(getLocalNsdServiceName())) {
-                logv("NSD resolve found localhost");
                 return;
             }
 
-            logv("Validating NSD peer: " + nsdServiceInfo);
-            final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(nsdServiceInfo);
-            boolean newPeer = nsdPeers.add(hashableNsdServiceInfo);
-            if (newPeer) {
-                sendHandshakeToPeer(hashableNsdServiceInfo);
+            boolean isOnline = true;
+            try {
+                final InetSocketAddress inetSocketAddress = new InetSocketAddress(nsdServiceInfo.getHost(), nsdServiceInfo.getPort());
+                final Socket socket = new Socket();
+                socket.connect(inetSocketAddress, 1000);
+            } catch (final IOException ioe) {
+                isOnline = false;
             }
-            updateNsdCallbackListeners();
+            if (isOnline) {
+                final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(nsdServiceInfo);
+                boolean newPeer = nsdPeers.add(hashableNsdServiceInfo);
+                if (newPeer) {
+                    sendHandshakeToPeer(hashableNsdServiceInfo);
+                }
+                updateNsdCallbackListeners();
+            }
         }
     }
 }
