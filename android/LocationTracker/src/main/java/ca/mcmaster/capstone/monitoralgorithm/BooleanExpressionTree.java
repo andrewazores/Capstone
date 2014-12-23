@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.Value;
@@ -58,7 +59,7 @@ public class BooleanExpressionTree {
     }
 
     /* Root node must be a comparison */
-    @Value
+    @AllArgsConstructor @ToString
     private static class RootNode {
         @NonNull Node left;
         @NonNull Node right;
@@ -67,10 +68,32 @@ public class BooleanExpressionTree {
         public Boolean evaluate(@NonNull final ProcessState state) {
             return op.apply(left.evaluate(state), right.evaluate(state));
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            RootNode rootNode = (RootNode) o;
+
+            if (!left.equals(rootNode.left)) return false;
+            if (op != rootNode.op) return false;
+            if (!right.equals(rootNode.right)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = left.hashCode();
+            result = 31 * result + right.hashCode();
+            result = 31 * result + op.hashCode();
+            return result;
+        }
     }
 
     /* An inner node */
-    @Value
+    @AllArgsConstructor @ToString
     private static class InnerNode implements Node {
         @NonNull Node left;
         @NonNull Node right;
@@ -79,10 +102,32 @@ public class BooleanExpressionTree {
         @Override public Double evaluate(@NonNull final ProcessState state) {
             return op.apply(left.evaluate(state), right.evaluate(state));
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            InnerNode innerNode = (InnerNode) o;
+
+            if (!left.equals(innerNode.left)) return false;
+            if (op != innerNode.op) return false;
+            if (!right.equals(innerNode.right)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = left.hashCode();
+            result = 31 * result + right.hashCode();
+            result = 31 * result + op.hashCode();
+            return result;
+        }
     }
 
     /* A leaf node */
-    @Value
+    @AllArgsConstructor @ToString
     private static class VariableNode implements Node {
         @NonNull String variableName;
 
@@ -90,16 +135,50 @@ public class BooleanExpressionTree {
             //TODO: refactor Valuation to use Double
             return (Double) state.getVal().getValue(variableName);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            VariableNode that = (VariableNode) o;
+
+            if (!variableName.equals(that.variableName)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return variableName.hashCode();
+        }
     }
 
     /* A leaf node */
-    @Value
+    @AllArgsConstructor @ToString
     private static class ValueNode implements Node {
         @NonNull Double value;
 
         public Double evaluate(@NonNull final ProcessState state) {
             //TODO: refactor Valuation to use Double
             return value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ValueNode valueNode = (ValueNode) o;
+
+            if (!value.equals(valueNode.value)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return value.hashCode();
         }
     }
 
