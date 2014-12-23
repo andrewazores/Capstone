@@ -82,7 +82,7 @@ public class CapstoneServer extends NanoHTTPD {
         log("Content Body: " + contentBody);
 
         if (method == null) {
-            log("Request method is invalid (null), cnanot serve request");
+            log("Request method is invalid (null), cannot serve request");
             return genericError();
         }
 
