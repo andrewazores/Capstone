@@ -1,6 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm.tree;
 
 import ca.mcmaster.capstone.monitoralgorithm.ArityException;
+import ca.mcmaster.capstone.monitoralgorithm.interfaces.BinaryOperator;
 import ca.mcmaster.capstone.monitoralgorithm.interfaces.Operator;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
