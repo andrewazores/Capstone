@@ -1,7 +1,9 @@
-package ca.mcmaster.capstone.monitoralgorithm;
+package ca.mcmaster.capstone.monitoralgorithm.tree;
 
 import java.util.Objects;
 
+import ca.mcmaster.capstone.monitoralgorithm.Conjunct;
+import ca.mcmaster.capstone.monitoralgorithm.ProcessState;
 import ca.mcmaster.capstone.monitoralgorithm.tree.ComparisonOperator;
 import ca.mcmaster.capstone.monitoralgorithm.tree.RootNode;
 import ca.mcmaster.capstone.monitoralgorithm.tree.ValueNode;

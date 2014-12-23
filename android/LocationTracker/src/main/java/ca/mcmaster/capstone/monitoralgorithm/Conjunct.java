@@ -1,5 +1,6 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import ca.mcmaster.capstone.monitoralgorithm.tree.BooleanExpressionTree;
 import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
