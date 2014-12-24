@@ -7,6 +7,20 @@ require 'rubygems'
 require 'oj'
 require 'optparse'
 
+class String
+  def word_wrap(width = 120)
+    source = self.dup
+    original_width = width
+    while width < source.length do
+      last_space = source.rindex(/ |\W/, width)
+      source.insert last_space, "\n"
+      source.gsub! /\n */, "\n"
+      width = last_space + original_width
+    end
+    source
+  end
+end
+
 options = {}
 opt_parser = OptionParser.new do |opt|
   opt.banner = "Usage: #{$0} [OPTIONS]"
@@ -72,32 +86,32 @@ class Verifier
   def verify
     verification = {:valid => true, :messages => []}
     labels = @automaton.state_names.map &:label
-    verification[:messages] << "#labels: #{labels}" if @verbose
+    verification[:messages] << "#labels: #{labels}".word_wrap if @verbose
     @automaton.transitions.each do |t|
       unless labels.include? t.source
-        verification[:messages] << "State label #{t.source} is not in the automaton states but is in the transition #{t}"
+        verification[:messages] << "State label #{t.source} is not in the automaton states but is in the transition #{t}".word_wrap
         verification[:valid] = false
       end
       unless labels.include? t.destination
-        verification[:messages] << "State label #{t.destination} is not in the automaton states but is in the transition #{t}"
+        verification[:messages] << "State label #{t.destination} is not in the automaton states but is in the transition #{t}".word_wrap
         verification[:valid] = false
       end
     end
 
     states = @automaton.state_names.map &:type
-    verification[:messages] <<  "#states: #{states}" if @verbose
+    verification[:messages] <<  "#states: #{states}".word_wrap if @verbose
     @automaton.state_names.each do |s|
       if s.type == :unknown
-        verification[:messages] << "Transition #{s} has unknown type"
+        verification[:messages] << "Transition #{s} has unknown type".word_wrap
         verification[:valid] = false
       end
     end
 
     connected_nodes = @automaton.transitions.map(&:source) | @automaton.transitions.map(&:destination)
-    verification[:messages] <<  "#connected nodes: #{connected_nodes}" if @verbose
+    verification[:messages] <<  "#connected nodes: #{connected_nodes}".word_wrap if @verbose
     @automaton.state_names.map(&:label).each do |s|
       unless connected_nodes.include? s
-        verification[:messages] << "State #{s} is named as a state in the automaton but is not connected in the graph"
+        verification[:messages] << "State #{s} is named as a state in the automaton but is not connected in the graph".word_wrap
         verification[:valid] = false
       end
     end
@@ -148,9 +162,10 @@ if verification[:valid]
   puts verification[:messages] if options[:verbose]
   exit 0
 else
-  puts "Total errors: #{verification[:messages].size}"
+  puts 'Invalid automaton! :('
+  puts "Total errors: #{verification[:messages].size}\n\n"
   verification[:messages].each_with_index do |item, index|
-    puts "#{index + 1} : #{item}"
+    puts "#{index + 1}: #{item}\n\n"
   end
   exit 1
 end
