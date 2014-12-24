@@ -1,5 +1,6 @@
 Run with convert_automaton.rb can be given an automaton to convert via plain
-stdin, or via redirecting a file into its stdin, or by giving a path to a file.
+stdin, or via redirecting a file into its stdin, or by giving a path to a file,
+or by piping into it...
 
 It really doesn't care. Go ahead and try it.
 
