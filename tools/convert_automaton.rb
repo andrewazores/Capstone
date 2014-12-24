@@ -30,15 +30,11 @@ require 'oj'
 
 class Automaton
   private
-    @num_states = 0
     @state_names = []
-    @num_transitions = 0
     @transitions = []
   public
-  def initialize(num_states, state_names, num_transitions, transitions)
-    @num_states = num_states
+  def initialize(state_names, transitions)
     @state_names = state_names
-    @num_transitions = num_transitions
     @transitions = transitions
   end
 end
@@ -65,7 +61,6 @@ meta = lines.take num_states.to_i + 1
 raw_transitions = lines.drop num_states.to_i + 1
 
 state_names = meta.take meta.length - 1
-num_transitions = meta.last
 transitions = []
 
 raw_transitions.each do |line|
@@ -80,5 +75,5 @@ raw_transitions.each do |line|
   transitions << Transition.new(source, destination, predicate)
 end
 
-automaton = Automaton.new(num_states, state_names, num_transitions, transitions)
+automaton = Automaton.new(state_names, transitions)
 puts Oj::dump automaton, :indent => 2
