@@ -47,7 +47,9 @@ raw_state_names = meta.take meta.length - 1
 state_names = []
 raw_state_names.each do |state|
   fields = state.split ','
-  state_names << StateName.new(fields[0], fields[1])
+  label = fields[0]
+  type = fields[1]
+  state_names << StateName.new(label, type)
 end
 
 transitions = []
