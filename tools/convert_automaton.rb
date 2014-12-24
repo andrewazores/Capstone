@@ -29,10 +29,6 @@ require 'oj'
 # }
 
 class Automaton
-  private
-    @state_names = []
-    @transitions = []
-  public
   def initialize(state_names, transitions)
     @state_names = state_names
     @transitions = transitions
@@ -40,11 +36,6 @@ class Automaton
 end
 
 class Transition
-  private
-    @source = ''
-    @destination = ''
-    @predicate = ''
-  public
   def initialize(source, destination, predicate)
     @source = source
     @destination = destination
