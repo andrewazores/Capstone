@@ -1,0 +1,26 @@
+# you can add comments like this
+3
+q0,I
+q2,PV
+q4,N
+19
+q1/q0,p_0_goingwest',-1,
+q0,q3,p_1_goingwest&p_2_goingwest&p_3_goingwest&p_4_goingwest&p_5_goingwest&p_6_goingwest&p_7_goingwest&p_8_goingwest,-1,
+q0,q2,p_0_goingwest&p_1_goingwest',-1,
+q0,q2,p_0_goingwest&p_2_goingwest',-1,
+q0,q2,p_0_goingwest&p_3_goingwest',-1,
+q0,q2,p_0_goingwest&p_4_goingwest',-1,
+q0,q2,p_0_goingwest&p_5_goingwest',-1,
+q0,q2,p_0_goingwest&p_6_goingwest',-1,
+q0,q2,p_0_goingwest&p_7_goingwest',-1,
+q0,q2,p_0_goingwest&p_8_goingwest',-1,
+# they can even go in the middle!
+q2,q0,p_1_goingwest&p_2_goingwest&p_3_goingwest&p_4_goingwest&p_5_goingwest&p_6_goingwest&p_7_goingwest&p_8_goingwest,-1,
+q2,q2,p_1_goingwest',-1,
+q2,q2,p_2_goingwest',-1,
+q2,q2,p_3_goingwest',-1,
+q2,q2,p_4_goingwest',-1,
+q2,q2,p_5_goingwest',-1,
+q2,q2,p_6_goingwest',-1,
+q2,q2,p_7_goingwest',-1,
+q2,q2,p_8_goingwest',-1,
