@@ -38,7 +38,13 @@ end
 class StateName
   def initialize(label, type)
     @label = label
-    @type = type
+    @type = case type
+              when 'I' then :initial
+              when 'PV' then :partial
+              when 'A' then :accept
+              when 'R' then :reject
+              else :unknown
+            end
   end
 end
 
