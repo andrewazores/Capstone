@@ -59,12 +59,13 @@ end
 # lines = TEST_STRING.lines.map &:chomp
 lines = ARGF.read.split
 
-meta = lines.take 3
-raw_transitions = lines.drop 4
+num_states = lines[0]
+lines = lines.drop 1
+meta = lines.take num_states.to_i + 1
+raw_transitions = lines.drop num_states.to_i + 1
 
-num_states = meta[0]
-state_names = meta[1]
-num_transitions = meta[2]
+state_names = meta.take meta.length - 1
+num_transitions = meta.last
 transitions = []
 
 raw_transitions.each do |line|
