@@ -161,6 +161,12 @@ public class Monitor extends Service {
 
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = generateVirtualIdentifiers();
         Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
+        for (final Map.Entry<String, NetworkPeerIdentifier> entry : virtualIdentifiers.entrySet()) {
+            Log.v("monitor", entry.getKey() + " - " + entry.getValue());
+            if (entry.getValue().equals(monitorID)) {
+                Log.v("monitor", "I am " + entry.getKey()  + "!");
+            }
+        }
 
         //TODO: Eventually this will be constructed from a text file or something.
         final Valuation<Double> val1 = new Valuation<>(new HashMap<String, Double>() {{
