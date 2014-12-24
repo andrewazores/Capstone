@@ -1,5 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm.tree;
 
+import java.util.Arrays;
+
 import ca.mcmaster.capstone.monitoralgorithm.ArityException;
 import ca.mcmaster.capstone.monitoralgorithm.interfaces.BinaryOperator;
 import ca.mcmaster.capstone.monitoralgorithm.interfaces.Operator;
@@ -20,6 +22,9 @@ public enum ArithmeticOperator implements Operator<Double, Double>, BinaryOperat
     public Double apply(final Double ... args) {
         if (args.length != 2) {
             throw new ArityException(2, args);
+        }
+        if (Arrays.asList(args).contains(null)) {
+            throw new NullPointerException("Tried to apply " + this + " to arguments including null: " + args);
         }
         return this.operator.apply(args);
     }
