@@ -72,7 +72,7 @@ raw_transitions.each do |line|
   fields = line.split ','
   fields.map &:chomp
   fields = fields.delete_if do |f|
-    f == '-1' or f.start_with? '#' or f.empty?
+    f == '-1' or f.empty?
   end
   source = fields[0]
   destination = fields[1]
