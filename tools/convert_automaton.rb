@@ -5,6 +5,7 @@
 
 require 'rubygems'
 require 'oj'
+require 'optparse'
 
 class Automaton
   def initialize(state_names, transitions)
@@ -33,6 +34,18 @@ class Transition
     @predicate = predicate
   end
 end
+
+options = {}
+opt_parser = OptionParser.new do |opt|
+  opt.banner = "Usage: #{$0} [OPTIONS]"
+  opt.separator ''
+  opt.separator 'OPTIONS'
+
+  opt.on('-p', '--pretty', 'pretty print output') do
+    options[:pretty] = true
+  end
+end
+opt_parser.parse!
 
 lines = ARGF.read.split /\r?\n/
 
@@ -69,4 +82,5 @@ raw_transitions.each do |line|
 end
 
 automaton = Automaton.new(state_names, transitions)
-puts Oj::dump automaton, :indent => 2
+indent = options[:pretty] ? 2 : 0
+puts Oj::dump automaton, :indent => indent
