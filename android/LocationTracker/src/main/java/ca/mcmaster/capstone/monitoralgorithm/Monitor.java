@@ -157,7 +157,7 @@ public class Monitor extends Service {
                 Log.d("monitor", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
-        monitorID = NetworkPeerIdentifier.get(serviceConnection.getNetworkLayer().getLocalNsdServiceInfo());
+        monitorID = serviceConnection.getNetworkLayer().getLocalNetworkPeerIdentifier();
 
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = generateVirtualIdentifiers();
         Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
@@ -196,7 +196,7 @@ public class Monitor extends Service {
     private static Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         while (true) {
-            if (serviceConnection.getNetworkLayer().getNsdPeers().size() == numPeers) {
+            if (serviceConnection.getNetworkLayer().getKnownPeers().size() == numPeers) {
                 break;
             }
             try {
@@ -207,7 +207,7 @@ public class Monitor extends Service {
         }
         final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<NetworkPeerIdentifier>() {{
             add(monitorID);
-            addAll(serviceConnection.getNetworkLayer().getNsdPeers());
+            addAll(serviceConnection.getNetworkLayer().getKnownPeers());
         }};
         Collections.sort(sortedIdentifiers, (f, s) -> Integer.compare(f.hashCode(), s.hashCode()));
         for (final NetworkPeerIdentifier networkPeerIdentifier : sortedIdentifiers) {

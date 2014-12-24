@@ -22,6 +22,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -99,7 +100,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     private final Set<SensorUpdateCallbackReceiver<DeviceInfo>> sensorUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
-    private final Set<PeerUpdateCallbackReceiver<NsdServiceInfo>> peerUpdateCallbackReceivers =
+    private final Set<PeerUpdateCallbackReceiver<NetworkPeerIdentifier>> peerUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
     private final Set<NsdUpdateCallbackReceiver> nsdUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
@@ -240,7 +241,6 @@ public final class CapstoneService extends Service implements NetworkLayer {
         logv("Done");
     }
 
-    @Override
     public NsdServiceInfo getLocalNsdServiceInfo() {
         final NsdServiceInfo nsdServiceInfo = new NsdServiceInfo();
         nsdServiceInfo.setServiceName(getLocalNsdServiceName());
@@ -248,6 +248,15 @@ public final class CapstoneService extends Service implements NetworkLayer {
         nsdServiceInfo.setPort(locationServer.getListeningPort());
         nsdServiceInfo.setHost(getIpAddress());
         return nsdServiceInfo;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @return NetworkPeerIdentifier for the local device
+     */
+    @Override
+    public NetworkPeerIdentifier getLocalNetworkPeerIdentifier() {
+        return NetworkPeerIdentifier.get(getLocalNsdServiceInfo());
     }
 
     private void nsdDiscover() {
@@ -433,11 +442,11 @@ public final class CapstoneService extends Service implements NetworkLayer {
     void sendHandshakeToPeer(@NonNull final NetworkPeerIdentifier nsdPeer) {
         final Set<NetworkPeerIdentifier> peersPlusSelf = new HashSet<>();
         peersPlusSelf.addAll(nsdPeers);
-        peersPlusSelf.add(NetworkPeerIdentifier.get(getLocalNsdServiceInfo()));
+        peersPlusSelf.add(getLocalNetworkPeerIdentifier());
         peersPlusSelf.remove(nsdPeer);
 
-        for (final NetworkPeerIdentifier nsdServiceInfo : peersPlusSelf) {
-            sendNsdInfoToPeer(nsdPeer, nsdServiceInfo);
+        for (final NetworkPeerIdentifier networkPeerIdentifier : peersPlusSelf) {
+            sendNsdInfoToPeer(nsdPeer, networkPeerIdentifier);
         }
     }
 
@@ -493,13 +502,13 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     private void sendNsdInfoToPeer(@NonNull final NetworkPeerIdentifier destination, @NonNull final NetworkPeerIdentifier info) {
         final Response.Listener<JSONObject> successListener = jsonObject -> {
-            final TypeToken<PayloadObject<NsdServiceInfo>> type = new TypeToken<PayloadObject<NsdServiceInfo>>(){};
-            final PayloadObject<NsdServiceInfo> payloadObject = fromJson(jsonObject.toString(), type);
+            final TypeToken<PayloadObject<NetworkPeerIdentifier>> type = new TypeToken<PayloadObject<NetworkPeerIdentifier>>(){};
+            final PayloadObject<NetworkPeerIdentifier> payloadObject = fromJson(jsonObject.toString(), type);
             logv("Received peer NSD info payload: " + payloadObject);
             if (payloadObject != null) {
-                final NetworkPeerIdentifier networkPeerIdentifier = NetworkPeerIdentifier.get(payloadObject.getPayload());
+                final NetworkPeerIdentifier networkPeerIdentifier = payloadObject.getPayload();
                 if (!nsdPeers.contains(networkPeerIdentifier)) {
-                    nsdDiscoveryListener.onServiceFound(payloadObject.getPayload());
+                    nsdDiscoveryListener.onServiceFound(networkPeerIdentifier.getNsdServiceInfo());
                 }
             } else {
                 logv("Payload object was null - refusing to hand off to NSD Discovery Listener");
@@ -571,15 +580,15 @@ public final class CapstoneService extends Service implements NetworkLayer {
         return this.incomingEventQueue.take();
     }
 
-    void addSelfIdentifiedPeer(@NonNull final NetworkPeerIdentifier peerNsdServiceInfo) {
-        if (peerNsdServiceInfo == null
-                || peerNsdServiceInfo.getHost() == null
-                || peerNsdServiceInfo.getPort() == 0
-                || peerNsdServiceInfo.getServiceName() == null
-                || peerNsdServiceInfo.getServiceType() == null) {
+    void addSelfIdentifiedPeer(@NonNull final NetworkPeerIdentifier networkPeerIdentifier) {
+        if (networkPeerIdentifier == null
+                || networkPeerIdentifier.getHost() == null
+                || networkPeerIdentifier.getPort() == 0
+                || networkPeerIdentifier.getServiceName() == null
+                || networkPeerIdentifier.getServiceType() == null) {
             return;
         }
-        new NsdResolveListener().onServiceResolved(peerNsdServiceInfo.getNsdServiceInfo());
+        new NsdResolveListener().onServiceResolved(networkPeerIdentifier.getNsdServiceInfo());
     }
 
     private void getDataFromPeer(@NonNull final NetworkPeerIdentifier peer,
@@ -634,8 +643,11 @@ public final class CapstoneService extends Service implements NetworkLayer {
         return getNsdServiceName() + "-" + Build.SERIAL;
     }
 
+    /**
+     * @{inheritDoc}
+     */
     @Override
-    public Set<NetworkPeerIdentifier> getNsdPeers() {
+    public Set<NetworkPeerIdentifier> getKnownPeers() {
         return new HashSet<>(nsdPeers);
     }
 

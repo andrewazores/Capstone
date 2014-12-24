@@ -1,12 +1,12 @@
 package ca.mcmaster.capstone.networking;
 
-import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
@@ -109,7 +109,7 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private Response serveGetRequest() {
-        final PayloadObject<DeviceInfo> getRequestResponse = new PayloadObject<>(capstoneService.getStatus(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        final PayloadObject<DeviceInfo> getRequestResponse = new PayloadObject<>(capstoneService.getStatus(), getPayloadPeerSet(), PayloadObject.Status.OK);
         return JSONResponse(Response.Status.OK, getRequestResponse);
     }
 
@@ -121,9 +121,9 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private Response servePostIdentify(@NonNull final Map<String, String> contentBody) {
-        final NetworkPeerIdentifier peerNsdServiceInfo = parseContentBody(contentBody, NetworkPeerIdentifier.class);
-        capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
-        final PayloadObject<NsdServiceInfo> postIdentifyResponse = new PayloadObject<>(capstoneService.getLocalNsdServiceInfo(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        final NetworkPeerIdentifier networkPeerIdentifier = parseContentBody(contentBody, NetworkPeerIdentifier.class);
+        capstoneService.addSelfIdentifiedPeer(networkPeerIdentifier);
+        final PayloadObject<NetworkPeerIdentifier> postIdentifyResponse = new PayloadObject<>(capstoneService.getLocalNetworkPeerIdentifier(), getPayloadPeerSet(), PayloadObject.Status.OK);
         return JSONResponse(Response.Status.OK, postIdentifyResponse);
     }
 
@@ -140,22 +140,28 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private Response errorResponse(@NonNull final String errorMessage) {
-        final PayloadObject<String> errorPayload = new PayloadObject<>(errorMessage, capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
+        final PayloadObject<String> errorPayload = new PayloadObject<>(errorMessage, getPayloadPeerSet(), PayloadObject.Status.ERROR);
         return JSONResponse(Response.Status.BAD_REQUEST, errorPayload);
     }
 
     private Response genericError() {
-        final PayloadObject<String> errorPayload = new PayloadObject<>("Error", capstoneService.getNsdPeers(), PayloadObject.Status.ERROR);
+        final PayloadObject<String> errorPayload = new PayloadObject<>("Error", getPayloadPeerSet(), PayloadObject.Status.ERROR);
         return JSONResponse(Response.Status.BAD_REQUEST, errorPayload);
     }
 
     private Response genericSuccess() {
-        final PayloadObject<String> successPayload = new PayloadObject<>("Success", capstoneService.getNsdPeers(), PayloadObject.Status.OK);
+        final PayloadObject<String> successPayload = new PayloadObject<>("Success", getPayloadPeerSet(), PayloadObject.Status.OK);
         return JSONResponse(Response.Status.OK, successPayload);
     }
 
     private static Response JSONResponse(@NonNull final Response.Status status, @NonNull final Object object) {
         return new Response(status, MimeType.APPLICATION_JSON.getContentType(), object.toString());
+    }
+
+    private Set<NetworkPeerIdentifier> getPayloadPeerSet() {
+        final Set<NetworkPeerIdentifier> peers = capstoneService.getKnownPeers();
+        peers.add(capstoneService.getLocalNetworkPeerIdentifier());
+        return peers;
     }
 
     private static void log(final String message) {

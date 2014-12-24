@@ -43,8 +43,10 @@ public class CubeActivity extends Activity {
     private Intent serviceIntent = null;
     private boolean back = false;
 
+    private final HashMap<NetworkPeerIdentifier, Double> deviceMap = new HashMap<>();
+
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         serviceIntent = new Intent(this, CapstoneService.class);
@@ -59,14 +61,14 @@ public class CubeActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        GLSurfaceView view = new GLSurfaceView(this);
+        final GLSurfaceView view = new GLSurfaceView(this);
         renderer = new OpenGLRenderer();
         view.setRenderer(renderer);
         setContentView(view);
 
-        AsyncTask networkGet = new AsyncTask() {
+        final AsyncTask<Object, Void, Object> networkGet = new AsyncTask<Object, Void, Object>() {
             @Override
-            protected Object doInBackground(Object[] params) {
+            protected Object doInBackground(final Object[] params) {
                 while(!back) {
                     try {
                         getEvent();
@@ -80,18 +82,17 @@ public class CubeActivity extends Activity {
         networkGet.execute();
     }
 
-    HashMap<NetworkPeerIdentifier, Double> deviceMap = new HashMap<>();
     public void getEvent() throws InterruptedException {
         if (serviceConnection.getService() == null) {
             return;
         }
-        Event e = serviceConnection.getService().receiveEvent();
+        final Event e = serviceConnection.getService().receiveEvent();
 
         deviceMap.put(e.getPid(), (Double)e.getVal().getValue("isFlat"));
 
         int i = 0;
-        StringBuilder sb = new StringBuilder();
-        for(Double d : deviceMap.values()){
+        final StringBuilder sb = new StringBuilder();
+        for(final double d : deviceMap.values()) {
             sb.append(" Device ").append(i).append(": ");
             sb.append(d);
             ++i;
@@ -114,12 +115,12 @@ public class CubeActivity extends Activity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(final Menu menu) {
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -194,25 +195,25 @@ public class CubeActivity extends Activity {
             }
         }
 
-        public void sendEvent(double value){
+        public void sendEvent(double value) {
             if (serviceConnection.getService() == null) {
                 return;
             }
-            final Valuation<?> valuation = new Valuation<Double>(new HashMap() {{
+            final Valuation<?> valuation = new Valuation<>(new HashMap<String, Double>() {{
                 put("isFlat", value);
             }});
-            Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation,
+            final Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation,
                     new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
-                        put(NetworkPeerIdentifier.get(serviceConnection.getService().getLocalNsdServiceInfo()), flatnessCounter);
-                        for (NetworkPeerIdentifier peer : serviceConnection.getService().getNsdPeers()) {
-                            put(peer, 0);
+                        put(serviceConnection.getService().getLocalNetworkPeerIdentifier(), flatnessCounter);
+                        for (final NetworkPeerIdentifier peer : serviceConnection.getService().getKnownPeers()) {
+                            put(peer, 0); //FIXME: VC for all peers probably shouldn't be 0 always?
                         }
                     }}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
             serviceConnection.getService().sendEventToMonitor(e);
         }
 
-        public boolean checkCondition(float[] gravity){
+        public boolean checkCondition(float[] gravity) {
             float dot = dot_product(gravity, new float[] {0, 0, 1});
 
             return dot < .5;
@@ -275,7 +276,7 @@ public class CubeActivity extends Activity {
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
 //            this.service.registerSensorUpdateCallback(CubeActivity.this);
 //            this.service.registerNsdUpdateCallback(CubeActivity.this);
-            CubeActivity.this.NSD = NetworkPeerIdentifier.get(this.service.getLocalNsdServiceInfo());
+            CubeActivity.this.NSD = this.service.getLocalNetworkPeerIdentifier();
 //            updateSelfInfo();
         }
 

@@ -43,11 +43,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     private Intent networkServiceIntent;
     private Intent monitorServiceIntent;
 
-    public NetworkPeerIdentifier getLocalNsdServiceInfo() {
-        return localNsdServiceInfo;
-    }
-
-    private NetworkPeerIdentifier localNsdServiceInfo = null;
+    private NetworkPeerIdentifier networkPeerIdentifier = null;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -82,7 +78,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
 
         final Button cubeButton = (Button) findViewById(R.id.cube);
         cubeButton.setOnClickListener(v -> {
-            if(localNsdServiceInfo != null) {
+            if(networkPeerIdentifier != null) {
                 Intent i = new Intent(CapstoneActivity.this, CubeActivity.class);
                 startActivity(i);
             }
@@ -215,7 +211,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerSensorUpdateCallback(CapstoneActivity.this);
             this.service.registerNsdUpdateCallback(CapstoneActivity.this);
-            CapstoneActivity.this.localNsdServiceInfo = NetworkPeerIdentifier.get(this.service.getLocalNsdServiceInfo());
+            CapstoneActivity.this.networkPeerIdentifier = this.service.getLocalNetworkPeerIdentifier();
             updateSelfInfo();
         }
 

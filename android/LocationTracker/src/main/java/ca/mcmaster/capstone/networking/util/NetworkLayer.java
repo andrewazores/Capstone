@@ -1,7 +1,5 @@
 package ca.mcmaster.capstone.networking.util;
 
-import android.net.nsd.NsdServiceInfo;
-
 import java.util.Set;
 
 import ca.mcmaster.capstone.monitoralgorithm.Event;
@@ -10,7 +8,11 @@ import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 
 public interface NetworkLayer {
 
-    NsdServiceInfo getLocalNsdServiceInfo();
+    /**
+     * {@inheritDoc}
+     * @return NetworkPeerIdentifier for the local device
+     */
+    NetworkPeerIdentifier getLocalNetworkPeerIdentifier();
 
     /**
      * Broadcasts a Token to a specific peer
@@ -55,5 +57,14 @@ public interface NetworkLayer {
      */
     Event receiveEvent() throws InterruptedException;
 
-    Set<NetworkPeerIdentifier> getNsdPeers();
+    /**
+     * Get the set of known peers.
+     *
+     * Each peer in this set has a unique IP/port pair from any other peer in the set.
+     * Each peer was also confirmed to be online and reachable when it was discovered;
+     * however, no guarantee can be made that the peer has not gone offline some time
+     * in between when it was last contacted and when this method is called.
+     * @return the set of known peers
+     */
+    Set<NetworkPeerIdentifier> getKnownPeers();
 }
