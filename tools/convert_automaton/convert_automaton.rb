@@ -12,8 +12,6 @@ require_relative '../common/StringWordWrap'
 require_relative '../common/AutomatonParts'
 require_relative '../common/OptParser'
 
-options = OptParser.new.parse_opts
-
 class FileFormatVerifier
   private
     @@num_states_or_transitions_pattern = /^\d+$/
@@ -124,63 +122,74 @@ class AutomatonVerifier
   end
 end
 
-lines = ARGF.read.split /\r?\n/
+class ConvertAutomaton
+  def initialize(input)
+    @options = OptParser.new.parse_opts
+    lines = input.split /\r?\n/
 
-lines.map &:chomp
-lines = lines.delete_if do |l|
-  l.start_with? '#'
-end
-
-file_verification = FileFormatVerifier.new(lines, options[:verbose]).verify
-file_verification[:verbose_messages].each { |m| STDERR.puts m } if options[:verbose]
-if (not file_verification[:valid]) or options[:verbose]
-  STDERR.puts 'Invalid file format :(' unless file_verification[:valid]
-  STDERR.puts "Total errors: #{file_verification[:messages].length}\n\n"
-  file_verification[:messages].each_with_index do |message, index|
-    STDERR.puts "#{index + 1}: #{message}\n\n"
+    lines.map &:chomp
+    @lines = lines.delete_if do |l|
+      l.start_with? '#'
+    end
   end
-  exit 1 unless file_verification[:valid]
-end
 
-num_states = lines[0]
-lines = lines.drop 1
-meta = lines.take num_states.to_i + 1
-raw_transitions = lines.drop num_states.to_i + 1
+  def convert(options=@options, lines=@lines)
+    file_verification = FileFormatVerifier.new(lines, options[:verbose]).verify
+    file_verification[:verbose_messages].each { |m| STDERR.puts m } if options[:verbose]
+    if (not file_verification[:valid]) or options[:verbose]
+      STDERR.puts 'Invalid file format :(' unless file_verification[:valid]
+      STDERR.puts "Total errors: #{file_verification[:messages].length}\n\n"
+      file_verification[:messages].each_with_index do |message, index|
+        STDERR.puts "#{index + 1}: #{message}\n\n"
+      end
+      exit 1 unless file_verification[:valid]
+    end
 
-raw_state_names = meta.take meta.length - 1
-state_names = []
-raw_state_names.each do |state|
-  fields = state.split ','
-  label = fields[0]
-  type = fields[1]
-  state_names << StateName.new(label, type)
-end
+    num_states = @lines[0]
+    lines = @lines.drop 1
+    meta = lines.take num_states.to_i + 1
+    raw_transitions = lines.drop num_states.to_i + 1
 
-transitions = []
-raw_transitions.each do |line|
-  fields = line.split ','
-  fields.map &:chomp
-  fields = fields.delete_if do |f|
-    f == '-1' or f.empty?
+    raw_state_names = meta.take meta.length - 1
+    state_names = []
+    raw_state_names.each do |state|
+      fields = state.split ','
+      label = fields[0]
+      type = fields[1]
+      state_names << StateName.new(label, type)
+    end
+
+    transitions = []
+    raw_transitions.each do |line|
+      fields = line.split ','
+      fields.map &:chomp
+      fields = fields.delete_if do |f|
+        f == '-1' or f.empty?
+      end
+      source = fields[0]
+      destination = fields[1]
+      predicate = fields[2]
+      transitions << Transition.new(source, destination, predicate)
+    end
+
+    automaton = Automaton.new(state_names, transitions)
+    automaton_verification = AutomatonVerifier.new(automaton, options[:verbose]).verify
+    if automaton_verification[:valid]
+      indent = options[:pretty] ? 2 : 0
+      puts Oj::dump automaton, :indent => indent
+      puts automaton_verification[:messages] if options[:verbose]
+      exit 0
+    else
+      STDERR.puts 'Invalid automaton! :('
+      STDERR.puts "Total errors: #{automaton_verification[:messages].size}\n\n"
+      automaton_verification[:messages].each_with_index do |item, index|
+        STDERR.puts "#{index + 1}: #{item}\n\n"
+      end
+      exit 2
+    end
   end
-  source = fields[0]
-  destination = fields[1]
-  predicate = fields[2]
-  transitions << Transition.new(source, destination, predicate)
 end
 
-automaton = Automaton.new(state_names, transitions)
-automaton_verification = AutomatonVerifier.new(automaton, options[:verbose]).verify
-if automaton_verification[:valid]
-  indent = options[:pretty] ? 2 : 0
-  puts Oj::dump automaton, :indent => indent
-  puts automaton_verification[:messages] if options[:verbose]
-  exit 0
-else
-  STDERR.puts 'Invalid automaton! :('
-  STDERR.puts "Total errors: #{automaton_verification[:messages].size}\n\n"
-  automaton_verification[:messages].each_with_index do |item, index|
-    STDERR.puts "#{index + 1}: #{item}\n\n"
-  end
-  exit 2
+if __FILE__ == $0
+  ConvertAutomaton.new(ARGF.read).convert
 end
