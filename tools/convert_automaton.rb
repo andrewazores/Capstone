@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'json'
 require 'oj'
 
 # TEST_STRING = %q{2
