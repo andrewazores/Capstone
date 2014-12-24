@@ -35,6 +35,13 @@ class Automaton
   end
 end
 
+class StateName
+  def initialize(label, type)
+    @label = label
+    @type = type
+  end
+end
+
 class Transition
   def initialize(source, destination, predicate)
     @source = source
@@ -56,9 +63,14 @@ lines = lines.drop 1
 meta = lines.take num_states.to_i + 1
 raw_transitions = lines.drop num_states.to_i + 1
 
-state_names = meta.take meta.length - 1
-transitions = []
+raw_state_names = meta.take meta.length - 1
+state_names = []
+raw_state_names.each do |state|
+  fields = state.split ','
+  state_names << StateName.new(fields[0], fields[1])
+end
 
+transitions = []
 raw_transitions.each do |line|
   fields = line.split ','
   fields.map &:chomp
