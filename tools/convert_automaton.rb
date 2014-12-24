@@ -135,6 +135,10 @@ raw_transitions = lines.drop num_states.to_i + 1
 raw_state_names = meta.take meta.length - 1
 state_names = []
 raw_state_names.each do |state|
+  unless state =~ /^\w+,\w+$/
+    puts "Could not parse state name line: '#{state}'"
+    exit 1
+  end
   fields = state.split ','
   label = fields[0]
   type = fields[1]
@@ -143,6 +147,10 @@ end
 
 transitions = []
 raw_transitions.each do |line|
+  unless line =~ /^\w+,\w+,\w+/
+    puts "Could not parse transition line: '#{line}'"
+    exit 1
+  end
   fields = line.split ','
   fields.map &:chomp
   fields = fields.delete_if do |f|
