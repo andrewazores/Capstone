@@ -53,7 +53,12 @@ class Transition
 end
 
 # lines = TEST_STRING.lines.map &:chomp
-lines = ARGF.read.split
+lines = ARGF.read.split /\r?\n/
+
+lines.map &:chomp
+lines = lines.delete_if do |l|
+  l.start_with? '#'
+end
 
 num_states = lines[0]
 lines = lines.drop 1
