@@ -651,6 +651,16 @@ public final class CapstoneService extends Service implements NetworkLayer {
         return new HashSet<>(nsdPeers);
     }
 
+    /**
+     * @{inheritDoc}
+     */
+    @Override
+    public Set<NetworkPeerIdentifier> getAllNetworkDevices() {
+        final Set<NetworkPeerIdentifier> devices = getKnownPeers();
+        devices.add(getLocalNetworkPeerIdentifier());
+        return devices;
+    }
+
     private InetAddress findIpAddress() {
         int ip = wifiManager.getConnectionInfo().getIpAddress();
 

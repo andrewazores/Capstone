@@ -67,4 +67,15 @@ public interface NetworkLayer {
      * @return the set of known peers
      */
     Set<NetworkPeerIdentifier> getKnownPeers();
+
+    /**
+     * Get the set of all known devices, including the local one.
+     *
+     * Each peer in this set has a unique IP/port pair from any other peer in the set.
+     * Each peer was also confirmed to be online and reachable when it was discovered;
+     * however, no guarantee can be made that the peer has not gone offline some time
+     * in between when it was last contacted and when this method is called.
+     * @return the set of known peers, including this device
+     */
+    Set<NetworkPeerIdentifier> getAllNetworkDevices();
 }

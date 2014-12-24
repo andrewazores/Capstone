@@ -159,9 +159,7 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private Set<NetworkPeerIdentifier> getPayloadPeerSet() {
-        final Set<NetworkPeerIdentifier> peers = capstoneService.getKnownPeers();
-        peers.add(capstoneService.getLocalNetworkPeerIdentifier());
-        return peers;
+        return capstoneService.getAllNetworkDevices();
     }
 
     private static void log(final String message) {

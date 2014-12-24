@@ -63,7 +63,7 @@ public class Monitor extends Service {
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static NetworkPeerIdentifier monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
-    private static final int numPeers = 1;
+    private static final int numPeers = 2;
     private static volatile boolean runMonitor = true;
     private Thread thread;
     private Intent networkServiceIntent;
@@ -196,7 +196,7 @@ public class Monitor extends Service {
     private static Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         while (true) {
-            if (serviceConnection.getNetworkLayer().getKnownPeers().size() == numPeers) {
+            if (serviceConnection.getNetworkLayer().getAllNetworkDevices().size() == numPeers) {
                 break;
             }
             try {
@@ -205,10 +205,7 @@ public class Monitor extends Service {
                 //Don't care
             }
         }
-        final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<NetworkPeerIdentifier>() {{
-            add(monitorID);
-            addAll(serviceConnection.getNetworkLayer().getKnownPeers());
-        }};
+        final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(serviceConnection.getNetworkLayer().getAllNetworkDevices());
         Collections.sort(sortedIdentifiers, (f, s) -> Integer.compare(f.hashCode(), s.hashCode()));
         for (final NetworkPeerIdentifier networkPeerIdentifier : sortedIdentifiers) {
             final String virtualIdentifier = "x" + (sortedIdentifiers.indexOf(networkPeerIdentifier) + 1);
