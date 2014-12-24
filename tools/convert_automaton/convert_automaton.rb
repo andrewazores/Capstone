@@ -9,6 +9,7 @@ require 'bundler/setup'
 require 'oj'
 require 'optparse'
 require_relative '../common/StringWordWrap'
+require_relative '../common/JsonStringify'
 
 include StringWordWrap
 
@@ -33,14 +34,7 @@ opt_parser = OptionParser.new do |opt|
 end
 opt_parser.parse!
 
-module JsonStringify
-  def to_s
-    Oj::dump self
-  end
-end
-
-class Automaton
-  include JsonStringify
+class Automaton < JsonStringify
   attr_reader :state_names, :transitions
   def initialize(state_names, transitions)
     @state_names = state_names
@@ -49,8 +43,7 @@ class Automaton
 
 end
 
-class StateName
-  include JsonStringify
+class StateName < JsonStringify
   attr_reader :label, :type
   def initialize(label, type)
     @label = label
@@ -64,8 +57,7 @@ class StateName
   end
 end
 
-class Transition
-  include JsonStringify
+class Transition < JsonStringify
   attr_reader :source, :destination, :predicate
   def initialize(source, destination, predicate)
     @source = source
