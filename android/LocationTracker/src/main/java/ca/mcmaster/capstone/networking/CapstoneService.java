@@ -820,8 +820,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
                 boolean newPeer = nsdPeers.add(networkPeerIdentifier);
                 if (newPeer) {
                     sendHandshakeToPeer(networkPeerIdentifier);
+                    updateNpiCallbackListeners();
                 }
-                updateNpiCallbackListeners();
             }
         }
     }
