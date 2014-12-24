@@ -4,6 +4,8 @@ or by piping into it...
 
 It really doesn't care. Go ahead and try it.
 
-First though you'll have to 'gem install' 'oj' (and before that you might
-have to install rubygems on your system, and before that you might have to
-install Ruby...)
+Dependencies:
+- Ruby (duh)
+- rubygems
+- Bundler gem
+- any further dependencies handled by bundler

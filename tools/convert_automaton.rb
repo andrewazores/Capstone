@@ -4,6 +4,8 @@
 # https://app.asana.com/0/16128900311154/22979367142779
 
 require 'rubygems'
+require 'bundler/setup'
+
 require 'oj'
 require 'optparse'
 

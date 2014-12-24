@@ -1,0 +1,10 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    oj (2.11.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  oj
