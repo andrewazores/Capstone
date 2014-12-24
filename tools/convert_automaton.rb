@@ -3,31 +3,6 @@
 require 'rubygems'
 require 'oj'
 
-# TEST_STRING = %q{2
-# q0,I
-# q2,PV
-# 19
-# q0,q0,p_0_goingwest',-1,
-# q0,q0,p_1_goingwest&p_2_goingwest&p_3_goingwest&p_4_goingwest&p_5_goingwest&p_6_goingwest&p_7_goingwest&p_8_goingwest,-1,
-# q0,q2,p_0_goingwest&p_1_goingwest',-1,
-# q0,q2,p_0_goingwest&p_2_goingwest',-1,
-# q0,q2,p_0_goingwest&p_3_goingwest',-1,
-# q0,q2,p_0_goingwest&p_4_goingwest',-1,
-# q0,q2,p_0_goingwest&p_5_goingwest',-1,
-# q0,q2,p_0_goingwest&p_6_goingwest',-1,
-# q0,q2,p_0_goingwest&p_7_goingwest',-1,
-# q0,q2,p_0_goingwest&p_8_goingwest',-1,
-# q2,q0,p_1_goingwest&p_2_goingwest&p_3_goingwest&p_4_goingwest&p_5_goingwest&p_6_goingwest&p_7_goingwest&p_8_goingwest,-1,
-# q2,q2,p_1_goingwest',-1,
-# q2,q2,p_2_goingwest',-1,
-# q2,q2,p_3_goingwest',-1,
-# q2,q2,p_4_goingwest',-1,
-# q2,q2,p_5_goingwest',-1,
-# q2,q2,p_6_goingwest',-1,
-# q2,q2,p_7_goingwest',-1,
-# q2,q2,p_8_goingwest',-1,
-# }
-
 class Automaton
   def initialize(state_names, transitions)
     @state_names = state_names
@@ -56,7 +31,6 @@ class Transition
   end
 end
 
-# lines = TEST_STRING.lines.map &:chomp
 lines = ARGF.read.split /\r?\n/
 
 lines.map &:chomp
