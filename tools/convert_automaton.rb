@@ -34,6 +34,11 @@ opt_parser = OptionParser.new do |opt|
   opt.on('-v', '--verbose', 'verbose (debugging/verification) output') do
     options[:verbose] = true
   end
+
+  opt.on('-h', '--help', 'print this message') do
+    puts opt
+    exit
+  end
 end
 opt_parser.parse!
 
