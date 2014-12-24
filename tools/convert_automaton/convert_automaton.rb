@@ -8,20 +8,9 @@ require 'bundler/setup'
 
 require 'oj'
 require 'optparse'
+require_relative '../common/StringWordWrap'
 
-class String
-  def word_wrap(width = 120)
-    source = self.dup
-    original_width = width
-    while width < source.length do
-      last_space = source.rindex(/ |\W/, width)
-      source.insert last_space, "\n"
-      source.gsub! /\n */, "\n"
-      width = last_space + original_width
-    end
-    source
-  end
-end
+include StringWordWrap
 
 options = {}
 opt_parser = OptionParser.new do |opt|
