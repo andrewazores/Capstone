@@ -22,7 +22,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -60,7 +59,7 @@ import ca.mcmaster.capstone.networking.structures.DeviceLocation;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.structures.PayloadObject;
 import ca.mcmaster.capstone.networking.util.NetworkLayer;
-import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 import lombok.NonNull;
@@ -102,7 +101,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
             Collections.synchronizedSet(new HashSet<>());
     private final Set<PeerUpdateCallbackReceiver<NetworkPeerIdentifier>> peerUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
-    private final Set<NsdUpdateCallbackReceiver> nsdUpdateCallbackReceivers =
+    private final Set<NpiUpdateCallbackReceiver> npiUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
     private final BlockingQueue<Event> incomingEventQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Token> tokenQueue = new LinkedBlockingQueue<>();
@@ -235,7 +234,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
                 }
                 final NetworkPeerIdentifier networkPeerIdentifier = NetworkPeerIdentifier.get(nsdServiceInfo);
                 nsdPeers.remove(networkPeerIdentifier);
-                updateNsdCallbackListeners();
+                updateNpiCallbackListeners();
             }
         };
         logv("Done");
@@ -267,10 +266,10 @@ public final class CapstoneService extends Service implements NetworkLayer {
         }
     }
 
-    private void updateNsdCallbackListeners() {
-        logv("Updating NSD receivers with new peer list: " + nsdPeers);
-        for (final NsdUpdateCallbackReceiver nsdUpdateCallbackReceiver : nsdUpdateCallbackReceivers) {
-            nsdUpdateCallbackReceiver.nsdUpdate(nsdPeers);
+    private void updateNpiCallbackListeners() {
+        logv("Updating NPI receivers with new peer list: " + nsdPeers);
+        for (final NpiUpdateCallbackReceiver npiUpdateCallbackReceiver : npiUpdateCallbackReceivers) {
+            npiUpdateCallbackReceiver.npiUpdate(nsdPeers);
         }
     }
 
@@ -373,8 +372,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     @Override
     public void onRebind(final Intent intent) {
-        for (final NsdUpdateCallbackReceiver nsdUpdateCallbackReceiver : nsdUpdateCallbackReceivers) {
-            nsdUpdateCallbackReceiver.nsdUpdate(nsdPeers);
+        for (final NpiUpdateCallbackReceiver NpiUpdateCallbackReceiver : npiUpdateCallbackReceivers) {
+            NpiUpdateCallbackReceiver.npiUpdate(nsdPeers);
         }
     }
 
@@ -405,7 +404,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
         sensorManager.unregisterListener(gravitySensorEventListener);
         sensorUpdateCallbackReceivers.clear();
         peerUpdateCallbackReceivers.clear();
-        nsdUpdateCallbackReceivers.clear();
+        npiUpdateCallbackReceivers.clear();
         nsdTeardown();
         locationServer.stop();
         stopLocationService();
@@ -432,11 +431,11 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     void registerNsdUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
-        this.nsdUpdateCallbackReceivers.add(capstoneActivity);
+        this.npiUpdateCallbackReceivers.add(capstoneActivity);
     }
 
     void unregisterNsdUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
-        this.nsdUpdateCallbackReceivers.remove(capstoneActivity);
+        this.npiUpdateCallbackReceivers.remove(capstoneActivity);
     }
 
     void sendHandshakeToPeer(@NonNull final NetworkPeerIdentifier nsdPeer) {
@@ -822,7 +821,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
                 if (newPeer) {
                     sendHandshakeToPeer(networkPeerIdentifier);
                 }
-                updateNsdCallbackListeners();
+                updateNpiCallbackListeners();
             }
         }
     }

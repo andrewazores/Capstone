@@ -4,8 +4,8 @@ import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 
 import java.util.Collection;
 
-public interface NsdUpdateCallbackReceiver {
+public interface NpiUpdateCallbackReceiver {
 
-    public void nsdUpdate(final Collection<NetworkPeerIdentifier> nsdPeers);
+    public void npiUpdate(final Collection<NetworkPeerIdentifier> nsdPeers);
 
 }

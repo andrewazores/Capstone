@@ -25,15 +25,15 @@ import ca.mcmaster.capstone.monitoralgorithm.Monitor;
 import ca.mcmaster.capstone.monitoralgorithm.MonitorBinder;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
-import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
+import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 
 import static ca.mcmaster.capstone.networking.util.JsonUtil.asJson;
 
 public class CapstoneActivity extends Activity implements SensorUpdateCallbackReceiver<DeviceInfo>,
-                                                                          NsdUpdateCallbackReceiver,
-                                                                          PeerUpdateCallbackReceiver<DeviceInfo> {
+                                                            NpiUpdateCallbackReceiver,
+                                                            PeerUpdateCallbackReceiver<DeviceInfo> {
 
     protected TextView jsonTextView;
     protected ListView listView;
@@ -100,7 +100,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     }
 
     @Override
-    public void nsdUpdate(final Collection<NetworkPeerIdentifier> nsdPeers) {
+    public void npiUpdate(final Collection<NetworkPeerIdentifier> nsdPeers) {
         final Handler mainHandler = new Handler(this.getMainLooper());
         mainHandler.post(() -> {
             CapstoneActivity.this.nsdPeers.clear();
@@ -126,7 +126,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             return;
         }
         jsonTextView.setText("Not connected to Network Service");
-        nsdUpdate(Collections.<NetworkPeerIdentifier>emptySet());
+        npiUpdate(Collections.<NetworkPeerIdentifier>emptySet());
         stopService(networkServiceIntent);
         Toast.makeText(this, "Network service stopped", Toast.LENGTH_SHORT).show();
     }
