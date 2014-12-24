@@ -136,7 +136,7 @@ raw_state_names = meta.take meta.length - 1
 state_names = []
 raw_state_names.each do |state|
   unless state =~ /^\w+,\w+$/
-    puts "Could not parse state name line: '#{state}'"
+    STDERR.puts "Could not parse state name line: '#{state}'"
     exit 1
   end
   fields = state.split ','
@@ -148,7 +148,7 @@ end
 transitions = []
 raw_transitions.each do |line|
   unless line =~ /^\w+,\w+,\w+/
-    puts "Could not parse transition line: '#{line}'"
+    STDERR.puts "Could not parse transition line: '#{line}'"
     exit 1
   end
   fields = line.split ','
@@ -170,10 +170,10 @@ if verification[:valid]
   puts verification[:messages] if options[:verbose]
   exit 0
 else
-  puts 'Invalid automaton! :('
-  puts "Total errors: #{verification[:messages].size}\n\n"
+  STDERR.puts 'Invalid automaton! :('
+  STDERR.puts "Total errors: #{verification[:messages].size}\n\n"
   verification[:messages].each_with_index do |item, index|
-    puts "#{index + 1}: #{item}\n\n"
+    STDERR.puts "#{index + 1}: #{item}\n\n"
   end
   exit 1
 end
