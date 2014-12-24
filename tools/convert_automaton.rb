@@ -75,11 +75,11 @@ class Verifier
     verification[:messages] << "#labels: #{labels}" if @verbose
     @automaton.transitions.each do |t|
       unless labels.include? t.source
-        verification[:messages] << "#{t.source} is not in the automaton states but is in the transition #{t}"
+        verification[:messages] << "State label #{t.source} is not in the automaton states but is in the transition #{t}"
         verification[:valid] = false
       end
       unless labels.include? t.destination
-        verification[:messages] << "#{t.destination} is not in the automaton states but is in the transition #{t}"
+        verification[:messages] << "State label #{t.destination} is not in the automaton states but is in the transition #{t}"
         verification[:valid] = false
       end
     end
@@ -88,7 +88,7 @@ class Verifier
     verification[:messages] <<  "#states: #{states}" if @verbose
     @automaton.state_names.each do |s|
       if s.type == :unknown
-        verification[:messages] << "#{s} has unknown type"
+        verification[:messages] << "Transition #{s} has unknown type"
         verification[:valid] = false
       end
     end
@@ -97,7 +97,7 @@ class Verifier
     verification[:messages] <<  "#connected nodes: #{connected_nodes}" if @verbose
     @automaton.state_names.map(&:label).each do |s|
       unless connected_nodes.include? s
-        verification[:messages] << "#{s} is named as a state in the automaton but is not connected in the graph"
+        verification[:messages] << "State #{s} is named as a state in the automaton but is not connected in the graph"
         verification[:valid] = false
       end
     end
