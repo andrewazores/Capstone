@@ -8,10 +8,9 @@ require 'bundler/setup'
 
 require 'oj'
 require 'optparse'
+
 require_relative '../common/StringWordWrap'
 require_relative '../common/AutomatonParts'
-
-include StringWordWrap
 
 options = {}
 opt_parser = OptionParser.new do |opt|
