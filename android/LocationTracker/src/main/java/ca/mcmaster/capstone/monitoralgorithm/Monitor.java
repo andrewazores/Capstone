@@ -163,10 +163,10 @@ public class Monitor extends Service {
         Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
 
         //TODO: Eventually this will be constructed from a text file or something.
-        final Valuation val1 = new Valuation(new HashMap<String, Double>() {{
+        final Valuation<Double> val1 = new Valuation<>(new HashMap<String, Double>() {{
             put("x1", 0.0);
-        }}); // FIXME: should be parametrized?
-        final Valuation val2 = new Valuation(new HashMap<String, Double>() {{
+        }});
+        final Valuation<Double> val2 = new Valuation<>(new HashMap<String, Double>() {{
             put("x2", 0.0);
         }});
 
