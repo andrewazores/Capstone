@@ -11,15 +11,14 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
-import lombok.EqualsAndHashCode;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.NonNull;
 import lombok.ToString;
 
 /* Class to represent the local view of the global state.*/
 @ToString
 public class GlobalView {
-    private final Map<HashableNsdServiceInfo, ProcessState> states = new HashMap<>();
+    private final Map<NetworkPeerIdentifier, ProcessState> states = new HashMap<>();
     @NonNull private VectorClock cut;
     @NonNull private AutomatonState currentState;
     private final Set<Token> tokens = new HashSet<>();
@@ -40,11 +39,11 @@ public class GlobalView {
         this.pendingTransitions.addAll(gv.pendingTransitions);
     }
 
-    public Map<HashableNsdServiceInfo, ProcessState> getStates() {
+    public Map<NetworkPeerIdentifier, ProcessState> getStates() {
         return new HashMap<>(states);
     }
 
-    public void setStates(@NonNull final Map<HashableNsdServiceInfo, ProcessState> states) {
+    public void setStates(@NonNull final Map<NetworkPeerIdentifier, ProcessState> states) {
         this.states.clear();
         this.states.putAll(states);
     }
@@ -155,9 +154,9 @@ public class GlobalView {
      *
      * @return A set of process ids, for inconsistent processes.
      */
-    public Set<HashableNsdServiceInfo> getInconsistentProcesses() {
-        final Set<HashableNsdServiceInfo> ret = new HashSet<>();
-        for (final Map.Entry<HashableNsdServiceInfo, ProcessState> entry : this.states.entrySet()) {
+    public Set<NetworkPeerIdentifier> getInconsistentProcesses() {
+        final Set<NetworkPeerIdentifier> ret = new HashSet<>();
+        for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : this.states.entrySet()) {
             final ProcessState state = entry.getValue();
             if (this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.BIGGER ||
                     this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.SMALLER) {

@@ -20,12 +20,11 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.util.HashMap;
-import java.util.Set;
 
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 
 public class CubeActivity extends Activity {
 
@@ -35,7 +34,7 @@ public class CubeActivity extends Activity {
     private int flatnessCounter = 0;
     private boolean isFlat = true;
     private double flat = 1.0;
-    private HashableNsdServiceInfo NSD;
+    private NetworkPeerIdentifier NSD;
 
     private final float[] gravity = new float[3];
     private final float[] linearAcceleration = new float[3];
@@ -81,7 +80,7 @@ public class CubeActivity extends Activity {
         networkGet.execute();
     }
 
-    HashMap<HashableNsdServiceInfo, Double> deviceMap = new HashMap<>();
+    HashMap<NetworkPeerIdentifier, Double> deviceMap = new HashMap<>();
     public void getEvent() throws InterruptedException {
         if (serviceConnection.getService() == null) {
             return;
@@ -203,9 +202,9 @@ public class CubeActivity extends Activity {
                 put("isFlat", value);
             }});
             Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation,
-                    new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
-                        put(HashableNsdServiceInfo.get(serviceConnection.getService().getLocalNsdServiceInfo()), flatnessCounter);
-                        for (HashableNsdServiceInfo peer : serviceConnection.getService().getNsdPeers()) {
+                    new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
+                        put(NetworkPeerIdentifier.get(serviceConnection.getService().getLocalNsdServiceInfo()), flatnessCounter);
+                        for (NetworkPeerIdentifier peer : serviceConnection.getService().getNsdPeers()) {
                             put(peer, 0);
                         }
                     }}));
@@ -276,7 +275,7 @@ public class CubeActivity extends Activity {
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
 //            this.service.registerSensorUpdateCallback(CubeActivity.this);
 //            this.service.registerNsdUpdateCallback(CubeActivity.this);
-            CubeActivity.this.NSD = HashableNsdServiceInfo.get(this.service.getLocalNsdServiceInfo());
+            CubeActivity.this.NSD = NetworkPeerIdentifier.get(this.service.getLocalNsdServiceInfo());
 //            updateSelfInfo();
         }
 

@@ -11,68 +11,64 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import ca.mcmaster.capstone.monitoralgorithm.tree.InnerNode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
-public final class HashableNsdServiceInfo implements Parcelable {
+public final class NetworkPeerIdentifier implements Parcelable {
 
-    private static final ConcurrentMap<Identifier, HashableNsdServiceInfo> cache = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Identifier, NetworkPeerIdentifier> cache = new ConcurrentHashMap<>();
 
-    @Getter private final NsdServiceInfo nsdServiceInfo;
+    @NonNull @Getter private final InetAddress host;
+    @NonNull @Getter private final String serviceName;
+    @NonNull @Getter private final String serviceType;
+    @Getter private final int port;
 
-    private HashableNsdServiceInfo(final NsdServiceInfo nsdServiceInfo) {
-        Objects.requireNonNull(nsdServiceInfo);
-        Objects.requireNonNull(nsdServiceInfo.getHost());
-        Objects.requireNonNull(nsdServiceInfo.getServiceName());
-        Objects.requireNonNull(nsdServiceInfo.getServiceType());
-        this.nsdServiceInfo = nsdServiceInfo;
+    private NetworkPeerIdentifier(@NonNull final NsdServiceInfo nsdServiceInfo) {
+        this.host = nsdServiceInfo.getHost();
+        this.serviceName = nsdServiceInfo.getServiceName();
+        this.serviceType = nsdServiceInfo.getServiceType();
+        this.port = nsdServiceInfo.getPort();
     }
 
-    public static HashableNsdServiceInfo get(@NonNull final NsdServiceInfo nsdServiceInfo) {
+    public static NetworkPeerIdentifier get(@NonNull final NsdServiceInfo nsdServiceInfo) {
         final Identifier identifier = Identifier.getIdentifier(nsdServiceInfo.getHost(), nsdServiceInfo.getPort());
-        cache.put(identifier, new HashableNsdServiceInfo(nsdServiceInfo));
+        cache.putIfAbsent(identifier, new NetworkPeerIdentifier(nsdServiceInfo));
         return cache.get(identifier);
     }
 
-    public String getServiceName() {
-        return nsdServiceInfo.getServiceName();
-    }
-
-    public String getServiceType() {
-        return nsdServiceInfo.getServiceType();
-    }
-
-    public int getPort() {
-        return nsdServiceInfo.getPort();
-    }
-
-    public InetAddress getHost() {
-        return nsdServiceInfo.getHost();
+    public NsdServiceInfo getNsdServiceInfo() {
+        final NsdServiceInfo nsdServiceInfo = new NsdServiceInfo();
+        nsdServiceInfo.setHost(getHost());
+        nsdServiceInfo.setServiceName(getServiceName());
+        nsdServiceInfo.setServiceType(getServiceType());
+        nsdServiceInfo.setPort(getPort());
+        return nsdServiceInfo;
     }
 
     @Override
     public int describeContents() {
-        return nsdServiceInfo.describeContents();
+        return getNsdServiceInfo().describeContents();
     }
 
     @Override
     public String toString() {
-        return nsdServiceInfo.toString();
+        return getNsdServiceInfo().toString();
     }
 
     @Override
     public void writeToParcel(final Parcel dest, final int flags) {
-        nsdServiceInfo.writeToParcel(dest, flags);
+        getNsdServiceInfo().writeToParcel(dest, flags);
     }
 
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
-        if (! (o instanceof HashableNsdServiceInfo)) return false;
+        if (! (o instanceof NetworkPeerIdentifier)) return false;
 
-        final HashableNsdServiceInfo that = (HashableNsdServiceInfo) o;
+        final NetworkPeerIdentifier that = (NetworkPeerIdentifier) o;
 
         return (this.getHost().getHostAddress().contains(that.getHost().getHostAddress())
                         || that.getHost().getHostAddress().contains(this.getHost().getHostAddress()))

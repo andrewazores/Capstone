@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -59,8 +59,8 @@ public class AutomatonTransition {
      *
      * @return A set of process ids.
      */
-    public Set<HashableNsdServiceInfo> getParticipatingProcesses() {
-        final Set<HashableNsdServiceInfo> ret = new HashSet<>();
+    public Set<NetworkPeerIdentifier> getParticipatingProcesses() {
+        final Set<NetworkPeerIdentifier> ret = new HashSet<>();
         for (final Conjunct conjunct : conjuncts) {
             ret.add(conjunct.getOwnerProcess());
         }
@@ -72,9 +72,9 @@ public class AutomatonTransition {
      *
      * @return A set of process ids.
      */
-    public Set<HashableNsdServiceInfo> getForbiddingProcesses(@NonNull final GlobalView gv) {
-        final Set<HashableNsdServiceInfo> ret = new HashSet<>();
-        for (final Map.Entry<HashableNsdServiceInfo, ProcessState> entry : gv.getStates().entrySet()) {
+    public Set<NetworkPeerIdentifier> getForbiddingProcesses(@NonNull final GlobalView gv) {
+        final Set<NetworkPeerIdentifier> ret = new HashSet<>();
+        for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : gv.getStates().entrySet()) {
             final ProcessState state = entry.getValue();
             for (final Conjunct conjunct : conjuncts) {
                 if (conjunct.getOwnerProcess() == state.getId()

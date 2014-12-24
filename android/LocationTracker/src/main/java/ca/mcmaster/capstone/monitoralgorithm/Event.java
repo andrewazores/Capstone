@@ -1,6 +1,6 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.ToString;
 import lombok.Value;
 
@@ -9,7 +9,7 @@ public final class Event {
     public static enum EventType {SEND, RECEIVE, INTERNAL}
 
     int eid;
-    HashableNsdServiceInfo pid;
+    NetworkPeerIdentifier pid;
     EventType type;
     Valuation<?> val;
     VectorClock VC;

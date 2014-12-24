@@ -1,6 +1,6 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -8,7 +8,7 @@ import lombok.ToString;
 
 @EqualsAndHashCode @ToString
 public class ProcessState {
-    @NonNull @Getter private final HashableNsdServiceInfo id;
+    @NonNull @Getter private final NetworkPeerIdentifier id;
     @NonNull private final Valuation<?> val;
     @NonNull private final VectorClock VC;
 
@@ -19,7 +19,7 @@ public class ProcessState {
      * @param val The valuation of the process' variables.
      * @param VC The vector clock for the process.
      */
-    public ProcessState(@NonNull final HashableNsdServiceInfo id, @NonNull final Valuation<?> val, @NonNull final VectorClock VC) {
+    public ProcessState(@NonNull final NetworkPeerIdentifier id, @NonNull final Valuation<?> val, @NonNull final VectorClock VC) {
         this.id = id;
         this.val = val;
         this.VC = VC;

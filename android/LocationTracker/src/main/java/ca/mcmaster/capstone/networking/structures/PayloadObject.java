@@ -1,7 +1,5 @@
 package ca.mcmaster.capstone.networking.structures;
 
-import com.google.gson.Gson;
-
 import java.io.Serializable;
 import java.util.Set;
 
@@ -26,7 +24,7 @@ public class PayloadObject<T> implements Serializable {
     @NonNull Status status;
 
     @Builder
-    public PayloadObject(@NonNull final T payload, @NonNull final Set<HashableNsdServiceInfo> nsdPeers, @NonNull final Status status) {
+    public PayloadObject(@NonNull final T payload, @NonNull final Set<NetworkPeerIdentifier> nsdPeers, @NonNull final Status status) {
         this.payload = payload;
         this.nsdPeersSetCount = nsdPeers.size();
         this.nsdPeersSetHash = nsdPeers.hashCode();

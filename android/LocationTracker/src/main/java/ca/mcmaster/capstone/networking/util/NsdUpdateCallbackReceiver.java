@@ -1,11 +1,11 @@
 package ca.mcmaster.capstone.networking.util;
 
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 
 import java.util.Collection;
 
 public interface NsdUpdateCallbackReceiver {
 
-    public void nsdUpdate(final Collection<HashableNsdServiceInfo> nsdPeers);
+    public void nsdUpdate(final Collection<NetworkPeerIdentifier> nsdPeers);
 
 }

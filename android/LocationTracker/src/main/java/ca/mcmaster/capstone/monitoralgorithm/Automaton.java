@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -22,7 +22,7 @@ public class Automaton {
     private static Set<AutomatonTransition> transitions;
 
     //FIXME: This is garbage.
-    public static void build(@NonNull final HashableNsdServiceInfo id1, @NonNull final HashableNsdServiceInfo id2) {
+    public static void build(@NonNull final NetworkPeerIdentifier id1, @NonNull final NetworkPeerIdentifier id2) {
         states = new HashMap<String, AutomatonState>() {{
             put("2", new AutomatonState("2", Evaluation.UNDECIDED));
             put("3", new AutomatonState("3", Evaluation.UNDECIDED));

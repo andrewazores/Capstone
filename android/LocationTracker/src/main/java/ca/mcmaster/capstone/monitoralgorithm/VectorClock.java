@@ -3,7 +3,7 @@ package ca.mcmaster.capstone.monitoralgorithm;
 import java.util.HashMap;
 import java.util.Map;
 
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -13,7 +13,7 @@ import lombok.ToString;
 public class VectorClock {
     public static enum Comparison { EQUAL, BIGGER, SMALLER, CONCURRENT }
 
-    private final Map<HashableNsdServiceInfo, Integer> consistentCut = new HashMap<>();
+    private final Map<NetworkPeerIdentifier, Integer> consistentCut = new HashMap<>();
 
     public VectorClock(@NonNull final VectorClock vc) {
         this.consistentCut.putAll(vc.consistentCut);
@@ -24,7 +24,7 @@ public class VectorClock {
      *
      * @param consistentCut A List of Integers representing a consistent cut of all known processes.
      */
-    public VectorClock(@NonNull final Map<HashableNsdServiceInfo, Integer> consistentCut) {
+    public VectorClock(@NonNull final Map<NetworkPeerIdentifier, Integer> consistentCut) {
         this.consistentCut.putAll(consistentCut);
     }
 
@@ -43,7 +43,7 @@ public class VectorClock {
 
         boolean bigger = false;
         boolean smaller = false;
-        for (final Map.Entry<HashableNsdServiceInfo, Integer> entry : this.consistentCut.entrySet()) {
+        for (final Map.Entry<NetworkPeerIdentifier, Integer> entry : this.consistentCut.entrySet()) {
             if (entry.getValue() > clock.process(entry.getKey())) {
                 bigger = true;
             } else if (entry.getValue() < clock.process(entry.getKey())) {
@@ -75,8 +75,8 @@ public class VectorClock {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
         }
 
-        final Map<HashableNsdServiceInfo, Integer> merged = new HashMap<>();
-        for (final Map.Entry<HashableNsdServiceInfo, Integer> entry : this.consistentCut.entrySet()) {
+        final Map<NetworkPeerIdentifier, Integer> merged = new HashMap<>();
+        for (final Map.Entry<NetworkPeerIdentifier, Integer> entry : this.consistentCut.entrySet()) {
             if (entry.getValue() > clock.process(entry.getKey())) {
                 merged.put(entry.getKey(), entry.getValue());
             } else {
@@ -93,7 +93,7 @@ public class VectorClock {
      * @param i The index of the process whose clock to return.
      * @return The clock for the ith process.
      */
-    public int process(@NonNull final HashableNsdServiceInfo pid) {
+    public int process(@NonNull final NetworkPeerIdentifier pid) {
         return consistentCut.get(pid);
     }
 

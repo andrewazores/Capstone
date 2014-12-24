@@ -6,7 +6,7 @@ import java.util.Set;
 
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 
 public interface NetworkLayer {
 
@@ -17,7 +17,7 @@ public interface NetworkLayer {
      * @param destination
      * @param token
      */
-    void sendTokenToPeer(HashableNsdServiceInfo destination, Token token);
+    void sendTokenToPeer(NetworkPeerIdentifier destination, Token token);
 
     /**
      * Called by the Server when a Token is received over the network
@@ -55,5 +55,5 @@ public interface NetworkLayer {
      */
     Event receiveEvent() throws InterruptedException;
 
-    Set<HashableNsdServiceInfo> getNsdPeers();
+    Set<NetworkPeerIdentifier> getNsdPeers();
 }

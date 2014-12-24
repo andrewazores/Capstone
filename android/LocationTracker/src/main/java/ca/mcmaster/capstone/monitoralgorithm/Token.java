@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -16,8 +16,8 @@ import lombok.ToString;
 @EqualsAndHashCode @ToString
 public class Token {
     public static class Builder {
-        private final HashableNsdServiceInfo owner;
-        private final HashableNsdServiceInfo destination;
+        private final NetworkPeerIdentifier owner;
+        private final NetworkPeerIdentifier destination;
 
         private int targetEventId = 0;
         private VectorClock cut;
@@ -27,7 +27,7 @@ public class Token {
         public boolean returned = false;
         public boolean sent = false;
 
-        public Builder(final HashableNsdServiceInfo owner, final HashableNsdServiceInfo destination) {
+        public Builder(final NetworkPeerIdentifier owner, final NetworkPeerIdentifier destination) {
             this.owner = owner;
             this.destination = destination;
         }
@@ -84,8 +84,8 @@ public class Token {
         }
     }
 
-    @NonNull @Getter private final HashableNsdServiceInfo owner;
-    @NonNull @Getter private final HashableNsdServiceInfo destination;
+    @NonNull @Getter private final NetworkPeerIdentifier owner;
+    @NonNull @Getter private final NetworkPeerIdentifier destination;
     @Getter private final int targetEventId;
     @NonNull @Getter private final VectorClock cut;
     private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();

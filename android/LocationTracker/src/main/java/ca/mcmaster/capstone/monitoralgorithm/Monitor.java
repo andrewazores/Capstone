@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,9 +20,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import ca.mcmaster.capstone.networking.CapstoneService;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.NonNull;
-import lombok.Synchronized;
 
 /* Class to hold the main algorithm code.*/
 // TODO: refactor Service components out into MonitorService to separate from actual Monitor logic
@@ -63,7 +61,7 @@ public class Monitor extends Service {
 
     private static final Map<Integer, Event> history = new HashMap<>();
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
-    private static HashableNsdServiceInfo monitorID = null;
+    private static NetworkPeerIdentifier monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
     private static final int numPeers = 1;
     private static volatile boolean runMonitor = true;
@@ -115,7 +113,7 @@ public class Monitor extends Service {
         return token;
     }
 
-    private static void send(@NonNull final Token token, @NonNull final HashableNsdServiceInfo pid) {
+    private static void send(@NonNull final Token token, @NonNull final NetworkPeerIdentifier pid) {
         while (serviceConnection.getNetworkLayer() == null) {
             try {
                 Thread.sleep(1000);
@@ -159,9 +157,9 @@ public class Monitor extends Service {
                 Log.d("monitor", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
-        monitorID = HashableNsdServiceInfo.get(serviceConnection.getNetworkLayer().getLocalNsdServiceInfo());
+        monitorID = NetworkPeerIdentifier.get(serviceConnection.getNetworkLayer().getLocalNsdServiceInfo());
 
-        final Map<String, HashableNsdServiceInfo> virtualIdentifiers = generateVirtualIdentifiers();
+        final Map<String, NetworkPeerIdentifier> virtualIdentifiers = generateVirtualIdentifiers();
         Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
 
         //TODO: Eventually this will be constructed from a text file or something.
@@ -172,11 +170,11 @@ public class Monitor extends Service {
             put("x2", 0.0);
         }});
 
-        final VectorClock vec = new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
+        final VectorClock vec = new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
             put(virtualIdentifiers.get("x1"), 0);
             put(virtualIdentifiers.get("x2"), 0);
         }});
-        final Map<HashableNsdServiceInfo, ProcessState> initialStates = new HashMap<HashableNsdServiceInfo, ProcessState>() {{
+        final Map<NetworkPeerIdentifier, ProcessState> initialStates = new HashMap<NetworkPeerIdentifier, ProcessState>() {{
             //FIXME: Double use of virtualIdentifiers on each line makes me think there's some possible refactoring here
             put(virtualIdentifiers.get("x1"), new ProcessState(virtualIdentifiers.get("x1"), val1, vec));
             put(virtualIdentifiers.get("x2"), new ProcessState(virtualIdentifiers.get("x2"), val2, vec));
@@ -186,7 +184,7 @@ public class Monitor extends Service {
         initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
         initialGV.setCurrentState(Automaton.advance(initialGV));
-        initialGV.setCut(new VectorClock(new HashMap<HashableNsdServiceInfo, Integer>() {{
+        initialGV.setCut(new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
             put(virtualIdentifiers.get("x1"), 0);
             put(virtualIdentifiers.get("x2"), 0);
         }}));
@@ -195,8 +193,8 @@ public class Monitor extends Service {
     }
 
     //FIXME: This method requires certain elements of global state to be initialized before it is called.
-    private static Map<String, HashableNsdServiceInfo> generateVirtualIdentifiers() {
-        final Map<String, HashableNsdServiceInfo> virtualIdentifiers = new HashMap<>();
+    private static Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
+        final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         while (true) {
             if (serviceConnection.getNetworkLayer().getNsdPeers().size() == numPeers) {
                 break;
@@ -207,14 +205,14 @@ public class Monitor extends Service {
                 //Don't care
             }
         }
-        final List<HashableNsdServiceInfo> sortedIdentifiers = new ArrayList<HashableNsdServiceInfo>() {{
+        final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<NetworkPeerIdentifier>() {{
             add(monitorID);
             addAll(serviceConnection.getNetworkLayer().getNsdPeers());
         }};
         Collections.sort(sortedIdentifiers, (f, s) -> Integer.compare(f.hashCode(), s.hashCode()));
-        for (final HashableNsdServiceInfo hashableNsdServiceInfo : sortedIdentifiers) {
-            final String virtualIdentifier = "x" + (sortedIdentifiers.indexOf(hashableNsdServiceInfo) + 1);
-            virtualIdentifiers.put(virtualIdentifier, hashableNsdServiceInfo);
+        for (final NetworkPeerIdentifier networkPeerIdentifier : sortedIdentifiers) {
+            final String virtualIdentifier = "x" + (sortedIdentifiers.indexOf(networkPeerIdentifier) + 1);
+            virtualIdentifiers.put(virtualIdentifier, networkPeerIdentifier);
         }
         return virtualIdentifiers;
     }
@@ -334,21 +332,21 @@ public class Monitor extends Service {
      */
     private static void checkOutgoingTransitions(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering checkOutgoingTransitions");
-        final Map<HashableNsdServiceInfo, Set<AutomatonTransition>> consult = new HashMap<>();
+        final Map<NetworkPeerIdentifier, Set<AutomatonTransition>> consult = new HashMap<>();
         for (final AutomatonTransition trans : Automaton.getTransitions()) {
             final AutomatonState current = gv.getCurrentState();
             Log.d("monitor", current.toString());
             Log.d("monitor", trans.toString());
             if (trans.getFrom().equals(current) && !trans.getTo().equals(current)) {
-                final Set<HashableNsdServiceInfo> participating = trans.getParticipatingProcesses();
-                final Set<HashableNsdServiceInfo> forbidding = trans.getForbiddingProcesses(gv);
+                final Set<NetworkPeerIdentifier> participating = trans.getParticipatingProcesses();
+                final Set<NetworkPeerIdentifier> forbidding = trans.getForbiddingProcesses(gv);
                 if (!forbidding.contains(monitorID)) {
-                    final Set<HashableNsdServiceInfo> inconsistent = gv.getInconsistentProcesses();
+                    final Set<NetworkPeerIdentifier> inconsistent = gv.getInconsistentProcesses();
                     // intersection
                     participating.retainAll(inconsistent);
                     // union
                     forbidding.addAll(participating);
-                    for (final HashableNsdServiceInfo process : forbidding) {
+                    for (final NetworkPeerIdentifier process : forbidding) {
                         gv.getPendingTransitions().add(trans);
                         if (consult.get(process) == null) {
                             consult.put(process, new HashSet<>());
@@ -359,7 +357,7 @@ public class Monitor extends Service {
             }
         }
 
-        for (final Map.Entry<HashableNsdServiceInfo, Set<AutomatonTransition>> entry : consult.entrySet()) {
+        for (final Map.Entry<NetworkPeerIdentifier, Set<AutomatonTransition>> entry : consult.entrySet()) {
             // Get all the conjuncts for process j
             final Set<Conjunct> conjuncts = new HashSet<>();
             for (final AutomatonTransition trans : entry.getValue()) {

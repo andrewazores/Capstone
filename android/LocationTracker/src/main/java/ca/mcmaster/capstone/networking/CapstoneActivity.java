@@ -15,8 +15,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,7 +24,7 @@ import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.monitoralgorithm.Monitor;
 import ca.mcmaster.capstone.monitoralgorithm.MonitorBinder;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
@@ -41,15 +39,15 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     protected ListView listView;
     private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private final MonitorServiceConnection monitorServiceConnection = new MonitorServiceConnection();
-    private final List<HashableNsdServiceInfo> nsdPeers = new ArrayList<>();
+    private final List<NetworkPeerIdentifier> nsdPeers = new ArrayList<>();
     private Intent networkServiceIntent;
     private Intent monitorServiceIntent;
 
-    public HashableNsdServiceInfo getLocalNsdServiceInfo() {
+    public NetworkPeerIdentifier getLocalNsdServiceInfo() {
         return localNsdServiceInfo;
     }
 
-    private HashableNsdServiceInfo localNsdServiceInfo = null;
+    private NetworkPeerIdentifier localNsdServiceInfo = null;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -63,7 +61,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nsdPeers));
         listView.setOnItemClickListener((adapterView, view, i, l)
-                                                -> getPeerUpdate((HashableNsdServiceInfo)listView.getItemAtPosition(i)));
+                                                -> getPeerUpdate((NetworkPeerIdentifier)listView.getItemAtPosition(i)));
 
         jsonTextView = (TextView) findViewById(R.id.jsonTextView);
 
@@ -93,7 +91,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         });
     }
 
-    private void getPeerUpdate(final HashableNsdServiceInfo peer) {
+    private void getPeerUpdate(final NetworkPeerIdentifier peer) {
         if (networkServiceConnection.isBound()) {
             networkServiceConnection.getService().sendHandshakeToPeer(peer);
             networkServiceConnection.getService().requestUpdateFromPeer(peer, this);
@@ -106,7 +104,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     }
 
     @Override
-    public void nsdUpdate(final Collection<HashableNsdServiceInfo> nsdPeers) {
+    public void nsdUpdate(final Collection<NetworkPeerIdentifier> nsdPeers) {
         final Handler mainHandler = new Handler(this.getMainLooper());
         mainHandler.post(() -> {
             CapstoneActivity.this.nsdPeers.clear();
@@ -132,7 +130,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             return;
         }
         jsonTextView.setText("Not connected to Network Service");
-        nsdUpdate(Collections.<HashableNsdServiceInfo>emptySet());
+        nsdUpdate(Collections.<NetworkPeerIdentifier>emptySet());
         stopService(networkServiceIntent);
         Toast.makeText(this, "Network service stopped", Toast.LENGTH_SHORT).show();
     }
@@ -217,7 +215,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerSensorUpdateCallback(CapstoneActivity.this);
             this.service.registerNsdUpdateCallback(CapstoneActivity.this);
-            CapstoneActivity.this.localNsdServiceInfo = HashableNsdServiceInfo.get(this.service.getLocalNsdServiceInfo());
+            CapstoneActivity.this.localNsdServiceInfo = NetworkPeerIdentifier.get(this.service.getLocalNsdServiceInfo());
             updateSelfInfo();
         }
 

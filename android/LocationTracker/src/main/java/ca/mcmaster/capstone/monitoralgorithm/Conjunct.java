@@ -1,7 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import ca.mcmaster.capstone.monitoralgorithm.tree.BooleanExpressionTree;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -11,10 +11,10 @@ import lombok.ToString;
 public class Conjunct {
     public static enum Evaluation {TRUE, FALSE, NONE}
 
-    @NonNull @Getter private final HashableNsdServiceInfo ownerProcess;
+    @NonNull @Getter private final NetworkPeerIdentifier ownerProcess;
     @NonNull private final BooleanExpressionTree expression;
 
-    public Conjunct(@NonNull final HashableNsdServiceInfo ownerProcess, @NonNull final String expression) {
+    public Conjunct(@NonNull final NetworkPeerIdentifier ownerProcess, @NonNull final String expression) {
         this.ownerProcess = ownerProcess;
         this.expression = new BooleanExpressionTree(expression);
     }

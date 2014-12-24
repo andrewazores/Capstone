@@ -3,8 +3,6 @@ package ca.mcmaster.capstone.networking;
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 
-import com.google.gson.Gson;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -13,7 +11,7 @@ import java.util.Map;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.structures.PayloadObject;
 import fi.iki.elonen.NanoHTTPD;
 import lombok.AllArgsConstructor;
@@ -123,7 +121,7 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private Response servePostIdentify(@NonNull final Map<String, String> contentBody) {
-        final HashableNsdServiceInfo peerNsdServiceInfo = parseContentBody(contentBody, HashableNsdServiceInfo.class);
+        final NetworkPeerIdentifier peerNsdServiceInfo = parseContentBody(contentBody, NetworkPeerIdentifier.class);
         capstoneService.addSelfIdentifiedPeer(peerNsdServiceInfo);
         final PayloadObject<NsdServiceInfo> postIdentifyResponse = new PayloadObject<>(capstoneService.getLocalNsdServiceInfo(), capstoneService.getNsdPeers(), PayloadObject.Status.OK);
         return JSONResponse(Response.Status.OK, postIdentifyResponse);

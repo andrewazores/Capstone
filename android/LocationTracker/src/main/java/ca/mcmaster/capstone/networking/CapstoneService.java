@@ -29,7 +29,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
@@ -37,7 +36,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -58,7 +56,7 @@ import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.DeviceLocation;
-import ca.mcmaster.capstone.networking.structures.HashableNsdServiceInfo;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.structures.PayloadObject;
 import ca.mcmaster.capstone.networking.util.NetworkLayer;
 import ca.mcmaster.capstone.networking.util.NsdUpdateCallbackReceiver;
@@ -96,7 +94,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     private volatile NsdManager.DiscoveryListener nsdDiscoveryListener;
     private volatile NsdManager nsdManager;
 
-    private final Set<HashableNsdServiceInfo> nsdPeers =
+    private final Set<NetworkPeerIdentifier> nsdPeers =
             Collections.synchronizedSet(new HashSet<>());
 
     private final Set<SensorUpdateCallbackReceiver<DeviceInfo>> sensorUpdateCallbackReceivers =
@@ -234,8 +232,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
                 if (nsdServiceInfo.getHost() == null) {
                     return;
                 }
-                final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(nsdServiceInfo);
-                nsdPeers.remove(hashableNsdServiceInfo);
+                final NetworkPeerIdentifier networkPeerIdentifier = NetworkPeerIdentifier.get(nsdServiceInfo);
+                nsdPeers.remove(networkPeerIdentifier);
                 updateNsdCallbackListeners();
             }
         };
@@ -432,18 +430,18 @@ public final class CapstoneService extends Service implements NetworkLayer {
         this.nsdUpdateCallbackReceivers.remove(capstoneActivity);
     }
 
-    void sendHandshakeToPeer(@NonNull final HashableNsdServiceInfo nsdPeer) {
-        final Set<HashableNsdServiceInfo> peersPlusSelf = new HashSet<>();
+    void sendHandshakeToPeer(@NonNull final NetworkPeerIdentifier nsdPeer) {
+        final Set<NetworkPeerIdentifier> peersPlusSelf = new HashSet<>();
         peersPlusSelf.addAll(nsdPeers);
-        peersPlusSelf.add(HashableNsdServiceInfo.get(getLocalNsdServiceInfo()));
+        peersPlusSelf.add(NetworkPeerIdentifier.get(getLocalNsdServiceInfo()));
         peersPlusSelf.remove(nsdPeer);
 
-        for (final HashableNsdServiceInfo nsdServiceInfo : peersPlusSelf) {
+        for (final NetworkPeerIdentifier nsdServiceInfo : peersPlusSelf) {
             sendNsdInfoToPeer(nsdPeer, nsdServiceInfo);
         }
     }
 
-    private void postDataToPeer(@NonNull final HashableNsdServiceInfo peer,
+    private void postDataToPeer(@NonNull final NetworkPeerIdentifier peer,
                                     final Object data,
                                     @NonNull final Response.Listener<JSONObject> successListener,
                                     @NonNull final Response.ErrorListener errorListener,
@@ -464,7 +462,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     private void queueVolleyRequest(final int method,
-                                    @NonNull final HashableNsdServiceInfo peer,
+                                    @NonNull final NetworkPeerIdentifier peer,
                                     final JSONObject payload,
                                     @NonNull final CapstoneServer.RequestMethod requestMethod,
                                     @NonNull final Response.Listener<JSONObject> successListener,
@@ -493,14 +491,14 @@ public final class CapstoneService extends Service implements NetworkLayer {
         volleyRequestQueue.add(request);
     }
 
-    private void sendNsdInfoToPeer(@NonNull final HashableNsdServiceInfo destination, @NonNull final HashableNsdServiceInfo info) {
+    private void sendNsdInfoToPeer(@NonNull final NetworkPeerIdentifier destination, @NonNull final NetworkPeerIdentifier info) {
         final Response.Listener<JSONObject> successListener = jsonObject -> {
             final TypeToken<PayloadObject<NsdServiceInfo>> type = new TypeToken<PayloadObject<NsdServiceInfo>>(){};
             final PayloadObject<NsdServiceInfo> payloadObject = fromJson(jsonObject.toString(), type);
             logv("Received peer NSD info payload: " + payloadObject);
             if (payloadObject != null) {
-                final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(payloadObject.getPayload());
-                if (!nsdPeers.contains(hashableNsdServiceInfo)) {
+                final NetworkPeerIdentifier networkPeerIdentifier = NetworkPeerIdentifier.get(payloadObject.getPayload());
+                if (!nsdPeers.contains(networkPeerIdentifier)) {
                     nsdDiscoveryListener.onServiceFound(payloadObject.getPayload());
                 }
             } else {
@@ -520,7 +518,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
      * {@inheritDoc}
      */
     @Override
-    public void sendTokenToPeer(@NonNull final HashableNsdServiceInfo destination, @NonNull final Token token) {
+    public void sendTokenToPeer(@NonNull final NetworkPeerIdentifier destination, @NonNull final Token token) {
         final Response.Listener<JSONObject> successListener = j -> {};
         final Response.ErrorListener errorListener = error -> {
             logv("Volley POST info error: " + error);
@@ -573,7 +571,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
         return this.incomingEventQueue.take();
     }
 
-    void addSelfIdentifiedPeer(@NonNull final HashableNsdServiceInfo peerNsdServiceInfo) {
+    void addSelfIdentifiedPeer(@NonNull final NetworkPeerIdentifier peerNsdServiceInfo) {
         if (peerNsdServiceInfo == null
                 || peerNsdServiceInfo.getHost() == null
                 || peerNsdServiceInfo.getPort() == 0
@@ -584,7 +582,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
         new NsdResolveListener().onServiceResolved(peerNsdServiceInfo.getNsdServiceInfo());
     }
 
-    private void getDataFromPeer(@NonNull final HashableNsdServiceInfo peer,
+    private void getDataFromPeer(@NonNull final NetworkPeerIdentifier peer,
                                      @NonNull final Response.Listener<JSONObject> successListener,
                                      @NonNull final Response.ErrorListener errorListener,
                                      @NonNull final CapstoneServer.RequestMethod requestMethod) {
@@ -598,11 +596,11 @@ public final class CapstoneService extends Service implements NetworkLayer {
         queueVolleyRequest(Request.Method.GET, peer, jsonObject, requestMethod, successListener, errorListener);
     }
 
-    static String getUrlStringForPeer(@NonNull final HashableNsdServiceInfo peer) {
+    static String getUrlStringForPeer(@NonNull final NetworkPeerIdentifier peer) {
         return "http://" + peer.getHost().getHostAddress() + ":" + peer.getPort();
     }
 
-    void requestUpdateFromPeer(@NonNull final HashableNsdServiceInfo peer,
+    void requestUpdateFromPeer(@NonNull final NetworkPeerIdentifier peer,
                                @NonNull final PeerUpdateCallbackReceiver<DeviceInfo> callbackReceiver) {
         final Response.Listener<JSONObject> successListener = jsonObject -> {
             try {
@@ -637,7 +635,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     @Override
-    public Set<HashableNsdServiceInfo> getNsdPeers() {
+    public Set<NetworkPeerIdentifier> getNsdPeers() {
         return new HashSet<>(nsdPeers);
     }
 
@@ -797,10 +795,10 @@ public final class CapstoneService extends Service implements NetworkLayer {
                 isOnline = false;
             }
             if (isOnline) {
-                final HashableNsdServiceInfo hashableNsdServiceInfo = HashableNsdServiceInfo.get(nsdServiceInfo);
-                boolean newPeer = nsdPeers.add(hashableNsdServiceInfo);
+                final NetworkPeerIdentifier networkPeerIdentifier = NetworkPeerIdentifier.get(nsdServiceInfo);
+                boolean newPeer = nsdPeers.add(networkPeerIdentifier);
                 if (newPeer) {
-                    sendHandshakeToPeer(hashableNsdServiceInfo);
+                    sendHandshakeToPeer(networkPeerIdentifier);
                 }
                 updateNsdCallbackListeners();
             }
