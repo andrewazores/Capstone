@@ -148,6 +148,9 @@ if verification[:valid]
   puts verification[:messages] if options[:verbose]
   exit 0
 else
-  puts verification[:messages]
+  puts "Total errors: #{verification[:messages].size}"
+  verification[:messages].each_with_index do |item, index|
+    puts "#{index + 1} : #{item}"
+  end
   exit 1
 end
