@@ -7,14 +7,41 @@ require 'rubygems'
 require 'oj'
 require 'optparse'
 
+options = {}
+opt_parser = OptionParser.new do |opt|
+  opt.banner = "Usage: #{$0} [OPTIONS]"
+  opt.separator ''
+  opt.separator 'OPTIONS'
+
+  opt.on('-p', '--pretty', 'pretty print output') do
+    options[:pretty] = true
+  end
+
+  opt.on('-v', '--verbose', 'verbose (debugging/verification) output') do
+    options[:verbose] = true
+  end
+end
+opt_parser.parse!
+
+module JsonStringify
+  def to_s
+    Oj::dump self
+  end
+end
+
 class Automaton
+  include JsonStringify
+  attr_reader :state_names, :transitions
   def initialize(state_names, transitions)
     @state_names = state_names
     @transitions = transitions
   end
+
 end
 
 class StateName
+  include JsonStringify
+  attr_reader :label, :type
   def initialize(label, type)
     @label = label
     @type = case type
@@ -28,6 +55,8 @@ class StateName
 end
 
 class Transition
+  include JsonStringify
+  attr_reader :source, :destination, :predicate
   def initialize(source, destination, predicate)
     @source = source
     @destination = destination
@@ -35,17 +64,47 @@ class Transition
   end
 end
 
-options = {}
-opt_parser = OptionParser.new do |opt|
-  opt.banner = "Usage: #{$0} [OPTIONS]"
-  opt.separator ''
-  opt.separator 'OPTIONS'
+class Verifier
+  def initialize(automaton, verbose=false)
+    @automaton = automaton
+    @verbose = verbose
+  end
+  def verify
+    verification = {:valid => true, :messages => []}
+    labels = @automaton.state_names.map &:label
+    verification[:messages] << "#labels: #{labels}" if @verbose
+    @automaton.transitions.each do |t|
+      unless labels.include? t.source
+        puts "#{t.source} is not in the automaton states but is in the transition #{t}"
+        verification[:valid] = false
+      end
+      unless labels.include? t.destination
+        puts "#{t.destination} is not in the automaton states but is in the transition #{t}"
+        verification[:valid] = false
+      end
+    end
 
-  opt.on('-p', '--pretty', 'pretty print output') do
-    options[:pretty] = true
+    states = @automaton.state_names.map &:type
+    verification[:messages] <<  "#states: #{states}" if @verbose
+    @automaton.state_names.each do |s|
+      if s.type == :unknown
+        puts "#{s} has unknown type"
+        verification[:valid] = false
+      end
+    end
+
+    connected_nodes = @automaton.transitions.map(&:source) | @automaton.transitions.map(&:destination)
+    verification[:messages] <<  "#connected nodes: #{connected_nodes}" if @verbose
+    @automaton.state_names.map(&:label).each do |s|
+      unless connected_nodes.include? s
+        puts "#{s} is named as a state in the automaton but is not connected in the graph"
+        verification[:valid] = false
+      end
+    end
+
+    verification
   end
 end
-opt_parser.parse!
 
 lines = ARGF.read.split /\r?\n/
 
@@ -82,5 +141,13 @@ raw_transitions.each do |line|
 end
 
 automaton = Automaton.new(state_names, transitions)
-indent = options[:pretty] ? 2 : 0
-puts Oj::dump automaton, :indent => indent
+verification = Verifier.new(automaton, options[:verbose]).verify
+if verification[:valid]
+  indent = options[:pretty] ? 2 : 0
+  puts Oj::dump automaton, :indent => indent
+  puts verification[:messages] if options[:verbose]
+  exit 0
+else
+  puts verification[:messages]
+  exit 1
+end
