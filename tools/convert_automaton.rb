@@ -116,15 +116,15 @@ class FileFormatVerifier
       verification[:messages] << "Number of transitions specified (#{num_transitions}) is less than remaining length of input (#{@lines.length - num_states - 2})"
       verification[:valid] = false
     end
-    @lines[1 .. num_states].each do |line|
+    @lines[1 .. num_states].each_with_index do |line, index|
       unless line =~ @@state_name_pattern
-        verification[:messages] << "Expected line to be a state name, got '#{line}'"
+        verification[:messages] << "Expected line #{index} to be a state name, got '#{line}'"
         verification[:valid] = false
       end
     end
-    @lines[num_states + 2 .. num_transitions].each do |line|
+    @lines[num_states + 2 .. num_transitions].each_with_index do |line, index|
       unless line =~ @@transition_pattern
-        verification[:messages] << "Expected line to be a transition, got '#{line}'"
+        verification[:messages] << "Expected line #{index} to be a transition, got '#{line}'"
         verification[:valid] = false
       end
     end
@@ -198,8 +198,10 @@ end
 file_verification = FileFormatVerifier.new(lines, options[:verbose]).verify
 file_verification[:verbose_messages].each { |m| STDERR.puts m } if options[:verbose]
 if (not file_verification[:valid]) or options[:verbose]
-  file_verification[:messages].each do |message|
-    STDERR.puts message
+  STDERR.puts 'Invalid file format :(' unless file_verification[:valid]
+  STDERR.puts "Total errors: #{file_verification[:messages].length}\n\n"
+  file_verification[:messages].each_with_index do |message, index|
+    STDERR.puts "#{index + 1}: #{message}\n\n"
   end
   exit 1 unless file_verification[:valid]
 end
