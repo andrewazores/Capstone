@@ -1,6 +1,6 @@
 require 'optparse'
 
-class OptParser
+module OptParser
   def parse_opts
     options = {}
     opt_parser = OptionParser.new do |opt|

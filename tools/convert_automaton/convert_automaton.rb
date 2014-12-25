@@ -123,17 +123,19 @@ class AutomatonVerifier
 end
 
 class ConvertAutomaton
-  def initialize(input)
-    @options = OptParser.new.parse_opts
-    lines = input.split /\r?\n/
-
-    lines.map &:chomp
-    @lines = lines.delete_if do |l|
-      l.start_with? '#'
-    end
+  include OptParser
+  def initialize
+    @options = parse_opts
   end
 
-  def convert(options=@options, lines=@lines)
+  def convert(raw, options=@options)
+    input = raw.split /\r?\n/
+
+    input.map &:chomp
+    lines = input.delete_if do |l|
+      l.start_with? '#'
+    end
+
     file_verification = FileFormatVerifier.new(lines, options[:verbose]).verify
     file_verification[:verbose_messages].each { |m| STDERR.puts m } if options[:verbose]
     if (not file_verification[:valid]) or options[:verbose]
@@ -145,8 +147,8 @@ class ConvertAutomaton
       exit 1 unless file_verification[:valid]
     end
 
-    num_states = @lines[0]
-    lines = @lines.drop 1
+    num_states = lines[0]
+    lines = lines.drop 1
     meta = lines.take num_states.to_i + 1
     raw_transitions = lines.drop num_states.to_i + 1
 
@@ -191,5 +193,5 @@ class ConvertAutomaton
 end
 
 if __FILE__ == $0
-  ConvertAutomaton.new(ARGF.read).convert
+  ConvertAutomaton.new.convert ARGF.read
 end
