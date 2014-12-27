@@ -33,6 +33,13 @@
                 <action android:name="ca.mcmaster.capstone.monitoralgorithm.Monitor" />
             </intent-filter>
         </service>
+        <service
+            android:enabled="true"
+            android:name=".initializer.Initializer">
+            <intent-filter>
+                <action android:name="ca.mcmaster.capstone.initializer.Initializer" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="com.google.android.gms.version"

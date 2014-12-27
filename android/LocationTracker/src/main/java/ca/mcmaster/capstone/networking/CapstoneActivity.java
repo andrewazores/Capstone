@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.initializer.Initializer;
+import ca.mcmaster.capstone.initializer.InitializerBinder;
 import ca.mcmaster.capstone.monitoralgorithm.Monitor;
 import ca.mcmaster.capstone.monitoralgorithm.MonitorBinder;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
@@ -39,9 +41,11 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     protected ListView listView;
     private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private final MonitorServiceConnection monitorServiceConnection = new MonitorServiceConnection();
+    private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
     private final List<NetworkPeerIdentifier> nsdPeers = new ArrayList<>();
     private Intent networkServiceIntent;
     private Intent monitorServiceIntent;
+    private Intent initializerServiceIntent;
 
     private NetworkPeerIdentifier networkPeerIdentifier = null;
 
@@ -53,6 +57,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
 
         networkServiceIntent = new Intent(this, CapstoneService.class);
         monitorServiceIntent = new Intent(this, Monitor.class);
+        initializerServiceIntent = new Intent(this, Initializer.class);
 
         listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nsdPeers));
@@ -73,6 +78,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         stopButton.setOnClickListener(view -> {
             stopNetworkService();
             stopMonitorService();
+            stopInitializerService();
             disconnect();
         });
 
@@ -141,6 +147,16 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         Toast.makeText(this, "Monitor service stopped", Toast.LENGTH_SHORT).show();
     }
 
+    private void stopInitializerService() {
+        if (!initializerServiceConnection.isBound()) {
+            Toast.makeText(this, "Initializer service not connected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        jsonTextView.setText("Not connected to Initializer Service");
+        stopService(initializerServiceIntent);
+        Toast.makeText(this, "Initializer service stopped", Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -158,6 +174,8 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
         startService(monitorServiceIntent);
         getApplicationContext().bindService(monitorServiceIntent, monitorServiceConnection, BIND_AUTO_CREATE);
+        startService(initializerServiceIntent);
+        getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
     }
 
     private void disconnect() {
@@ -255,6 +273,34 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         }
 
         public Monitor getService() {
+            return service;
+        }
+    }
+
+    public class InitializerServiceConnection implements ServiceConnection {
+
+        private Initializer service;
+
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder service) {
+            Toast.makeText(CapstoneActivity.this, "Initializer service connected", Toast.LENGTH_LONG).show();
+            log("Service connected");
+
+            this.service = ((InitializerBinder) service).getInitializer();
+        }
+
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            Toast.makeText(CapstoneActivity.this, "Initializer service disconnected", Toast.LENGTH_LONG).show();
+            log("Service disconnected");
+            this.service = null;
+        }
+
+        public boolean isBound() {
+            return this.service != null;
+        }
+
+        public Initializer getService() {
             return service;
         }
     }
