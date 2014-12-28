@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.NonNull;
@@ -67,7 +68,9 @@ public class Monitor extends Service {
     private static volatile boolean runMonitor = true;
     private Thread thread;
     private Intent networkServiceIntent;
-    private static final NetworkServiceConnection serviceConnection = new NetworkServiceConnection();
+    private Intent initializerServiceIntent;
+    private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
+    private static final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -78,7 +81,9 @@ public class Monitor extends Service {
     public void onCreate() {
         super.onCreate();
         networkServiceIntent = new Intent(this, CapstoneService.class);
-        getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
+        initializerServiceIntent = new Intent(this, Initializer.class);
+        getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
         runMonitor = true;
 
         thread = new Thread(Monitor::monitorLoop);
@@ -91,11 +96,11 @@ public class Monitor extends Service {
         super.onDestroy();
         Log.d("thread", "Stopped monitor!");
         runMonitor = false;
-        getApplicationContext().unbindService(serviceConnection);
+        getApplicationContext().unbindService(networkServiceConnection);
     }
 
     private static Token receive() {
-        while (serviceConnection.getNetworkLayer() == null) {
+        while (networkServiceConnection.getNetworkLayer() == null) {
             try {
                 Thread.sleep(1000);
             } catch (final InterruptedException e) {
@@ -105,7 +110,7 @@ public class Monitor extends Service {
         Token token = null;
         while (token == null) {
             try {
-                token = serviceConnection.getNetworkLayer().receiveToken();
+                token = networkServiceConnection.getNetworkLayer().receiveToken();
             } catch (InterruptedException e) {
                 Log.d("thread", "Woke up without a token, trying again: " + e.getLocalizedMessage());
             }
@@ -114,18 +119,18 @@ public class Monitor extends Service {
     }
 
     private static void send(@NonNull final Token token, @NonNull final NetworkPeerIdentifier pid) {
-        while (serviceConnection.getNetworkLayer() == null) {
+        while (networkServiceConnection.getNetworkLayer() == null) {
             try {
                 Thread.sleep(1000);
             } catch (final InterruptedException e) {
                 Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
-        serviceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
+        networkServiceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
     }
 
     private static Event read() {
-        while (serviceConnection.getNetworkLayer() == null) {
+        while (networkServiceConnection.getNetworkLayer() == null) {
             try {
                 Thread.sleep(1000);
             } catch (final InterruptedException e) {
@@ -135,7 +140,7 @@ public class Monitor extends Service {
         Event event = null;
         while (event == null) {
             try {
-                event = serviceConnection.getNetworkLayer().receiveEvent();
+                event = networkServiceConnection.getNetworkLayer().receiveEvent();
             } catch (InterruptedException e) {
                 Log.d("thread", "Woke up without an event, trying again: " + e.getLocalizedMessage());
             }
@@ -150,23 +155,17 @@ public class Monitor extends Service {
      */
     public static void init() {
         Log.d("monitor", "Initializing monitor");
-        while (serviceConnection.getNetworkLayer() == null) {
+        while (networkServiceConnection.getNetworkLayer() == null) {
             try {
                 Thread.sleep(1000);
             } catch (final InterruptedException e) {
                 Log.d("monitor", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
-        monitorID = serviceConnection.getNetworkLayer().getLocalNetworkPeerIdentifier();
+        monitorID = networkServiceConnection.getNetworkLayer().getLocalNetworkPeerIdentifier();
 
-        final Map<String, NetworkPeerIdentifier> virtualIdentifiers = generateVirtualIdentifiers();
+        final Map<String, NetworkPeerIdentifier> virtualIdentifiers = initializerServiceConnection.getInitializer().networkInitialization();
         Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
-        for (final Map.Entry<String, NetworkPeerIdentifier> entry : virtualIdentifiers.entrySet()) {
-            Log.v("monitor", entry.getKey() + " - " + entry.getValue());
-            if (entry.getValue().equals(monitorID)) {
-                Log.v("monitor", "I am " + entry.getKey()  + "!");
-            }
-        }
 
         //TODO: Eventually this will be constructed from a text file or something.
         final Valuation<Double> val1 = new Valuation<>(new HashMap<String, Double>() {{
@@ -202,7 +201,7 @@ public class Monitor extends Service {
     private static Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         while (true) {
-            if (serviceConnection.getNetworkLayer().getAllNetworkDevices().size() == numPeers) {
+            if (networkServiceConnection.getNetworkLayer().getAllNetworkDevices().size() == numPeers) {
                 break;
             }
             try {
@@ -211,7 +210,7 @@ public class Monitor extends Service {
                 //Don't care
             }
         }
-        final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(serviceConnection.getNetworkLayer().getAllNetworkDevices());
+        final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(networkServiceConnection.getNetworkLayer().getAllNetworkDevices());
         Collections.sort(sortedIdentifiers, (f, s) -> Integer.compare(f.hashCode(), s.hashCode()));
         for (final NetworkPeerIdentifier networkPeerIdentifier : sortedIdentifiers) {
             final String virtualIdentifier = "x" + (sortedIdentifiers.indexOf(networkPeerIdentifier) + 1);
