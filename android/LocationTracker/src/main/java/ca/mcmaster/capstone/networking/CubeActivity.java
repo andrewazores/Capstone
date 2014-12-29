@@ -13,6 +13,7 @@ import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
@@ -20,6 +21,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.initializer.InitializerBinder;
@@ -37,6 +39,7 @@ public class CubeActivity extends Activity {
     private boolean isFlat = true;
     private double flat = 1.0;
     private NetworkPeerIdentifier NSD;
+    private String variableName;
 
     private final float[] gravity = new float[3];
     private final float[] linearAcceleration = new float[3];
@@ -95,7 +98,7 @@ public class CubeActivity extends Activity {
         }
         final Event e = serviceConnection.getService().receiveEvent();
 
-        deviceMap.put(e.getPid(), (Double)e.getVal().getValue("isFlat"));
+        deviceMap.put(e.getPid(), (Double)e.getVal().getValue(this.variableName));
 
         int i = 0;
         final StringBuilder sb = new StringBuilder();
@@ -207,7 +210,7 @@ public class CubeActivity extends Activity {
                 return;
             }
             final Valuation<?> valuation = new Valuation<>(new HashMap<String, Double>() {{
-                put("isFlat", value);
+                put(CubeActivity.this.variableName, value);
             }});
             final Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation,
                     new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
@@ -281,9 +284,9 @@ public class CubeActivity extends Activity {
 
             this.binder = (CapstoneService.CapstoneNetworkServiceBinder) service;
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
+
 //            this.service.registerSensorUpdateCallback(CubeActivity.this);
 //            this.service.registerNsdUpdateCallback(CubeActivity.this);
-            CubeActivity.this.NSD = this.service.getLocalNetworkPeerIdentifier();
 //            updateSelfInfo();
         }
 
@@ -309,6 +312,16 @@ public class CubeActivity extends Activity {
         @Override
         public void onServiceConnected(final ComponentName componentName, final IBinder iBinder) {
             this.initializer = ((InitializerBinder) iBinder).getInitializer();
+
+            CubeActivity.this.NSD = initializer.getLocalPID();
+            //FIXME: this is for testing out simple test case. More work is needed for more complex variable arrangements
+            for (Map.Entry<String, NetworkPeerIdentifier> virtualID : initializer.getVirtualIdentifiers().entrySet()) {
+                if (virtualID.getValue() == NSD) {
+                    CubeActivity.this.variableName = virtualID.getKey();
+                    break;
+                }
+            }
+            Log.d("cube", "My variable is: " + CubeActivity.this.variableName);
         }
 
         @Override
