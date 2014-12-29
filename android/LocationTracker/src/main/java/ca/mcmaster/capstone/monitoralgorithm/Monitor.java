@@ -162,10 +162,10 @@ public class Monitor extends Service {
                 Log.d("monitor", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
-        //monitorID = networkServiceConnection.getNetworkLayer().getLocalNetworkPeerIdentifier();
-        monitorID = initializerServiceConnection.getInitializer().getLocalPID();
 
+        monitorID = initializerServiceConnection.getInitializer().getLocalPID();
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = initializerServiceConnection.getInitializer().getVirtualIdentifiers();
+
         Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
 
         //TODO: Eventually this will be constructed from a text file or something.

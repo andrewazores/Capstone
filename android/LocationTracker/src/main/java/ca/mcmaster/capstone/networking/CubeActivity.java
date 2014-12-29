@@ -21,6 +21,8 @@ import android.widget.Toast;
 
 import java.util.HashMap;
 
+import ca.mcmaster.capstone.initializer.Initializer;
+import ca.mcmaster.capstone.initializer.InitializerBinder;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
@@ -40,7 +42,9 @@ public class CubeActivity extends Activity {
     private final float[] linearAcceleration = new float[3];
     private OpenGLRenderer renderer;
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
+    private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
     private Intent serviceIntent = null;
+    private Intent initializerServiceIntent = null;
     private boolean back = false;
 
     private final HashMap<NetworkPeerIdentifier, Double> deviceMap = new HashMap<>();
@@ -51,6 +55,9 @@ public class CubeActivity extends Activity {
 
         serviceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
+
+        initializerServiceIntent = new Intent(this, Initializer.class);
+        getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -295,4 +302,23 @@ public class CubeActivity extends Activity {
             return service;
         }
     }
+
+    public class InitializerServiceConnection implements ServiceConnection{
+        private Initializer initializer;
+
+        @Override
+        public void onServiceConnected(final ComponentName componentName, final IBinder iBinder) {
+            this.initializer = ((InitializerBinder) iBinder).getInitializer();
+        }
+
+        @Override
+        public void onServiceDisconnected(final ComponentName componentName) {
+            this.initializer = null;
+        }
+
+        public Initializer getInitializer() {
+            return this.initializer;
+        }
+    }
+
 }
