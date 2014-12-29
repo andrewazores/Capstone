@@ -19,9 +19,9 @@ import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 public class Initializer extends Service {
     private static class NetworkInitializer implements Runnable {
         private static int numPeers;
-        private NetworkPeerIdentifier localPID;
-        private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
-        private final CountDownLatch latch = new CountDownLatch(1);
+        private static NetworkPeerIdentifier localPID;
+        private static final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
+        private static final CountDownLatch latch = new CountDownLatch(1);
 
         public NetworkInitializer(final int numPeers){
             this.numPeers = numPeers;
@@ -49,7 +49,7 @@ public class Initializer extends Service {
             latch.countDown();
         }
 
-        private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
+        private static Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
             final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
             while (true) {
                 if (serviceConnection.getNetworkLayer().getAllNetworkDevices().size() == numPeers) {
@@ -70,7 +70,7 @@ public class Initializer extends Service {
             return virtualIdentifiers;
         }
 
-        public NetworkPeerIdentifier getLocalPID() {
+        public static NetworkPeerIdentifier getLocalPID() {
             try {
                 latch.await();
             } catch (InterruptedException e) {
@@ -79,7 +79,7 @@ public class Initializer extends Service {
             return localPID;
         }
 
-        public Map<String, NetworkPeerIdentifier> getVirtualIdentifiers() {
+        public static Map<String, NetworkPeerIdentifier> getVirtualIdentifiers() {
             try {
                 latch.await();
             } catch (InterruptedException e) {
