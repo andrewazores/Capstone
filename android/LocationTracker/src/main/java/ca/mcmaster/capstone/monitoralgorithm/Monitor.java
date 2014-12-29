@@ -162,9 +162,10 @@ public class Monitor extends Service {
                 Log.d("monitor", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
-        monitorID = networkServiceConnection.getNetworkLayer().getLocalNetworkPeerIdentifier();
+        //monitorID = networkServiceConnection.getNetworkLayer().getLocalNetworkPeerIdentifier();
+        monitorID = initializerServiceConnection.getInitializer().getLocalPID();
 
-        final Map<String, NetworkPeerIdentifier> virtualIdentifiers = initializerServiceConnection.getInitializer().networkInitialization();
+        final Map<String, NetworkPeerIdentifier> virtualIdentifiers = initializerServiceConnection.getInitializer().getVirtualIdentifiers();
         Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
 
         //TODO: Eventually this will be constructed from a text file or something.
@@ -195,28 +196,6 @@ public class Monitor extends Service {
         }}));
         GV.add(initialGV);
         Log.d("monitor", "Finished initializing monitor");
-    }
-
-    //FIXME: This method requires certain elements of global state to be initialized before it is called.
-    private static Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
-        final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
-        while (true) {
-            if (networkServiceConnection.getNetworkLayer().getAllNetworkDevices().size() == numPeers) {
-                break;
-            }
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                //Don't care
-            }
-        }
-        final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(networkServiceConnection.getNetworkLayer().getAllNetworkDevices());
-        Collections.sort(sortedIdentifiers, (f, s) -> Integer.compare(f.hashCode(), s.hashCode()));
-        for (final NetworkPeerIdentifier networkPeerIdentifier : sortedIdentifiers) {
-            final String virtualIdentifier = "x" + (sortedIdentifiers.indexOf(networkPeerIdentifier) + 1);
-            virtualIdentifiers.put(virtualIdentifier, networkPeerIdentifier);
-        }
-        return virtualIdentifiers;
     }
 
     /*
