@@ -22,7 +22,7 @@ public class Initializer extends Service {
         private int numPeers;
         private NetworkPeerIdentifier localPID;
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
-        private final CountDownLatch latch = new CountDownLatch(1);
+        private final CountDownLatch initializationLatch = new CountDownLatch(1);
 
         public NetworkInitializer(final int numPeers, final NetworkServiceConnection serviceConnection) {
             this.numPeers = numPeers;
@@ -48,7 +48,7 @@ public class Initializer extends Service {
                     Log.v("initializer", "I am " + entry.getKey()  + "!");
                 }
             }
-            latch.countDown();
+            initializationLatch.countDown();
         }
 
         private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
@@ -74,7 +74,7 @@ public class Initializer extends Service {
 
         public NetworkPeerIdentifier getLocalPID() {
             try {
-                latch.await();
+                initializationLatch.await();
             } catch (InterruptedException e) {
                 Log.d("initializer", "Await failed.");
             }
@@ -83,7 +83,7 @@ public class Initializer extends Service {
 
         public Map<String, NetworkPeerIdentifier> getVirtualIdentifiers() {
             try {
-                latch.await();
+                initializationLatch.await();
             } catch (InterruptedException e) {
                 Log.d("initializer", "Await failed.");
             }
