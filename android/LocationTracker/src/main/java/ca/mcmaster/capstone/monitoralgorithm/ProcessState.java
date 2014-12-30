@@ -21,8 +21,8 @@ public class ProcessState {
      */
     public ProcessState(@NonNull final NetworkPeerIdentifier id, @NonNull final Valuation<?> val, @NonNull final VectorClock VC) {
         this.id = id;
-        this.val = val;
-        this.VC = VC;
+        this.val = new Valuation<>(val);
+        this.VC = new VectorClock(VC);
     }
 
     public ProcessState(@NonNull final ProcessState state) {
@@ -46,6 +46,6 @@ public class ProcessState {
          * @return A new ProcessState updated with event.
          */
     public ProcessState update(@NonNull final Event event) {
-        return new ProcessState(this.id, event.getVal(), event.getVC());
+        return new ProcessState(this.id, event.getVal(), this.VC.merge(event.getVC()));
     }
 }

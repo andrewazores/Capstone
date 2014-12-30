@@ -280,9 +280,7 @@ public class Monitor extends Service {
      */
     public static void processEvent(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering processEvent");
-        gv.setCut(gv.getCut().merge(event.getVC()));
-        final ProcessState state = gv.getStates().get(monitorID);
-        gv.getStates().put(monitorID, state.update(event));
+        gv.updateWithEvent(event);
         if (gv.isConsistent()) {
             gv.setCurrentState(Automaton.advance(gv));
             if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
@@ -306,8 +304,6 @@ public class Monitor extends Service {
         final Map<NetworkPeerIdentifier, Set<AutomatonTransition>> consult = new HashMap<>();
         for (final AutomatonTransition trans : Automaton.getTransitions()) {
             final AutomatonState current = gv.getCurrentState();
-            Log.d("monitor", current.toString());
-            Log.d("monitor", trans.toString());
             if (trans.getFrom().equals(current) && !trans.getTo().equals(current)) {
                 final Set<NetworkPeerIdentifier> participating = trans.getParticipatingProcesses();
                 final Set<NetworkPeerIdentifier> forbidding = trans.getForbiddingProcesses(gv);
@@ -347,7 +343,7 @@ public class Monitor extends Service {
         final Token token = gv.getTokenWithMostConjuncts();
         //XXX: This may not be correct. More investigation required.
         if (token != null) {
-            Log.d("monitor", "Sending a nice shiney token!");
+            Log.d("monitor", "Sending a nice shiny token!");
             send(token, token.getDestination());
             token.setSent(true);
         }
@@ -365,7 +361,7 @@ public class Monitor extends Service {
         if (token.getOwner() == monitorID) {
             final List<GlobalView> globalViews = getGlobalView(token);
             for (final GlobalView globalView : globalViews) {
-                globalView.update(token);
+                globalView.updateWithToken(token);
                 for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
@@ -377,7 +373,7 @@ public class Monitor extends Service {
                     }
                     if (enabled && consistent(globalView, tokens)) {
                         for (final Token tok : tokens) {
-                            globalView.update(tok);
+                            globalView.updateWithToken(tok);
                         }
                         final GlobalView gvn1 = new GlobalView(globalView);
                         final GlobalView gvn2 = new GlobalView(globalView);

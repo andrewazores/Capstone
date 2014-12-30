@@ -82,11 +82,11 @@ public class GlobalView {
     }
 
     /*
-     * Updates the global view with token.
+     * Updates the global view with the information in token.
      *
      * @param token The token to use to update the global view.
      */
-    public void update(@NonNull final Token token) {
+    public void updateWithToken(@NonNull final Token token) {
         cut = cut.merge(token.getCut());
         states.put(token.getTargetProcessState().getId(), token.getTargetProcessState());
         // If any pending transitions are also in the token, and are evaluated in the token, remove them
@@ -96,6 +96,17 @@ public class GlobalView {
                 it.remove();
             }
         }
+    }
+
+    /*
+     * Updates the global view with the information in event.
+     *
+     * @param event The event to use to update the global view.
+     */
+    public void updateWithEvent(@NonNull final Event event) {
+        this.cut = cut.merge(event.getVC());
+        final ProcessState state = this.states.get(event.getPid()).update(event);
+        this.states.put(event.getPid(), state);
     }
 
     /*
@@ -158,8 +169,8 @@ public class GlobalView {
         final Set<NetworkPeerIdentifier> ret = new HashSet<>();
         for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : this.states.entrySet()) {
             final ProcessState state = entry.getValue();
-            if (this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.BIGGER ||
-                    this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.SMALLER) {
+            if (!(this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.EQUAL ||
+                    this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.CONCURRENT)) {
                 ret.add(state.getId());
             }
         }
