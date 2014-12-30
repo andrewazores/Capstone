@@ -87,8 +87,8 @@ public class Initializer extends Service {
         }
 
         private void waitForLatch(final CountDownLatch latch) {
+            Log.v("networkInitializer", "waiting for latch: " + latch);
             while (latch.getCount() > 0 && !cancelled) {
-                Log.v("networkInitializer", "waiting for latch: " + latch);
                 try {
                     latch.await(500, TimeUnit.MILLISECONDS);
                 } catch (final InterruptedException ie) {
