@@ -90,7 +90,7 @@ public class Initializer extends Service {
     }
 
     // FIXME: the magic number will be read in from the input file, but for now is hard coded
-    NetworkInitializer network = new NetworkInitializer(2);
+    private NetworkInitializer network = new NetworkInitializer(2);
 
     private Intent networkServiceIntent;
     private static final NetworkServiceConnection serviceConnection = new NetworkServiceConnection();
