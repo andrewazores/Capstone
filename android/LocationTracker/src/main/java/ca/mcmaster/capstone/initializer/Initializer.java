@@ -18,7 +18,7 @@ import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 
 public class Initializer extends Service {
     private static class NetworkInitializer implements Runnable {
-        private static int numPeers;
+        private int numPeers;
         private NetworkPeerIdentifier localPID;
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         private final CountDownLatch latch = new CountDownLatch(1);
