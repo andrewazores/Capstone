@@ -8,4 +8,4 @@ Dependencies:
 - Ruby (duh)
 - rubygems
 - Bundler gem
-- any further dependencies handled by bundler
+- any further dependencies handled by bundler ('bundle install')
