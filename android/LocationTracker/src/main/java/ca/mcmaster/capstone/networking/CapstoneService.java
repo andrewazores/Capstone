@@ -420,12 +420,12 @@ public final class CapstoneService extends Service implements NetworkLayer {
         return asJson(deviceInfo);
     }
 
-    void registerSensorUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
-        this.sensorUpdateCallbackReceivers.add(capstoneActivity);
+    void registerSensorUpdateCallback(@NonNull final SensorUpdateCallbackReceiver<DeviceInfo> sensorUpdateCallbackReceiver) {
+        this.sensorUpdateCallbackReceivers.add(sensorUpdateCallbackReceiver);
     }
 
-    void unregisterSensorUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
-        this.sensorUpdateCallbackReceivers.remove(capstoneActivity);
+    void unregisterSensorUpdateCallback(@NonNull final SensorUpdateCallbackReceiver<DeviceInfo> sensorUpdateCallbackReceiver) {
+        this.sensorUpdateCallbackReceivers.remove(sensorUpdateCallbackReceiver);
     }
 
     @Override

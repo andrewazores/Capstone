@@ -27,14 +27,14 @@ import ca.mcmaster.capstone.monitoralgorithm.Monitor;
 import ca.mcmaster.capstone.monitoralgorithm.MonitorBinder;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import ca.mcmaster.capstone.networking.util.JsonUtil;
 import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 
 import static ca.mcmaster.capstone.networking.util.JsonUtil.asJson;
 
-public class CapstoneActivity extends Activity implements SensorUpdateCallbackReceiver<DeviceInfo>,
-                                                            NpiUpdateCallbackReceiver,
+public class CapstoneActivity extends Activity implements NpiUpdateCallbackReceiver,
                                                             PeerUpdateCallbackReceiver<DeviceInfo> {
 
     protected TextView jsonTextView;
@@ -98,11 +98,6 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             networkServiceConnection.getService().sendHandshakeToPeer(peer);
             networkServiceConnection.getService().requestUpdateFromPeer(peer, this);
         }
-    }
-
-    @Override
-    public void update(final DeviceInfo peerInfo) {
-        updateSelfInfo();
     }
 
     @Override
@@ -179,7 +174,6 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
 
     private void disconnect() {
         if (networkServiceConnection.isBound()) {
-            networkServiceConnection.getService().unregisterSensorUpdateCallback(CapstoneActivity.this);
             networkServiceConnection.getService().unregisterNpiUpdateCallback(CapstoneActivity.this);
             attemptUnbind(networkServiceConnection);
         } else {
@@ -212,7 +206,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             return;
         }
         final Handler mainHandler = new Handler(this.getMainLooper());
-        mainHandler.post(() -> jsonTextView.setText(networkServiceConnection.getService().getStatusAsJson()));
+        mainHandler.post(() -> jsonTextView.setText(JsonUtil.asJson(networkServiceConnection.getService().getLocalNetworkPeerIdentifier())));
     }
 
     private static void log(final String message) {
@@ -231,7 +225,6 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
 
             this.binder = (CapstoneService.CapstoneNetworkServiceBinder) service;
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
-            this.service.registerSensorUpdateCallback(CapstoneActivity.this);
             this.service.registerNpiUpdateCallback(CapstoneActivity.this);
             CapstoneActivity.this.networkPeerIdentifier = this.service.getLocalNetworkPeerIdentifier();
             updateSelfInfo();
