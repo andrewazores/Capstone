@@ -4,10 +4,6 @@ import java.util.Objects;
 
 import ca.mcmaster.capstone.monitoralgorithm.Conjunct;
 import ca.mcmaster.capstone.monitoralgorithm.ProcessState;
-import ca.mcmaster.capstone.monitoralgorithm.tree.ComparisonOperator;
-import ca.mcmaster.capstone.monitoralgorithm.tree.RootNode;
-import ca.mcmaster.capstone.monitoralgorithm.tree.ValueNode;
-import ca.mcmaster.capstone.monitoralgorithm.tree.VariableNode;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;

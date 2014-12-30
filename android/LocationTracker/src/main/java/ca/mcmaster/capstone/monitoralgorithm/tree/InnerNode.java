@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
-import lombok.Value;
 
 /* An inner node */
 @AllArgsConstructor @ToString @Getter @EqualsAndHashCode
