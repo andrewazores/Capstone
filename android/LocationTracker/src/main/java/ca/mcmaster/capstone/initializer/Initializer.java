@@ -34,9 +34,7 @@ public class Initializer extends Service {
 
         @Override
         public void npiUpdate(final Collection<NetworkPeerIdentifier> npiPeers) {
-            Log.v("Initializer", "Received NpiPeers: " + npiPeers);
             if (npiPeers.size() == numPeers - 1) { // npiPeers set does not include local PID
-                Log.v("Initializer", "NpiPeers count matched, unlocking: " + npiPeers.size());
                 peerCountLatch.countDown();
             }
         }
@@ -82,9 +80,7 @@ public class Initializer extends Service {
         }
 
         private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
-            Log.v("Initializer", "Waiting to generate virtual identifiers");
             waitForLatch(peerCountLatch);
-            Log.v("Initializer", "Done waiting to generate virtual identifiers");
 
             final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
             final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(serviceConnection.getNetworkLayer().getAllNetworkDevices());
