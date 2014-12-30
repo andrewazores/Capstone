@@ -67,11 +67,8 @@ public class Monitor extends Service {
         super.onDestroy();
         Log.d("thread", "Stopped monitor!");
         cancelled = true;
-        cancelJobs(tokenPollJob, eventPollJob);
         workQueue.shutdownNow();
-        if (monitorJob != null) {
-            monitorJob.cancel(true);
-        }
+        cancelJobs(tokenPollJob, eventPollJob, monitorJob);
         getApplicationContext().unbindService(networkServiceConnection);
         getApplicationContext().unbindService(initializerServiceConnection);
     }
