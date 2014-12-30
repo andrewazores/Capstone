@@ -5,6 +5,7 @@ import java.util.Set;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import lombok.NonNull;
 
 public interface NetworkLayer {
 
@@ -13,6 +14,10 @@ public interface NetworkLayer {
      * @return NetworkPeerIdentifier for the local device
      */
     NetworkPeerIdentifier getLocalNetworkPeerIdentifier();
+
+    void registerNpiUpdateCallback(@NonNull NpiUpdateCallbackReceiver npiUpdateCallbackReceiver);
+
+    void unregisterNpiUpdateCallback(@NonNull NpiUpdateCallbackReceiver npiUpdateCallbackReceiver);
 
     /**
      * Broadcasts a Token to a specific peer
