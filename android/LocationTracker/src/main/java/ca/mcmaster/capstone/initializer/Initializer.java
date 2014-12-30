@@ -108,8 +108,7 @@ public class Initializer extends Service {
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
-        final Thread thread = new Thread(network);
-        thread.start();
+        new Thread(network).start();
     }
 
     @Override
