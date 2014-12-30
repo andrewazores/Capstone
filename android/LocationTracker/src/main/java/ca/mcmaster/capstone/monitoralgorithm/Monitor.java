@@ -56,7 +56,7 @@ public class Monitor extends Service {
         initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
 
-        workQueue = Executors.newCachedThreadPool();
+        workQueue = Executors.newSingleThreadExecutor();
 
         monitorJob = workQueue.submit(Monitor::monitorLoop);
         Log.d("thread", "Started monitor!");
@@ -142,8 +142,8 @@ public class Monitor extends Service {
     public static void monitorLoop() {
         init();
         Log.d("monitor", "submitting loop tasks");
-        tokenPollJob = workQueue.submit(Monitor::pollTokens);
-        eventPollJob = workQueue.submit(Monitor::pollEvents);
+        tokenPollJob = Executors.newSingleThreadExecutor().submit(Monitor::pollTokens);
+        eventPollJob = Executors.newSingleThreadExecutor().submit(Monitor::pollEvents);
     }
 
     private static void pollTokens() {
