@@ -21,7 +21,7 @@ import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
 public class Initializer extends Service {
     private static class NetworkInitializer implements Runnable, NpiUpdateCallbackReceiver {
         private final NetworkServiceConnection serviceConnection;
-        private int numPeers;
+        private final int numPeers;
         private NetworkPeerIdentifier localPID;
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         private final CountDownLatch initializationLatch = new CountDownLatch(1);
