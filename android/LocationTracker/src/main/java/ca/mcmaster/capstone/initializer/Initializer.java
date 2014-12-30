@@ -34,19 +34,29 @@ public class Initializer extends Service {
 
         @Override
         public void npiUpdate(final Collection<NetworkPeerIdentifier> npiPeers) {
-            if (npiPeers.size() == numPeers) {
+            Log.v("Initializer", "Received NpiPeers: " + npiPeers);
+            if (npiPeers.size() == numPeers - 1) { // npiPeers set does not include local PID
+                Log.v("Initializer", "NpiPeers count matched, unlocking: " + npiPeers.size());
                 peerCountLatch.countDown();
             }
         }
 
-        @Override
-        public void run() {
+        private void waitForNetworkLayer() {
             while (serviceConnection.getNetworkLayer() == null) {
                 try {
                     Thread.sleep(1000);
                 } catch (final InterruptedException e) {
                     Log.d("initializer", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
                 }
+            }
+        }
+
+        @Override
+        public void run() {
+            waitForNetworkLayer();
+            serviceConnection.getNetworkLayer().registerNpiUpdateCallback(this);
+            if (serviceConnection.getNetworkLayer().getAllNetworkDevices().size() == numPeers) {
+                peerCountLatch.countDown();
             }
 
             localPID = serviceConnection.getNetworkLayer().getLocalNetworkPeerIdentifier();
@@ -72,7 +82,9 @@ public class Initializer extends Service {
         }
 
         private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
+            Log.v("Initializer", "Waiting to generate virtual identifiers");
             waitForLatch(peerCountLatch);
+            Log.v("Initializer", "Done waiting to generate virtual identifiers");
 
             final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
             final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(serviceConnection.getNetworkLayer().getAllNetworkDevices());
