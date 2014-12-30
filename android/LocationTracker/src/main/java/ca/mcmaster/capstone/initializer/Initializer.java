@@ -23,7 +23,7 @@ public class Initializer extends Service {
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         private final CountDownLatch latch = new CountDownLatch(1);
 
-        public NetworkInitializer(final int numPeers){
+        public NetworkInitializer(final int numPeers) {
             this.numPeers = numPeers;
         }
 
