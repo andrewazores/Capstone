@@ -7,7 +7,6 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,6 +17,11 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.networking.CapstoneService;
@@ -28,45 +32,14 @@ import lombok.NonNull;
 // TODO: refactor Service components out into MonitorService to separate from actual Monitor logic
 public class Monitor extends Service {
 
-    private static class Receiver<T> implements Runnable {
-        /**
-         * Should be a blocking call, else the Thread running this Receiver will spend a lot of time spinning
-         */
-        @NonNull private final Callable<T> callable;
-        private final Queue<T> receiveQueue = new ConcurrentLinkedQueue<>();
-        private volatile boolean run = true;
-
-        public Receiver(@NonNull final Callable<T> callable) {
-            this.callable = callable;
-        }
-
-        @Override
-        public void run() {
-            while (run) {
-                try {
-                    receiveQueue.add(callable.call());
-                } catch (final Exception e) {
-                    Log.v("MonitorService", "Receiver helper thread failed to call callable: " + e.getLocalizedMessage());
-                }
-            }
-        }
-
-        public T receive() {
-            return receiveQueue.poll();
-        }
-
-        public void stop() {
-            run = false;
-        }
-    }
-
     private static final Map<Integer, Event> history = new HashMap<>();
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static NetworkPeerIdentifier monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
     private static final int numPeers = 2;
-    private static volatile boolean runMonitor = true;
-    private Thread thread;
+    private static final ExecutorService monitorExecutor = Executors.newSingleThreadExecutor();
+    private static final ScheduledExecutorService workQueue = Executors.newScheduledThreadPool(2);
+    private static Future<?> monitorJob = null;
     private Intent networkServiceIntent;
     private Intent initializerServiceIntent;
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
@@ -84,18 +57,17 @@ public class Monitor extends Service {
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
         initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
-        runMonitor = true;
 
-        thread = new Thread(Monitor::monitorLoop);
+        monitorJob = monitorExecutor.submit(Monitor::monitorLoop);
         Log.d("thread", "Started monitor!");
-        thread.start();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         Log.d("thread", "Stopped monitor!");
-        runMonitor = false;
+        workQueue.shutdownNow();
+        monitorJob.cancel(true);
         getApplicationContext().unbindService(networkServiceConnection);
     }
 
@@ -205,32 +177,8 @@ public class Monitor extends Service {
      */
     public static void monitorLoop() {
         init();
-
-        final Receiver<Token> tokenReceiver = new Receiver<>(Monitor::receive);
-        final Thread tokens = new Thread(tokenReceiver);
-        tokens.start();
-        final Receiver<Event> eventReceiver = new Receiver<>(Monitor::read);
-        final Thread events = new Thread(eventReceiver);
-        events.start();
-        Log.d("monitor", "Starting main loop.");
-        while (runMonitor) {
-            try {
-                Thread.sleep(500); // FIXME: should refactor this to use an ExecutorService or something in the future. Good enough for now...
-            } catch (final InterruptedException ie) {
-                // don't care
-            }
-            final Token receivedToken = tokenReceiver.receive();
-            if (receivedToken != null) {
-                receiveToken(receivedToken);
-            }
-            final Event localEvent = eventReceiver.receive();
-            if (localEvent != null) {
-                receiveEvent(localEvent);
-            }
-        }
-        tokenReceiver.stop();
-        eventReceiver.stop();
-        Log.d("monitor", "Left monitor loop.");
+        workQueue.scheduleAtFixedRate(() -> receiveToken(receive()), 0, 100, TimeUnit.MILLISECONDS);
+        workQueue.scheduleAtFixedRate(() -> receiveEvent(read()), 0, 100, TimeUnit.MILLISECONDS);
     }
 
     /*
