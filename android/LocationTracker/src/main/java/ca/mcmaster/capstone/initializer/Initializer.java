@@ -6,6 +6,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,18 +16,27 @@ import java.util.concurrent.CountDownLatch;
 import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
 
 public class Initializer extends Service {
-    private static class NetworkInitializer implements Runnable {
+    private static class NetworkInitializer implements Runnable, NpiUpdateCallbackReceiver {
         private final NetworkServiceConnection serviceConnection;
         private int numPeers;
         private NetworkPeerIdentifier localPID;
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         private final CountDownLatch initializationLatch = new CountDownLatch(1);
+        private final CountDownLatch peerCountLatch = new CountDownLatch(1);
 
         public NetworkInitializer(final int numPeers, final NetworkServiceConnection serviceConnection) {
             this.numPeers = numPeers;
             this.serviceConnection = serviceConnection;
+        }
+
+        @Override
+        public void npiUpdate(final Collection<NetworkPeerIdentifier> npiPeers) {
+            if (npiPeers.size() == numPeers) {
+                peerCountLatch.countDown();
+            }
         }
 
         @Override
@@ -52,17 +62,13 @@ public class Initializer extends Service {
         }
 
         private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
-            final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
-            while (true) {
-                if (serviceConnection.getNetworkLayer().getAllNetworkDevices().size() == numPeers) {
-                    break;
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    //Don't care
-                }
+            try {
+                peerCountLatch.await();
+            } catch (InterruptedException e) {
+                Log.d("initializer", "Await failed.");
             }
+
+            final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
             final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(serviceConnection.getNetworkLayer().getAllNetworkDevices());
             Collections.sort(sortedIdentifiers, (f, s) -> Integer.compare(f.hashCode(), s.hashCode()));
             for (final NetworkPeerIdentifier networkPeerIdentifier : sortedIdentifiers) {
