@@ -61,10 +61,10 @@ public class Initializer extends Service {
             initializationLatch.countDown();
         }
 
-        private void waitForInitialization() {
-            while (initializationLatch.getCount() > 0) {
+        private void waitForLatch(final CountDownLatch latch) {
+            while (latch.getCount() > 0) {
                 try {
-                    initializationLatch.await();
+                    latch.await();
                 } catch (final InterruptedException ie) {
                     // don't really care, just need to try again
                 }
@@ -89,12 +89,12 @@ public class Initializer extends Service {
         }
 
         public NetworkPeerIdentifier getLocalPID() {
-            waitForInitialization();
+            waitForLatch(initializationLatch);
             return localPID;
         }
 
         public Map<String, NetworkPeerIdentifier> getVirtualIdentifiers() {
-            waitForInitialization();
+            waitForLatch(initializationLatch);
             return virtualIdentifiers;
         }
     }
