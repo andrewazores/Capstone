@@ -91,11 +91,11 @@ public class Initializer extends Service {
         }
     }
 
-    private final NetworkServiceConnection serviceConnection = new NetworkServiceConnection();
+    private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private Intent networkServiceIntent;
 
     // FIXME: the magic number will be read in from the input file, but for now is hard coded
-    private NetworkInitializer network = new NetworkInitializer(2, serviceConnection);
+    private NetworkInitializer network = new NetworkInitializer(2, networkServiceConnection);
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -106,7 +106,7 @@ public class Initializer extends Service {
     public void onCreate() {
         super.onCreate();
         networkServiceIntent = new Intent(this, CapstoneService.class);
-        getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
         final Thread thread = new Thread(network);
         thread.start();
@@ -115,7 +115,7 @@ public class Initializer extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        getApplicationContext().unbindService(serviceConnection);
+        getApplicationContext().unbindService(networkServiceConnection);
     }
 
     public NetworkPeerIdentifier getLocalPID() {
