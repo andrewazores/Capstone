@@ -61,7 +61,7 @@ public class Initializer extends Service {
             initializationLatch.countDown();
         }
 
-        private void waitForLatch(final CountDownLatch latch) {
+        private static void waitForLatch(final CountDownLatch latch) {
             while (latch.getCount() > 0) {
                 try {
                     latch.await();
