@@ -35,8 +35,8 @@ public class Monitor extends Service {
     private static NetworkPeerIdentifier monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
     private static final int numPeers = 2;
-    private static final ExecutorService monitorExecutor = Executors.newSingleThreadExecutor();
-    private static final ScheduledExecutorService workQueue = Executors.newScheduledThreadPool(5);
+    private static ExecutorService monitorExecutor;
+    private static ScheduledExecutorService workQueue;
     private static volatile boolean cancelled = false;
     private static Future<?> monitorJob = null;
     private static Future<?> tokenPollJob = null;
@@ -58,10 +58,14 @@ public class Monitor extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        cancelled = false;
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
         initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
+
+        monitorExecutor = Executors.newSingleThreadExecutor();
+        workQueue = Executors.newScheduledThreadPool(5);
 
         monitorJob = monitorExecutor.submit(Monitor::monitorLoop);
         Log.d("thread", "Started monitor!");
@@ -158,6 +162,7 @@ public class Monitor extends Service {
             Log.d("monitor", "pollTokens looping");
             tokenQueue.add(receive());
         }
+        Log.d("monitor", "pollTokens exiting");
     }
 
     private static void pollEvents() {
@@ -165,6 +170,7 @@ public class Monitor extends Service {
             Log.d("monitor", "pollEvents looping");
             eventQueue.add(read());
         }
+        Log.d("monitor", "pollEvents exiting");
     }
 
     private static void processTokens() {
@@ -176,6 +182,7 @@ public class Monitor extends Service {
                 // just try again
             }
         }
+        Log.d("monitor", "processTokens exiting");
     }
 
     private static void processEvents() {
@@ -187,6 +194,7 @@ public class Monitor extends Service {
                 // just try again
             }
         }
+        Log.d("monitor", "processEvents exiting");
     }
 
     private static Token receive() {

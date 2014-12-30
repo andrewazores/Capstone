@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
 import ca.mcmaster.capstone.networking.CapstoneService;
@@ -31,21 +32,26 @@ public class Initializer extends Service {
         private volatile boolean cancelled = false;
 
         public NetworkInitializer(final int numPeers, final NetworkServiceConnection serviceConnection) {
+            Log.v("networkInitializer", "created");
             this.numPeers = numPeers;
             this.serviceConnection = serviceConnection;
+            cancelled = false;
         }
 
         @Override
         public void npiUpdate(final Collection<NetworkPeerIdentifier> npiPeers) {
             if (npiPeers.size() == numPeers - 1) { // npiPeers set does not include local PID
+                Log.v("networkInitializer", "has enough npi peers - unlatching");
                 peerCountLatch.countDown();
                 serviceConnection.getNetworkLayer().stopNpiDiscovery();
             }
         }
 
         private void waitForNetworkLayer() {
+            Log.v("networkInitializer", "waitForNetworkLayer");
             while (serviceConnection.getNetworkLayer() == null && !cancelled) {
                 try {
+                    Log.v("networkInitializer", "waiting 1 second for network layer to appear...");
                     Thread.sleep(1000);
                 } catch (final InterruptedException e) {
                     Log.d("initializer", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
@@ -55,14 +61,19 @@ public class Initializer extends Service {
 
         @Override
         public void run() {
+            Log.v("networkInitializer", "running");
             waitForNetworkLayer();
+            Log.v("networkInitializer", "got network layer");
             serviceConnection.getNetworkLayer().registerNpiUpdateCallback(this);
             if (serviceConnection.getNetworkLayer().getAllNetworkDevices().size() == numPeers) {
                 peerCountLatch.countDown();
             }
 
             localPID = serviceConnection.getNetworkLayer().getLocalNetworkPeerIdentifier();
+            Log.v("networkInitializer", "got localPID");
+            Log.v("networkInitializer", "getting virtual identifiers");
             this.virtualIdentifiers.putAll(generateVirtualIdentifiers());
+            Log.v("networkInitializer", "got virtual identifiers");
 
             for (final Map.Entry<String, NetworkPeerIdentifier> entry : virtualIdentifiers.entrySet()) {
                 Log.v("initializer", entry.getKey() + " - " + entry.getValue());
@@ -70,17 +81,21 @@ public class Initializer extends Service {
                     Log.v("initializer", "I am " + entry.getKey()  + "!");
                 }
             }
+            Log.v("networkInitializer", "unlatching initialization latch");
             initializationLatch.countDown();
+            Log.v("networkInitializer", "finished");
         }
 
         private void waitForLatch(final CountDownLatch latch) {
             while (latch.getCount() > 0 && !cancelled) {
+                Log.v("networkInitializer", "waiting for latch: " + latch);
                 try {
-                    latch.await();
+                    latch.await(500, TimeUnit.MILLISECONDS);
                 } catch (final InterruptedException ie) {
                     // don't really care, just need to try again
                 }
             }
+            Log.v("networkInitializer", "stopped waiting for latch: " + latch);
         }
 
         private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
@@ -107,9 +122,11 @@ public class Initializer extends Service {
         }
 
         public void cancel() {
+            Log.v("networkInitializer", "cancelling");
             cancelled = true;
             peerCountLatch.countDown();
             initializationLatch.countDown();
+            serviceConnection.getNetworkLayer().unregisterNpiUpdateCallback(this);
         }
     }
 
@@ -128,6 +145,7 @@ public class Initializer extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.v("initializer", "creating initializer");
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
@@ -137,8 +155,9 @@ public class Initializer extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        networkServiceConnection.getNetworkLayer().unregisterNpiUpdateCallback(network);
+        Log.v("initializer", "destroying initializer");
         getApplicationContext().unbindService(networkServiceConnection);
+        network.cancel();
         if (initJob != null) {
             initJob.cancel(true);
         }
