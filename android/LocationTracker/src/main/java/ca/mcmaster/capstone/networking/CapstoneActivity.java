@@ -106,11 +106,11 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     }
 
     @Override
-    public void npiUpdate(final Collection<NetworkPeerIdentifier> nsdPeers) {
+    public void npiUpdate(final Collection<NetworkPeerIdentifier> npiPeers) {
         final Handler mainHandler = new Handler(this.getMainLooper());
         mainHandler.post(() -> {
             CapstoneActivity.this.nsdPeers.clear();
-            CapstoneActivity.this.nsdPeers.addAll(nsdPeers);
+            CapstoneActivity.this.nsdPeers.addAll(npiPeers);
             ((ArrayAdapter<DeviceInfo>) listView.getAdapter()).notifyDataSetChanged();
         });
     }

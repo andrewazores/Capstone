@@ -6,6 +6,6 @@ import java.util.Collection;
 
 public interface NpiUpdateCallbackReceiver {
 
-    public void npiUpdate(final Collection<NetworkPeerIdentifier> nsdPeers);
+    public void npiUpdate(final Collection<NetworkPeerIdentifier> npiPeers);
 
 }
