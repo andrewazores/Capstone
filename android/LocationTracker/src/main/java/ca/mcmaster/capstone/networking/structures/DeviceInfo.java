@@ -3,7 +3,6 @@ package ca.mcmaster.capstone.networking.structures;
 import android.os.Build;
 
 import lombok.Getter;
-import lombok.ToString;
 import lombok.Value;
 
 import static ca.mcmaster.capstone.networking.util.JsonUtil.asJson;

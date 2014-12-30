@@ -7,11 +7,9 @@ import android.os.Parcelable;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.net.InetAddress;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import ca.mcmaster.capstone.monitoralgorithm.tree.InnerNode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

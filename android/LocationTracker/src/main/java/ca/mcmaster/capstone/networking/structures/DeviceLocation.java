@@ -2,7 +2,6 @@ package ca.mcmaster.capstone.networking.structures;
 
 import android.location.Location;
 
-import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Builder;
 
