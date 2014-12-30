@@ -15,9 +15,9 @@ public interface NetworkLayer {
      */
     NetworkPeerIdentifier getLocalNetworkPeerIdentifier();
 
-    void registerNpiUpdateCallback(@NonNull NpiUpdateCallbackReceiver npiUpdateCallbackReceiver);
+    void registerNpiUpdateCallback(NpiUpdateCallbackReceiver npiUpdateCallbackReceiver);
 
-    void unregisterNpiUpdateCallback(@NonNull NpiUpdateCallbackReceiver npiUpdateCallbackReceiver);
+    void unregisterNpiUpdateCallback(NpiUpdateCallbackReceiver npiUpdateCallbackReceiver);
 
     /**
      * Broadcasts a Token to a specific peer
