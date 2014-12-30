@@ -230,13 +230,9 @@ public class Monitor extends Service {
 
     private static Set<GlobalView> mergeSimilarGlobalViews(@NonNull final Collection<GlobalView> gv) {
         Log.d("monitor", "Entering mergeSimilarGlobalViews");
-        final Iterator<GlobalView> it1 = gv.iterator();
-        final Iterator<GlobalView> it2 = gv.iterator();
         final Set<GlobalView> merged = new HashSet<>();
-        while (it1.hasNext()) {
-            final GlobalView gv1 = it1.next();
-            while (it2.hasNext()) {
-                final GlobalView gv2 = it2.next();
+        for (GlobalView gv1 : gv) {
+            for (GlobalView gv2 : gv) {
                 if (!gv1.equals(gv2)) {
                     final GlobalView newGV = gv1.merge(gv2);
                     if (newGV != null) {
