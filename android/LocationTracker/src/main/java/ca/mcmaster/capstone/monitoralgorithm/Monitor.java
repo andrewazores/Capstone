@@ -14,12 +14,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
 
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.networking.CapstoneService;
@@ -35,16 +32,11 @@ public class Monitor extends Service {
     private static NetworkPeerIdentifier monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
     private static final int numPeers = 2;
-    private static ExecutorService monitorExecutor;
-    private static ScheduledExecutorService workQueue;
+    private static ExecutorService workQueue;
     private static volatile boolean cancelled = false;
     private static Future<?> monitorJob = null;
     private static Future<?> tokenPollJob = null;
     private static Future<?> eventPollJob = null;
-    private static Future<?> tokenProcessJob = null;
-    private static Future<?> eventProcessJob = null;
-    private static BlockingQueue<Token> tokenQueue = new LinkedBlockingQueue<>();
-    private static BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private Intent networkServiceIntent;
     private Intent initializerServiceIntent;
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
@@ -64,10 +56,9 @@ public class Monitor extends Service {
         initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
 
-        monitorExecutor = Executors.newSingleThreadExecutor();
-        workQueue = Executors.newScheduledThreadPool(5);
+        workQueue = Executors.newCachedThreadPool();
 
-        monitorJob = monitorExecutor.submit(Monitor::monitorLoop);
+        monitorJob = workQueue.submit(Monitor::monitorLoop);
         Log.d("thread", "Started monitor!");
     }
 
@@ -76,7 +67,7 @@ public class Monitor extends Service {
         super.onDestroy();
         Log.d("thread", "Stopped monitor!");
         cancelled = true;
-        cancelJobs(tokenPollJob, eventPollJob, tokenProcessJob, eventProcessJob);
+        cancelJobs(tokenPollJob, eventPollJob);
         workQueue.shutdownNow();
         if (monitorJob != null) {
             monitorJob.cancel(true);
@@ -153,14 +144,15 @@ public class Monitor extends Service {
         Log.d("monitor", "submitting loop tasks");
         tokenPollJob = workQueue.submit(Monitor::pollTokens);
         eventPollJob = workQueue.submit(Monitor::pollEvents);
-        tokenProcessJob = workQueue.submit(Monitor::processTokens);
-        eventProcessJob = workQueue.submit(Monitor::processEvents);
     }
 
     private static void pollTokens() {
         while (!cancelled) {
             Log.d("monitor", "pollTokens looping");
-            tokenQueue.add(receive());
+            final Token token = receive();
+            if (token != null) {
+                workQueue.submit(() -> receiveToken(token));
+            }
         }
         Log.d("monitor", "pollTokens exiting");
     }
@@ -168,33 +160,12 @@ public class Monitor extends Service {
     private static void pollEvents() {
         while (!cancelled) {
             Log.d("monitor", "pollEvents looping");
-            eventQueue.add(read());
+            final Event event = read();
+            if (event != null) {
+                workQueue.submit(() -> receiveEvent(event));
+            }
         }
         Log.d("monitor", "pollEvents exiting");
-    }
-
-    private static void processTokens() {
-        while (!cancelled) {
-            try {
-                Log.d("monitor", "processTokens looping");
-                receiveToken(tokenQueue.take());
-            } catch (final InterruptedException e) {
-                // just try again
-            }
-        }
-        Log.d("monitor", "processTokens exiting");
-    }
-
-    private static void processEvents() {
-        while (!cancelled) {
-            try {
-                Log.d("monitor", "processEvents looping");
-                receiveEvent(eventQueue.take());
-            } catch (final InterruptedException e) {
-                // just try again
-            }
-        }
-        Log.d("monitor", "processEvents exiting");
     }
 
     private static Token receive() {
