@@ -18,13 +18,15 @@ import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 
 public class Initializer extends Service {
     private static class NetworkInitializer implements Runnable {
+        private final NetworkServiceConnection serviceConnection;
         private int numPeers;
         private NetworkPeerIdentifier localPID;
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         private final CountDownLatch latch = new CountDownLatch(1);
 
-        public NetworkInitializer(final int numPeers) {
+        public NetworkInitializer(final int numPeers, final NetworkServiceConnection serviceConnection) {
             this.numPeers = numPeers;
+            this.serviceConnection = serviceConnection;
         }
 
         @Override
@@ -89,11 +91,11 @@ public class Initializer extends Service {
         }
     }
 
-    // FIXME: the magic number will be read in from the input file, but for now is hard coded
-    private NetworkInitializer network = new NetworkInitializer(2);
-
+    private final NetworkServiceConnection serviceConnection = new NetworkServiceConnection();
     private Intent networkServiceIntent;
-    private static final NetworkServiceConnection serviceConnection = new NetworkServiceConnection();
+
+    // FIXME: the magic number will be read in from the input file, but for now is hard coded
+    private NetworkInitializer network = new NetworkInitializer(2, serviceConnection);
 
     @Override
     public IBinder onBind(Intent intent) {
