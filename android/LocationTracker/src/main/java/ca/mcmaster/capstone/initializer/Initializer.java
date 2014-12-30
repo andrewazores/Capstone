@@ -72,11 +72,7 @@ public class Initializer extends Service {
         }
 
         private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
-            try {
-                peerCountLatch.await();
-            } catch (InterruptedException e) {
-                Log.d("initializer", "Await failed.");
-            }
+            waitForLatch(peerCountLatch);
 
             final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
             final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(serviceConnection.getNetworkLayer().getAllNetworkDevices());
