@@ -99,7 +99,7 @@ public class Initializer extends Service {
     private Intent networkServiceIntent;
 
     // FIXME: the magic number will be read in from the input file, but for now is hard coded
-    private NetworkInitializer network = new NetworkInitializer(2, networkServiceConnection);
+    private final NetworkInitializer network = new NetworkInitializer(2, networkServiceConnection);
 
     @Override
     public IBinder onBind(Intent intent) {
