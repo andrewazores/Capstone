@@ -6,9 +6,6 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-/**
- * Created by Kitamura on 14-11-20.
- */
 class Cube {
 
     private FloatBuffer mVertexBuffer;

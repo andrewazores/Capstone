@@ -5,10 +5,6 @@ import android.opengl.GLU;
 
 import javax.microedition.khronos.opengles.GL10;
 
-
-/**
- * Created by Kitamura on 14-11-20.
- */
 class OpenGLRenderer implements Renderer{
 
     private Cube mCube = new Cube();
