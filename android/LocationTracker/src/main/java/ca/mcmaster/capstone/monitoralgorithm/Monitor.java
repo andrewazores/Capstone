@@ -13,15 +13,13 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.networking.CapstoneService;
@@ -38,8 +36,15 @@ public class Monitor extends Service {
     private static final Set<GlobalView> GV = new HashSet<>();
     private static final int numPeers = 2;
     private static final ExecutorService monitorExecutor = Executors.newSingleThreadExecutor();
-    private static final ScheduledExecutorService workQueue = Executors.newScheduledThreadPool(2);
+    private static final ScheduledExecutorService workQueue = Executors.newScheduledThreadPool(5);
+    private static volatile boolean cancelled = false;
     private static Future<?> monitorJob = null;
+    private static Future<?> tokenPollJob = null;
+    private static Future<?> eventPollJob = null;
+    private static Future<?> tokenProcessJob = null;
+    private static Future<?> eventProcessJob = null;
+    private static BlockingQueue<Token> tokenQueue = new LinkedBlockingQueue<>();
+    private static BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private Intent networkServiceIntent;
     private Intent initializerServiceIntent;
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
@@ -66,58 +71,22 @@ public class Monitor extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d("thread", "Stopped monitor!");
+        cancelled = true;
+        cancelJobs(tokenPollJob, eventPollJob, tokenProcessJob, eventProcessJob);
         workQueue.shutdownNow();
-        monitorJob.cancel(true);
+        if (monitorJob != null) {
+            monitorJob.cancel(true);
+        }
         getApplicationContext().unbindService(networkServiceConnection);
+        getApplicationContext().unbindService(initializerServiceConnection);
     }
 
-    private static Token receive() {
-        while (networkServiceConnection.getNetworkLayer() == null) {
-            try {
-                Thread.sleep(1000);
-            } catch (final InterruptedException e) {
-                Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+    private static void cancelJobs(@NonNull final Future<?> ... jobs) {
+        for (final Future<?> job : jobs) {
+            if (job != null) {
+                job.cancel(true);
             }
         }
-        Token token = null;
-        while (token == null) {
-            try {
-                token = networkServiceConnection.getNetworkLayer().receiveToken();
-            } catch (InterruptedException e) {
-                Log.d("thread", "Woke up without a token, trying again: " + e.getLocalizedMessage());
-            }
-        }
-        return token;
-    }
-
-    private static void send(@NonNull final Token token, @NonNull final NetworkPeerIdentifier pid) {
-        while (networkServiceConnection.getNetworkLayer() == null) {
-            try {
-                Thread.sleep(1000);
-            } catch (final InterruptedException e) {
-                Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
-            }
-        }
-        networkServiceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
-    }
-
-    private static Event read() {
-        while (networkServiceConnection.getNetworkLayer() == null) {
-            try {
-                Thread.sleep(1000);
-            } catch (final InterruptedException e) {
-                Log.d("thread", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
-            }
-        }
-        Event event = null;
-        while (event == null) {
-            try {
-                event = networkServiceConnection.getNetworkLayer().receiveEvent();
-            } catch (InterruptedException e) {
-                Log.d("thread", "Woke up without an event, trying again: " + e.getLocalizedMessage());
-            }
-        }
-        return event;
     }
 
     /*
@@ -127,7 +96,7 @@ public class Monitor extends Service {
      */
     public static void init() {
         Log.d("monitor", "Initializing monitor");
-        while (networkServiceConnection.getNetworkLayer() == null) {
+        while (networkServiceConnection.getNetworkLayer() == null && !cancelled) {
             try {
                 Thread.sleep(1000);
             } catch (final InterruptedException e) {
@@ -177,8 +146,80 @@ public class Monitor extends Service {
      */
     public static void monitorLoop() {
         init();
-        workQueue.scheduleAtFixedRate(() -> receiveToken(receive()), 0, 100, TimeUnit.MILLISECONDS);
-        workQueue.scheduleAtFixedRate(() -> receiveEvent(read()), 0, 100, TimeUnit.MILLISECONDS);
+        Log.d("monitor", "submitting loop tasks");
+        tokenPollJob = workQueue.submit(Monitor::pollTokens);
+        eventPollJob = workQueue.submit(Monitor::pollEvents);
+        tokenProcessJob = workQueue.submit(Monitor::processTokens);
+        eventProcessJob = workQueue.submit(Monitor::processEvents);
+    }
+
+    private static void pollTokens() {
+        while (!cancelled) {
+            Log.d("monitor", "pollTokens looping");
+            tokenQueue.add(receive());
+        }
+    }
+
+    private static void pollEvents() {
+        while (!cancelled) {
+            Log.d("monitor", "pollEvents looping");
+            eventQueue.add(read());
+        }
+    }
+
+    private static void processTokens() {
+        while (!cancelled) {
+            try {
+                Log.d("monitor", "processTokens looping");
+                receiveToken(tokenQueue.take());
+            } catch (final InterruptedException e) {
+                // just try again
+            }
+        }
+    }
+
+    private static void processEvents() {
+        while (!cancelled) {
+            try {
+                Log.d("monitor", "processEvents looping");
+                receiveEvent(eventQueue.take());
+            } catch (final InterruptedException e) {
+                // just try again
+            }
+        }
+    }
+
+    private static Token receive() {
+        Log.d("monitor", "receive entered");
+        Token token = null;
+        while (token == null && !cancelled) {
+            try {
+                token = networkServiceConnection.getNetworkLayer().receiveToken();
+            } catch (InterruptedException e) {
+                Log.d("thread", "Woke up without a token, trying again? " + cancelled + " : " + e.getLocalizedMessage());
+            }
+        }
+        Log.d("monitor", "receive exited");
+        return token;
+    }
+
+    private static void send(@NonNull final Token token, @NonNull final NetworkPeerIdentifier pid) {
+        Log.d("monitor", "sending token");
+        networkServiceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
+    }
+
+    private static Event read() {
+        Log.d("monitor", "read entered");
+        Event event = null;
+        while (event == null && !cancelled) {
+            try {
+                event = networkServiceConnection.getNetworkLayer().receiveEvent();
+            } catch (InterruptedException e) {
+                Log.d("thread", "Woke up without an event, trying again? " + cancelled + " : " + e.getLocalizedMessage());
+            }
+        }
+        Log.d("monitor", "read exited");
+        return event;
     }
 
     /*
@@ -205,6 +246,7 @@ public class Monitor extends Service {
                 processEvent(gv, gv.getPendingEvents().remove());
             }
         }
+        Log.d("monitor", "Exiting receiveEvent");
     }
 
     private static Set<GlobalView> mergeSimilarGlobalViews(@NonNull final Collection<GlobalView> gv) {

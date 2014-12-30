@@ -28,6 +28,7 @@ public class Initializer extends Service {
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         private final CountDownLatch initializationLatch = new CountDownLatch(1);
         private final CountDownLatch peerCountLatch = new CountDownLatch(1);
+        private volatile boolean cancelled = false;
 
         public NetworkInitializer(final int numPeers, final NetworkServiceConnection serviceConnection) {
             this.numPeers = numPeers;
@@ -38,11 +39,12 @@ public class Initializer extends Service {
         public void npiUpdate(final Collection<NetworkPeerIdentifier> npiPeers) {
             if (npiPeers.size() == numPeers - 1) { // npiPeers set does not include local PID
                 peerCountLatch.countDown();
+                serviceConnection.getNetworkLayer().stopNpiDiscovery();
             }
         }
 
         private void waitForNetworkLayer() {
-            while (serviceConnection.getNetworkLayer() == null) {
+            while (serviceConnection.getNetworkLayer() == null && !cancelled) {
                 try {
                     Thread.sleep(1000);
                 } catch (final InterruptedException e) {
@@ -71,8 +73,8 @@ public class Initializer extends Service {
             initializationLatch.countDown();
         }
 
-        private static void waitForLatch(final CountDownLatch latch) {
-            while (latch.getCount() > 0) {
+        private void waitForLatch(final CountDownLatch latch) {
+            while (latch.getCount() > 0 && !cancelled) {
                 try {
                     latch.await();
                 } catch (final InterruptedException ie) {
@@ -103,6 +105,12 @@ public class Initializer extends Service {
             waitForLatch(initializationLatch);
             return virtualIdentifiers;
         }
+
+        public void cancel() {
+            cancelled = true;
+            peerCountLatch.countDown();
+            initializationLatch.countDown();
+        }
     }
 
     private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
@@ -129,6 +137,7 @@ public class Initializer extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        networkServiceConnection.getNetworkLayer().unregisterNpiUpdateCallback(network);
         getApplicationContext().unbindService(networkServiceConnection);
         if (initJob != null) {
             initJob.cancel(true);

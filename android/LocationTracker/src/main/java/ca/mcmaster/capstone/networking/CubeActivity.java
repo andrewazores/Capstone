@@ -20,6 +20,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,6 +52,19 @@ public class CubeActivity extends Activity {
     private boolean back = false;
 
     private final HashMap<NetworkPeerIdentifier, Double> deviceMap = new HashMap<>();
+    private AsyncTask<Object, Void, Object> networkGetTask = new AsyncTask<Object, Void, Object>() {
+        @Override
+        protected Object doInBackground(final Object[] params) {
+            while(!back) {
+//                try {
+//                    getEvent();
+//                } catch (final InterruptedException ie) {
+//                    return null;
+//                }
+            }
+            return null;
+        }
+    };
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -76,20 +90,7 @@ public class CubeActivity extends Activity {
         view.setRenderer(renderer);
         setContentView(view);
 
-        final AsyncTask<Object, Void, Object> networkGet = new AsyncTask<Object, Void, Object>() {
-            @Override
-            protected Object doInBackground(final Object[] params) {
-                while(!back) {
-                    try {
-                        getEvent();
-                    } catch (final InterruptedException ie) {
-                        return null;
-                    }
-                }
-                return null;
-            }
-        };
-        networkGet.execute();
+        networkGetTask.execute();
     }
 
     public void getEvent() throws InterruptedException {
@@ -97,6 +98,9 @@ public class CubeActivity extends Activity {
             return;
         }
         final Event e = serviceConnection.getService().receiveEvent();
+        if (e == null) {
+            return;
+        }
 
         deviceMap.put(e.getPid(), (Double)e.getVal().getValue(this.variableName));
 
@@ -121,7 +125,10 @@ public class CubeActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
         back = true;
+        networkGetTask.cancel(true);
         mSensorManager.unregisterListener(mSensorEventListener);
+        getApplicationContext().unbindService(serviceConnection);
+        getApplicationContext().unbindService(initializerServiceConnection);
     }
 
     @Override
@@ -298,7 +305,7 @@ public class CubeActivity extends Activity {
         }
 
         public boolean isBound() {
-            return this.service != null && binder.getClients() > 0;
+            return this.service != null;
         }
 
         public CapstoneService getService() {

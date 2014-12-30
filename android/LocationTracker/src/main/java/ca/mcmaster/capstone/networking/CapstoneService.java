@@ -82,7 +82,6 @@ public final class CapstoneService extends Service implements NetworkLayer {
     private double barometerPressure;
 
     private Location lastLocation;
-    private final CapstoneNetworkServiceBinder serviceBinder = new CapstoneNetworkServiceBinder();
     private BarometerEventListener barometerEventListener;
     private GravitySensorEventListener gravitySensorEventListener;
     private CapstoneLocationListener locationListener;
@@ -363,11 +362,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     @Override
     public IBinder onBind(final Intent intent) {
-        if (serviceBinder.getClients() == 0) {
-            nsdRestart();
-        }
-        serviceBinder.increment();
-        return serviceBinder;
+        return new CapstoneNetworkServiceBinder();
     }
 
     @Override
@@ -379,17 +374,19 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     @Override
     public boolean onUnbind(final Intent intent) {
-        serviceBinder.decrement();
         return false;
     }
 
-    private void nsdTeardown() {
+    @Override
+    public void stopNpiDiscovery() {
         if (!nsdBound) {
+            logv("Cannot stop NSD discovery - not bound");
             return;
         }
         nsdManager.unregisterService(nsdRegistrationListener);
         nsdManager.stopServiceDiscovery(nsdDiscoveryListener);
         nsdBound = false;
+        logv("Stopped NSD discovery");
     }
 
     public void stopLocationService() {
@@ -405,8 +402,9 @@ public final class CapstoneService extends Service implements NetworkLayer {
         sensorUpdateCallbackReceivers.clear();
         peerUpdateCallbackReceivers.clear();
         npiUpdateCallbackReceivers.clear();
-        nsdTeardown();
+        stopNpiDiscovery();
         locationServer.stop();
+        volleyRequestQueue.stop();
         stopLocationService();
         logv("Capstone Location Service stopping");
     }
@@ -546,6 +544,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
      */
     @Override
     public void receiveTokenInternal(@NonNull final Token token) {
+        logv("receiveTokenInternal: " + token);
         this.tokenQueue.add(token);
     }
 
@@ -554,6 +553,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
      */
     @Override
     public Token receiveToken() throws InterruptedException {
+        logv("receiveToken");
         return this.tokenQueue.take();
     }
 
@@ -562,6 +562,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
      */
     @Override
     public void sendEventToMonitor(@NonNull final Event event) {
+        logv("sendEventToMonitor: " + event);
         this.incomingEventQueue.add(event);
     }
 
@@ -570,6 +571,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
      */
     @Override
     public void receiveEventExternal(@NonNull final Event event) {
+        logv("receiveEventExternal: " + event);
         this.incomingEventQueue.add(event);
     }
 
@@ -578,6 +580,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
      */
     @Override
     public Event receiveEvent() throws InterruptedException {
+        logv("receiveEvent");
         return this.incomingEventQueue.take();
     }
 
@@ -716,22 +719,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     public class CapstoneNetworkServiceBinder extends Binder {
-        private int clients;
-
         public CapstoneService getService() {
             return CapstoneService.this;
-        }
-
-        public void increment() {
-            ++clients;
-        }
-
-        public void decrement() {
-            --clients;
-        }
-
-        public int getClients() {
-            return clients;
         }
     }
 

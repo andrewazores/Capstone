@@ -174,7 +174,6 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
         startService(monitorServiceIntent);
         getApplicationContext().bindService(monitorServiceIntent, monitorServiceConnection, BIND_AUTO_CREATE);
-        startService(initializerServiceIntent);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
     }
 
@@ -190,6 +189,11 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             attemptUnbind(monitorServiceConnection);
         } else {
             log("Monitor service not bound, cannot disconnect");
+        }
+        if (initializerServiceConnection.isBound()) {
+            attemptUnbind(initializerServiceConnection);
+        } else {
+            log("Initializer service not bound, cannot disconnect");
         }
     }
 
@@ -241,7 +245,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
         }
 
         public boolean isBound() {
-            return this.service != null && binder.getClients() > 0;
+            return this.service != null;
         }
 
         public CapstoneService getService() {

@@ -15,6 +15,8 @@ public interface NetworkLayer {
      */
     NetworkPeerIdentifier getLocalNetworkPeerIdentifier();
 
+    void stopNpiDiscovery();
+
     void registerNpiUpdateCallback(NpiUpdateCallbackReceiver npiUpdateCallbackReceiver);
 
     void unregisterNpiUpdateCallback(NpiUpdateCallbackReceiver npiUpdateCallbackReceiver);
