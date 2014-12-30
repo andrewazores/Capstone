@@ -430,11 +430,11 @@ public final class CapstoneService extends Service implements NetworkLayer {
         this.sensorUpdateCallbackReceivers.remove(capstoneActivity);
     }
 
-    void registerNsdUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
+    void registerNpiUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
         this.npiUpdateCallbackReceivers.add(capstoneActivity);
     }
 
-    void unregisterNsdUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
+    void unregisterNpiUpdateCallback(@NonNull final CapstoneActivity capstoneActivity) {
         this.npiUpdateCallbackReceivers.remove(capstoneActivity);
     }
 

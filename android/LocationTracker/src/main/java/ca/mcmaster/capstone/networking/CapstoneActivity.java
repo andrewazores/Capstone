@@ -181,7 +181,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
     private void disconnect() {
         if (networkServiceConnection.isBound()) {
             networkServiceConnection.getService().unregisterSensorUpdateCallback(CapstoneActivity.this);
-            networkServiceConnection.getService().unregisterNsdUpdateCallback(CapstoneActivity.this);
+            networkServiceConnection.getService().unregisterNpiUpdateCallback(CapstoneActivity.this);
             attemptUnbind(networkServiceConnection);
         } else {
             log("Network service not bound, cannot disconnect");
@@ -228,7 +228,7 @@ public class CapstoneActivity extends Activity implements SensorUpdateCallbackRe
             this.binder = (CapstoneService.CapstoneNetworkServiceBinder) service;
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerSensorUpdateCallback(CapstoneActivity.this);
-            this.service.registerNsdUpdateCallback(CapstoneActivity.this);
+            this.service.registerNpiUpdateCallback(CapstoneActivity.this);
             CapstoneActivity.this.networkPeerIdentifier = this.service.getLocalNetworkPeerIdentifier();
             updateSelfInfo();
         }

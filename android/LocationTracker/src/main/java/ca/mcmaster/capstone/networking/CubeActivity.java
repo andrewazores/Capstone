@@ -286,7 +286,7 @@ public class CubeActivity extends Activity {
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
 
 //            this.service.registerSensorUpdateCallback(CubeActivity.this);
-//            this.service.registerNsdUpdateCallback(CubeActivity.this);
+//            this.service.registerNpiUpdateCallback(CubeActivity.this);
 //            updateSelfInfo();
         }
 
