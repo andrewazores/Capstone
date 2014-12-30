@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
 import ca.mcmaster.capstone.networking.CapstoneService;
@@ -105,6 +107,7 @@ public class Initializer extends Service {
 
     private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private Intent networkServiceIntent;
+    private Future<?> initJob = null;
 
     // FIXME: the magic number will be read in from the input file, but for now is hard coded
     private final NetworkInitializer network = new NetworkInitializer(2, networkServiceConnection);
@@ -120,13 +123,16 @@ public class Initializer extends Service {
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
-        new Thread(network).start();
+        initJob = Executors.newSingleThreadExecutor().submit(network);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         getApplicationContext().unbindService(networkServiceConnection);
+        if (initJob != null) {
+            initJob.cancel(true);
+        }
     }
 
     public NetworkPeerIdentifier getLocalPID() {
