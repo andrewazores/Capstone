@@ -25,7 +25,6 @@ public class Initializer extends Service {
         private NetworkPeerIdentifier localPID;
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         private final CountDownLatch initializationLatch = new CountDownLatch(1);
-        private volatile boolean initialized = false;
         private final CountDownLatch peerCountLatch = new CountDownLatch(1);
 
         public NetworkInitializer(final int numPeers, final NetworkServiceConnection serviceConnection) {
@@ -63,9 +62,6 @@ public class Initializer extends Service {
         }
 
         private void waitForInitialization() {
-            if (initialized) {
-                return;
-            }
             while (initializationLatch.getCount() > 0) {
                 try {
                     initializationLatch.await();
@@ -73,7 +69,6 @@ public class Initializer extends Service {
                     // don't really care, just need to try again
                 }
             }
-            initialized = true;
         }
 
         private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
