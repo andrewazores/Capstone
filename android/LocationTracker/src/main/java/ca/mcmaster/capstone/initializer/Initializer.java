@@ -94,7 +94,6 @@ public class Initializer extends Service {
 
     private Intent networkServiceIntent;
     private static final NetworkServiceConnection serviceConnection = new NetworkServiceConnection();
-    private Thread thread;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -107,7 +106,7 @@ public class Initializer extends Service {
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, serviceConnection, BIND_AUTO_CREATE);
 
-        thread = new Thread(network);
+        final Thread thread = new Thread(network);
         thread.start();
     }
 
