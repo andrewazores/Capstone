@@ -395,7 +395,7 @@ public class Monitor extends Service {
                 }
             }
             if (!hasTarget) {
-                waitingTokens.remove(token);
+                waitingTokens.add(token);
             }
         }
     }
@@ -436,6 +436,7 @@ public class Monitor extends Service {
             }
             final Event eventPrime = history.get(token.getTargetEventId());
             final Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).conjuncts(conjunctsMap).targetProcessState(eventPrime.getState()).build();
+            Log.d("monitor", "Sending a token back home.");
             send(newToken, newToken.getOwner());
         }
     }
@@ -448,6 +449,7 @@ public class Monitor extends Service {
      */
     //FIXME: This needs to be refactored
     public static void evaluateToken(@NonNull final Token token, @NonNull final Event event) {
+        Log.d("monitor", "Entering evaluateToken");
         token.evaluateConjuncts(event);
         if (token.anyConjunctSatisfied()) {
             final Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
