@@ -9,5 +9,5 @@ import lombok.ToString;
 
 @AllArgsConstructor @ToString @Getter @EqualsAndHashCode
 public abstract class LeafNode<V, T> implements Node<T> {
-    @NonNull V value;
+    @NonNull @Getter V value;
 }

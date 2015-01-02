@@ -1,6 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import ca.mcmaster.capstone.monitoralgorithm.tree.BooleanExpressionTree;
+import ca.mcmaster.capstone.monitoralgorithm.tree.parser.BooleanExpressionParser;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class Conjunct {
 
     public Conjunct(@NonNull final NetworkPeerIdentifier ownerProcess, @NonNull final String expression) {
         this.ownerProcess = ownerProcess;
-        this.expression = new BooleanExpressionTree(expression);
+        this.expression = BooleanExpressionParser.INSTANCE.parse(expression);
     }
 
     public Evaluation evaluate(@NonNull final ProcessState state) {
