@@ -20,6 +20,7 @@ import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
+import lombok.NonNull;
 
 public class Initializer extends Service {
     private static class NetworkInitializer implements Runnable, NpiUpdateCallbackReceiver {
@@ -130,12 +131,37 @@ public class Initializer extends Service {
         }
     }
 
+    private static class AutomatonInitializer implements Runnable {
+        private String automatonFile = null;
+        private boolean cancelled = false;
+        private final CountDownLatch initializationLatch = new CountDownLatch(1);
+
+        AutomatonInitializer(@NonNull String automatonFile){
+            this.automatonFile = automatonFile;
+            cancelled = false;
+        }
+
+        @Override
+        public void run() {
+            Log.d("automatonInitializer", "Started");
+        }
+
+        public void cancel() {
+            Log.v("automatonInitializer", "cancelling");
+            cancelled = true;
+            initializationLatch.countDown();
+        }
+    }
+
     private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private Intent networkServiceIntent;
-    private Future<?> initJob = null;
+    private Future<?> networkInitJob = null;
+    private Future<?> automatonInitJob = null;
+    private final String automatonFile = "/mnt/sdcard/automaton";
 
     // FIXME: the magic number will be read in from the input file, but for now is hard coded
     private final NetworkInitializer network = new NetworkInitializer(2, networkServiceConnection);
+    private final AutomatonInitializer automatonInit = new AutomatonInitializer(automatonFile);
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -149,7 +175,8 @@ public class Initializer extends Service {
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
-        initJob = Executors.newSingleThreadExecutor().submit(network);
+        networkInitJob = Executors.newSingleThreadExecutor().submit(network);
+        automatonInitJob = Executors.newSingleThreadExecutor().submit(automatonInit);
     }
 
     @Override
@@ -158,8 +185,12 @@ public class Initializer extends Service {
         Log.v("initializer", "destroying initializer");
         getApplicationContext().unbindService(networkServiceConnection);
         network.cancel();
-        if (initJob != null) {
-            initJob.cancel(true);
+        automatonInit.cancel();
+        if (networkInitJob != null) {
+            networkInitJob.cancel(true);
+        }
+        if (automatonInitJob != null) {
+            automatonInitJob.cancel(true);
         }
     }
 
