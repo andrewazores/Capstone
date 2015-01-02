@@ -427,8 +427,12 @@ public class Monitor extends Service {
      */
     public static void processToken(@NonNull final Token token, @NonNull final Event event) {
         Log.d("monitor", "Entering processToken");
-        if (event.getVC().compareToClock(token.getCut()) == VectorClock.Comparison.CONCURRENT) {
+        final VectorClock.Comparison comp = event.getVC().compareToClock(token.getCut());
+        if (comp == VectorClock.Comparison.CONCURRENT || comp == VectorClock.Comparison.EQUAL) {
             evaluateToken(token, event);
+        } else if (comp == VectorClock.Comparison.BIGGER) {
+            Log.d("monitor", "Waiting for next event");
+            waitingTokens.add(token.waitForNextEvent());
         } else {
             final Map<Conjunct, Conjunct.Evaluation> conjunctsMap = token.getConjunctsMap();
             for (final Conjunct conjunct : conjunctsMap.keySet()) {
