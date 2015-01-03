@@ -2,9 +2,14 @@ package ca.mcmaster.capstone.initializer;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,6 +20,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
 import ca.mcmaster.capstone.networking.CapstoneService;
@@ -132,18 +140,37 @@ public class Initializer extends Service {
     }
 
     private static class AutomatonInitializer implements Runnable {
-        private String automatonFile = null;
+        private final File automatonFile = new File(Environment.getExternalStorageDirectory(), "automaton");
         private boolean cancelled = false;
         private final CountDownLatch initializationLatch = new CountDownLatch(1);
 
-        AutomatonInitializer(@NonNull String automatonFile){
-            this.automatonFile = automatonFile;
+        AutomatonInitializer(@NonNull String automatonFile) {
             cancelled = false;
         }
 
         @Override
         public void run() {
             Log.d("automatonInitializer", "Started");
+
+            StringBuilder text = new StringBuilder();
+
+            try {
+                // We assume that this file contains one line
+                BufferedReader br = new BufferedReader(new FileReader(automatonFile));
+                text.append(br.readLine());
+                br.close();
+            }
+            catch (IOException e) {
+                Log.e("automatonInitializer", "Failed to read automaton definition file: " + e.getLocalizedMessage());
+                this.cancel();
+            }
+
+            try {
+                JSONObject json = new JSONObject(text.toString());
+            } catch (JSONException e) {
+                Log.e("automatonInitializer", "Failed to parse automaton JSON string: " + e.getLocalizedMessage());
+                this.cancel();
+            }
         }
 
         public void cancel() {
