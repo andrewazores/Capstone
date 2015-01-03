@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -156,15 +157,12 @@ public class Initializer extends Service {
         @Override
         public void run() {
             Log.d("automatonInitializer", "Started");
-
-            final StringBuilder text = new StringBuilder();
-            try (final BufferedReader br = new BufferedReader(new FileReader(automatonFile))) {
-                text.append(br.readLine());
+            try {
+                this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(automatonFile), AutomatonFile.class);
             } catch (final IOException e) {
-                Log.e("automatonInitializer", "Failed to read automaton definition file: " + e.getLocalizedMessage());
+                throw new IllegalStateException(e);
             }
-
-            this.automaton = JsonUtil.fromJson(text.toString(), AutomatonFile.class);
+            latch.countDown();
         }
 
         public AutomatonFile getAutomatonFile() {
