@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.Buffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -158,7 +159,8 @@ public class Initializer extends Service {
         public void run() {
             Log.d("automatonInitializer", "Started");
             try {
-                this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(automatonFile), AutomatonFile.class);
+                this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(automatonFile, Charset.forName("UTF-8")),
+                        AutomatonFile.class);
             } catch (final IOException e) {
                 throw new IllegalStateException(e);
             }
