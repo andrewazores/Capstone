@@ -10,8 +10,14 @@ import lombok.Value;
 
 @Value
 public class AutomatonFile {
-    @SerializedName("state_names") Set<String> stateNames = new HashSet<>();
+    @SerializedName("state_names") Set<Name> stateNames = new HashSet<>();
     Set<Transition> transitions = new HashSet<>();
+
+    @Value
+    public static class Name {
+        @NonNull String label;
+        @NonNull String type;
+    }
 
     @Value
     public static class Transition {
