@@ -1,5 +1,7 @@
 package ca.mcmaster.capstone.initializer;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -8,7 +10,7 @@ import lombok.Value;
 
 @Value
 public class AutomatonFile {
-    Set<String> state_names = new HashSet<>();
+    @SerializedName("state_names") Set<String> stateNames = new HashSet<>();
     Set<Transition> transitions = new HashSet<>();
 
     @Value
