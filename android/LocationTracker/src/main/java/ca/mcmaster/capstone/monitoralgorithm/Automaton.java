@@ -1,12 +1,17 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import android.util.Log;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import ca.mcmaster.capstone.initializer.AutomatonFile;
+import ca.mcmaster.capstone.initializer.ConjunctFromFile;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -19,35 +24,51 @@ public class Automaton {
     public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED}
 
     private static AutomatonState initialState;
-    private static Map<String, AutomatonState> states;
-    private static Set<AutomatonTransition> transitions;
+    private static Map<String, AutomatonState> states = new HashMap<>();
+    private static Set<AutomatonTransition> transitions = new HashSet<>();
 
-    public static void processAutomatonFile(final AutomatonFile automatonFile) {
-        // TODO: implement reading state names and transitions out of file and setting Automaton state
-    }
+    public static void processAutomatonFile(final AutomatonFile automatonFile, final List<ConjunctFromFile> conjunctMap,
+                                            final Map<String, NetworkPeerIdentifier> virtualIdentifierMap) {
+        final Set<AutomatonFile.Name> names = automatonFile.getStateNames();
+        final Set<AutomatonFile.Transition> transitions = automatonFile.getTransitions();
 
-    //FIXME: This is garbage.
-    public static void build(@NonNull final NetworkPeerIdentifier id1, @NonNull final NetworkPeerIdentifier id2) {
-        states = new HashMap<String, AutomatonState>() {{
-            put("2", new AutomatonState("2", Evaluation.UNDECIDED));
-            put("3", new AutomatonState("3", Evaluation.UNDECIDED));
-            put("1", new AutomatonState("1", Evaluation.SATISFIED));
-            put("0", new AutomatonState("0", Evaluation.SATISFIED));
-        }};
-        initialState = states.get("2");
-        transitions = new HashSet<AutomatonTransition>() {{
-            add(new AutomatonTransition(states.get("2"), states.get("0"), new ArrayList<Conjunct>() {{
-                add(new Conjunct(id2, "x2 == 1.0"));
-            }}));
-            add(new AutomatonTransition(states.get("2"), states.get("3"), new ArrayList<Conjunct>() {{
-                add(new Conjunct(id1, "x1 == 0.0"));
-                add(new Conjunct(id2, "x2 != 1.0"));
-            }}));
-            add(new AutomatonTransition(states.get("3"), states.get("1"), new ArrayList<Conjunct>() {{
-                add(new Conjunct(id1, "x1 == 0.0"));
-                add(new Conjunct(id2, "x2 == 1.0"));
-            }}));
-        }};
+        for (final AutomatonFile.Name name : names) {
+            if (name.getType().equals("initial")) {
+                states.put(name.getLabel(), new AutomatonState(name.getLabel(), Evaluation.UNDECIDED));
+                initialState = states.get(name.getLabel());
+            //FIXME: When we implement LTL4 this conditoin needs to be split up
+            } else if (name.getType().equals("possible satisfaction") || name.getType().equals("possible violation")) {
+                states.put(name.getLabel(), new AutomatonState(name.getLabel(), Evaluation.UNDECIDED));
+            } else if (name.getType().equals("satisfaction")) {
+                states.put(name.getLabel(), new AutomatonState(name.getLabel(), Evaluation.SATISFIED));
+            } else if (name.getType().equals("violation")) {
+                states.put(name.getLabel(), new AutomatonState(name.getLabel(), Evaluation.VIOLATED));
+            } else {
+                Log.d("automaton", "i should be throwing right now!");
+                throw new IllegalArgumentException("Tried to process AutomatonState with unrecognized type.");
+            }
+        }
+
+        for (final AutomatonFile.Transition transition: transitions) {
+            final AutomatonState source = states.get(transition.getSource());
+            final AutomatonState destination = states.get(transition.getDestination());
+            final String[] conjuncts = transition.getPredicate().split("&");
+            final List<ConjunctFromFile> conjunctsForTransition = new ArrayList<>();
+            for (final ConjunctFromFile conj : conjunctMap) {
+                if (Arrays.asList(conjuncts).contains(conj.getName())) {
+                    conjunctsForTransition.add(conj);
+                }
+            }
+
+            final List<Conjunct> conjunctsWithExpresssions = new ArrayList<>();
+            for (final ConjunctFromFile conjunct : conjunctsForTransition) {
+                conjunctsWithExpresssions.add(new Conjunct(virtualIdentifierMap.get("x" + conjunct.getOwnerProcess()), conjunct.getExpression()));
+            }
+
+            Automaton.transitions.add(new AutomatonTransition(source, destination, conjunctsWithExpresssions));
+        }
+        Log.d("automaton", "states: " + Automaton.states.toString());
+        Log.d("automaton", "transitions: " + Automaton.transitions.toString());
     }
 
     /*

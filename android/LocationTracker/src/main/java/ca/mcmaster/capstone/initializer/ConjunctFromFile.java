@@ -5,7 +5,7 @@ import lombok.Value;
 
 @Value
 public class ConjunctFromFile {
-    int ownerProcess;
+    @NonNull String ownerProcess;
     @NonNull String name;
     @NonNull String expression;
 }

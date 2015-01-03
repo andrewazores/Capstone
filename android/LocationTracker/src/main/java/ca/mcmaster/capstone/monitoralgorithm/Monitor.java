@@ -99,8 +99,9 @@ public class Monitor extends Service {
         monitorID = initializerServiceConnection.getInitializer().getLocalPID();
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = initializerServiceConnection.getInitializer().getVirtualIdentifiers();
 
-        Automaton.processAutomatonFile(initializerServiceConnection.getInitializer().getAutomatonFile());
-        Automaton.build(virtualIdentifiers.get("x1"), virtualIdentifiers.get("x2"));
+        Automaton.processAutomatonFile(initializerServiceConnection.getInitializer().getAutomatonFile(),
+                initializerServiceConnection.getInitializer().getConjunctMap(),
+                virtualIdentifiers);
 
         //TODO: Eventually this will be constructed from a text file or something.
         final Valuation<Double> val1 = new Valuation<>(new HashMap<String, Double>() {{

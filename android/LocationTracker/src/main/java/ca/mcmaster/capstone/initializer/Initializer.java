@@ -110,7 +110,6 @@ public class Initializer extends Service {
 
         private Map<String, NetworkPeerIdentifier> generateVirtualIdentifiers() {
             waitForLatch(peerCountLatch);
-
             final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
             final List<NetworkPeerIdentifier> sortedIdentifiers = new ArrayList<>(serviceConnection.getNetworkLayer().getAllNetworkDevices());
             Collections.sort(sortedIdentifiers, (f, s) -> Integer.compare(f.hashCode(), s.hashCode()));
@@ -141,7 +140,7 @@ public class Initializer extends Service {
     }
 
     private static class AutomatonInitializer implements Runnable {
-        private static final File AUTOMATON_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/automaton.my");
+        private static final File AUTOMATON_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/automaton");
         private static final File CONJUNCT_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/conjunct_mapping.my");
         private final CountDownLatch latch = new CountDownLatch(1);
         private AutomatonFile automaton = null;
@@ -154,17 +153,14 @@ public class Initializer extends Service {
                 // Parse the automaton file
                 this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(AUTOMATON_FILE, Charset.forName("UTF-8")),
                         AutomatonFile.class);
-
                 // Parse the conjunct mapping file
                 final BufferedReader br = new BufferedReader(new FileReader(CONJUNCT_FILE));
                 while (br.ready()) {
                     final String line = br.readLine();
-                    if (line.startsWith("#")) {
-                        // ignore comments
-                        break;
+                    if (!line.startsWith("#")) {
+                        final String[] fields = line.split(",");
+                        conjunctMap.add(new ConjunctFromFile(fields[1], fields[0], fields[2]));
                     }
-                    final String[] fields = line.split(",");
-                    conjunctMap.add(new ConjunctFromFile(Integer.parseInt(fields[1]), fields[0], fields[2]));
                 }
                 br.close();
             } catch (final Exception e) {
@@ -184,7 +180,7 @@ public class Initializer extends Service {
         }
 
         private void waitForLatch(final CountDownLatch latch) {
-            Log.v("networkInitializer", "waiting for latch: " + latch);
+            Log.v("automatonInitializer", "waiting for latch: " + latch);
             while (latch.getCount() > 0) {
                 try {
                     latch.await(500, TimeUnit.MILLISECONDS);
@@ -192,7 +188,7 @@ public class Initializer extends Service {
                     // don't really care, just need to try again
                 }
             }
-            Log.v("networkInitializer", "stopped waiting for latch: " + latch);
+            Log.v("automatonInitializer", "stopped waiting for latch: " + latch);
         }
     }
 
