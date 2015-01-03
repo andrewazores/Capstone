@@ -2,14 +2,20 @@ package ca.mcmaster.capstone.initializer;
 
 import android.app.Service;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
+
+import com.google.gson.Gson;
+
+import junit.framework.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,10 +30,13 @@ import java.util.concurrent.TimeUnit;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ca.mcmaster.capstone.monitoralgorithm.Automaton;
 import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import ca.mcmaster.capstone.networking.util.JsonUtil;
 import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
+import lombok.Getter;
 import lombok.NonNull;
 
 public class Initializer extends Service {
@@ -140,55 +149,49 @@ public class Initializer extends Service {
     }
 
     private static class AutomatonInitializer implements Runnable {
-        private final File automatonFile = new File(Environment.getExternalStorageDirectory(), "automaton");
-        private boolean cancelled = false;
-        private final CountDownLatch initializationLatch = new CountDownLatch(1);
-
-        AutomatonInitializer(@NonNull String automatonFile) {
-            cancelled = false;
-        }
+        private static final File automatonFile = new File(Environment.getExternalStorageDirectory(), "automaton");
+        private final CountDownLatch latch = new CountDownLatch(1);
+        private AutomatonFile automaton = null;
 
         @Override
         public void run() {
             Log.d("automatonInitializer", "Started");
 
-            StringBuilder text = new StringBuilder();
-
-            try {
-                // We assume that this file contains one line
-                BufferedReader br = new BufferedReader(new FileReader(automatonFile));
+            final StringBuilder text = new StringBuilder();
+            try (final BufferedReader br = new BufferedReader(new FileReader(automatonFile))) {
                 text.append(br.readLine());
-                br.close();
-            }
-            catch (IOException e) {
+            } catch (final IOException e) {
                 Log.e("automatonInitializer", "Failed to read automaton definition file: " + e.getLocalizedMessage());
-                this.cancel();
             }
 
-            try {
-                JSONObject json = new JSONObject(text.toString());
-            } catch (JSONException e) {
-                Log.e("automatonInitializer", "Failed to parse automaton JSON string: " + e.getLocalizedMessage());
-                this.cancel();
-            }
+            this.automaton = JsonUtil.fromJson(text.toString(), AutomatonFile.class);
         }
 
-        public void cancel() {
-            Log.v("automatonInitializer", "cancelling");
-            cancelled = true;
-            initializationLatch.countDown();
+        public AutomatonFile getAutomatonFile() {
+            waitForLatch(latch);
+            return automaton;
+        }
+
+        private void waitForLatch(final CountDownLatch latch) {
+            Log.v("networkInitializer", "waiting for latch: " + latch);
+            while (latch.getCount() > 0) {
+                try {
+                    latch.await(500, TimeUnit.MILLISECONDS);
+                } catch (final InterruptedException ie) {
+                    // don't really care, just need to try again
+                }
+            }
+            Log.v("networkInitializer", "stopped waiting for latch: " + latch);
         }
     }
 
     private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private Intent networkServiceIntent;
     private Future<?> networkInitJob = null;
-    private Future<?> automatonInitJob = null;
-    private final String automatonFile = "/mnt/sdcard/automaton";
 
     // FIXME: the magic number will be read in from the input file, but for now is hard coded
     private final NetworkInitializer network = new NetworkInitializer(2, networkServiceConnection);
-    private final AutomatonInitializer automatonInit = new AutomatonInitializer(automatonFile);
+    private final AutomatonInitializer automatonInit = new AutomatonInitializer();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -203,7 +206,7 @@ public class Initializer extends Service {
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
         networkInitJob = Executors.newSingleThreadExecutor().submit(network);
-        automatonInitJob = Executors.newSingleThreadExecutor().submit(automatonInit);
+        Executors.newSingleThreadExecutor().submit(automatonInit);
     }
 
     @Override
@@ -212,13 +215,14 @@ public class Initializer extends Service {
         Log.v("initializer", "destroying initializer");
         getApplicationContext().unbindService(networkServiceConnection);
         network.cancel();
-        automatonInit.cancel();
         if (networkInitJob != null) {
             networkInitJob.cancel(true);
         }
-        if (automatonInitJob != null) {
-            automatonInitJob.cancel(true);
-        }
+    }
+
+    public void processAutomaton() {
+        final AutomatonFile automatonFile = automatonInit.getAutomatonFile();
+        Automaton.processAutomatonFile(automatonFile);
     }
 
     public NetworkPeerIdentifier getLocalPID() {

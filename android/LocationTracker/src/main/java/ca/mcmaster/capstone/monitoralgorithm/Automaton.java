@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import ca.mcmaster.capstone.initializer.AutomatonFile;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -20,6 +21,10 @@ public class Automaton {
     private static AutomatonState initialState;
     private static Map<String, AutomatonState> states;
     private static Set<AutomatonTransition> transitions;
+
+    public static void processAutomatonFile(final AutomatonFile automatonFile) {
+        // TODO: implement reading state names and transitions out of file and setting Automaton state
+    }
 
     //FIXME: This is garbage.
     public static void build(@NonNull final NetworkPeerIdentifier id1, @NonNull final NetworkPeerIdentifier id2) {
