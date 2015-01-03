@@ -2,20 +2,12 @@ package ca.mcmaster.capstone.initializer;
 
 import android.app.Service;
 import android.content.Intent;
-import android.hardware.Camera;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.gson.Gson;
-
-import junit.framework.Test;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,8 +21,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import ca.mcmaster.capstone.monitoralgorithm.Automaton;
 import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
@@ -38,8 +28,6 @@ import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.JsonUtil;
 import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
-import lombok.Getter;
-import lombok.NonNull;
 
 public class Initializer extends Service {
     private static class NetworkInitializer implements Runnable, NpiUpdateCallbackReceiver {
@@ -151,7 +139,7 @@ public class Initializer extends Service {
     }
 
     private static class AutomatonInitializer implements Runnable {
-        private static final File automatonFile = new File(Environment.getExternalStorageDirectory(), "automaton");
+        private static final File AUTOMATON_FILE = new File(Environment.getExternalStorageDirectory(), "automaton");
         private final CountDownLatch latch = new CountDownLatch(1);
         private AutomatonFile automaton = null;
 
@@ -159,7 +147,7 @@ public class Initializer extends Service {
         public void run() {
             Log.d("automatonInitializer", "Started");
             try {
-                this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(automatonFile, Charset.forName("UTF-8")),
+                this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(AUTOMATON_FILE, Charset.forName("UTF-8")),
                         AutomatonFile.class);
             } catch (final IOException e) {
                 throw new IllegalStateException(e);
