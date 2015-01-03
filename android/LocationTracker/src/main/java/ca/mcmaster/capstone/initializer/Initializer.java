@@ -149,7 +149,7 @@ public class Initializer extends Service {
             try {
                 this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(AUTOMATON_FILE, Charset.forName("UTF-8")),
                         AutomatonFile.class);
-            } catch (final IOException e) {
+            } catch (final Exception e) {
                 throw new IllegalStateException(e);
             }
             latch.countDown();
