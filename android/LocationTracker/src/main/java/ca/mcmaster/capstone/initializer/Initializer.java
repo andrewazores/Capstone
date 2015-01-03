@@ -208,9 +208,8 @@ public class Initializer extends Service {
         }
     }
 
-    public void processAutomaton() {
-        final AutomatonFile automatonFile = automatonInit.getAutomatonFile();
-        Automaton.processAutomatonFile(automatonFile);
+    public AutomatonFile getAutomatonFile() {
+        return automatonInit.getAutomatonFile();
     }
 
     public NetworkPeerIdentifier getLocalPID() {
