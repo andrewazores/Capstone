@@ -428,7 +428,7 @@ public class Monitor extends Service {
      */
     public static void processToken(@NonNull final Token token, @NonNull final Event event) {
         Log.d("monitor", "Entering processToken");
-        final VectorClock.Comparison comp = event.getVC().compareToClock(token.getCut());
+        final VectorClock.Comparison comp = token.getCut().compareToClock(event.getVC());
         if (comp == VectorClock.Comparison.CONCURRENT || comp == VectorClock.Comparison.EQUAL) {
             evaluateToken(token, event);
         } else if (comp == VectorClock.Comparison.BIGGER) {
