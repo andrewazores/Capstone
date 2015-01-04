@@ -36,7 +36,7 @@ public class CubeActivity extends Activity {
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private SensorEventListener mSensorEventListener;
-    private int flatnessCounter = 0;
+    private int eventCounter = 0;
     private boolean isFlat = true;
     private double flat = 1.0;
     private NetworkPeerIdentifier NSD;
@@ -202,7 +202,6 @@ public class CubeActivity extends Activity {
                 });
             }
             if (previouslyFlat != isFlat) {
-                ++flatnessCounter;
                 if (flat == 0.0) {
                     flat = 1.0;
                 } else {
@@ -219,15 +218,16 @@ public class CubeActivity extends Activity {
             final Valuation<?> valuation = new Valuation<>(new HashMap<String, Double>() {{
                 put(CubeActivity.this.variableName, value);
             }});
-            final Event e = new Event(flatnessCounter, NSD, Event.EventType.INTERNAL, valuation,
+            final Event e = new Event(eventCounter, NSD, Event.EventType.INTERNAL, valuation,
                     new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
-                        put(serviceConnection.getService().getLocalNetworkPeerIdentifier(), flatnessCounter);
+                        put(serviceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
                         for (final NetworkPeerIdentifier peer : serviceConnection.getService().getKnownPeers()) {
-                            put(peer, 0); //FIXME: VC for all peers probably shouldn't be 0 always?
+                            put(peer, 0);
                         }
                     }}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
             serviceConnection.getService().sendEventToMonitor(e);
+            ++eventCounter;
         }
 
         public boolean checkCondition(float[] gravity) {
