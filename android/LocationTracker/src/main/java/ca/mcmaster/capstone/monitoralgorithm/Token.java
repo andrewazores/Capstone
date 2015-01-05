@@ -16,6 +16,7 @@ import lombok.ToString;
 @EqualsAndHashCode @ToString
 public class Token {
     public static class Builder {
+        private final int uniqueLocalIdentifier;
         private final NetworkPeerIdentifier owner;
         private final NetworkPeerIdentifier destination;
 
@@ -27,12 +28,22 @@ public class Token {
         public boolean returned = false;
         public boolean sent = false;
 
+        private static class TokenIdCounter {
+            private static int tokenIdCounter = 0;
+
+            public static int getTokenId() {
+                return tokenIdCounter++;
+            }
+        }
+
         public Builder(@NonNull final NetworkPeerIdentifier owner, @NonNull final NetworkPeerIdentifier destination) {
+            this.uniqueLocalIdentifier = TokenIdCounter.getTokenId();
             this.owner = owner;
             this.destination = destination;
         }
 
         public Builder(@NonNull final Token token) {
+            this.uniqueLocalIdentifier = token.uniqueLocalIdentifier;
             this.owner = token.owner;
             this.destination = token.destination;
             this.targetEventId = token.targetEventId;
@@ -79,7 +90,6 @@ public class Token {
         }
 
         public Builder sent(final boolean sent) {
-
             this.sent = sent;
             return this;
         }
@@ -89,6 +99,7 @@ public class Token {
         }
     }
 
+    @Getter private final int uniqueLocalIdentifier;
     @NonNull @Getter private final NetworkPeerIdentifier owner;
     @NonNull @Getter private final NetworkPeerIdentifier destination;
     @Getter private final int targetEventId;
@@ -100,6 +111,7 @@ public class Token {
     @Setter private boolean sent = false;
 
     public Token(@NonNull final Builder builder) {
+        this.uniqueLocalIdentifier = builder.uniqueLocalIdentifier;
         this.owner = builder.owner;
         this.destination = builder.destination;
         this.targetEventId = builder.targetEventId;
