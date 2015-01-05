@@ -27,44 +27,48 @@ public class Token {
         public boolean returned = false;
         public boolean sent = false;
 
-        public Builder(final NetworkPeerIdentifier owner, final NetworkPeerIdentifier destination) {
+        public Builder(@NonNull final NetworkPeerIdentifier owner, @NonNull final NetworkPeerIdentifier destination) {
             this.owner = owner;
             this.destination = destination;
         }
 
-        public Builder(final Token token) {
+        public Builder(@NonNull final Token token) {
             this.owner = token.owner;
             this.destination = token.destination;
             this.targetEventId = token.targetEventId;
             this.cut = new VectorClock(token.cut);
             this.automatonTransitions.addAll(token.automatonTransitions);
             this.conjuncts.putAll(token.conjuncts);
-            this.targetProcessState = new ProcessState(token.targetProcessState);
+            if (token.targetProcessState == null) {
+                this.targetProcessState = null;
+            } else {
+                this.targetProcessState = new ProcessState(token.targetProcessState);
+            }
             this.returned = token.returned;
             this.sent = token.sent;
         }
 
-        public Builder targetEventId(final int id) {
+        public Builder targetEventId(@NonNull final int id) {
             this.targetEventId = id;
             return this;
         }
 
-        public Builder cut(final VectorClock cut) {
+        public Builder cut(@NonNull final VectorClock cut) {
             this.cut = new VectorClock(cut);
             return this;
         }
 
-        public Builder automatonTransitions(final Set<AutomatonTransition> transitions) {
+        public Builder automatonTransitions(@NonNull final Set<AutomatonTransition> transitions) {
             this.automatonTransitions.addAll(transitions);
             return this;
         }
 
-        public Builder conjuncts(final Map<Conjunct, Conjunct.Evaluation> conjuncts) {
+        public Builder conjuncts(@NonNull final Map<Conjunct, Conjunct.Evaluation> conjuncts) {
             this.conjuncts.putAll(conjuncts);
             return this;
         }
 
-        public Builder targetProcessState(final ProcessState state) {
+        public Builder targetProcessState(@NonNull final ProcessState state) {
             this.targetProcessState = new ProcessState(state);
             return this;
         }
@@ -75,6 +79,7 @@ public class Token {
         }
 
         public Builder sent(final boolean sent) {
+
             this.sent = sent;
             return this;
         }
