@@ -331,7 +331,7 @@ public class Monitor extends Service {
      */
     public static void receiveToken(@NonNull final Token token) {
         Log.d("monitor", "Entering receiveToken");
-        if (token.getOwner() == monitorID) {
+        if (token.getOwner().equals(monitorID)) {
             final List<GlobalView> globalViews = getGlobalView(token);
             for (final GlobalView globalView : globalViews) {
                 globalView.updateWithToken(token);
@@ -474,7 +474,7 @@ public class Monitor extends Service {
         final List<GlobalView> ret = new ArrayList<>();
         for (final GlobalView gv : GV) {
             for (final Token t : gv.getTokens()) {
-                if (token.getOwner() == t.getOwner()) {
+                if (token.getOwner().equals(t.getOwner())) {
                     ret.add(gv);
                     break;
                 }
