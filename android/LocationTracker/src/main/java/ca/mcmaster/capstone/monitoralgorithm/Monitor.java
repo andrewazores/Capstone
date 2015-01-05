@@ -474,7 +474,7 @@ public class Monitor extends Service {
         final List<GlobalView> ret = new ArrayList<>();
         for (final GlobalView gv : GV) {
             for (final Token t : gv.getTokens()) {
-                if (token.getOwner().equals(t.getOwner())) {
+                if (token.getUniqueLocalIdentifier() == t.getUniqueLocalIdentifier()) {
                     ret.add(gv);
                     break;
                 }
