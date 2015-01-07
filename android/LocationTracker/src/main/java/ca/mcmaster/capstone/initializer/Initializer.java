@@ -6,7 +6,9 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -139,16 +141,32 @@ public class Initializer extends Service {
     }
 
     private static class AutomatonInitializer implements Runnable {
-        private static final File AUTOMATON_FILE = new File(Environment.getExternalStorageDirectory(), "automaton");
+        private static final File AUTOMATON_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/automaton.my");
+        private static final File CONJUNCT_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/conjunct_mapping.my");
         private final CountDownLatch latch = new CountDownLatch(1);
         private AutomatonFile automaton = null;
+        private final List<ConjunctFromFile> conjunctMap = new ArrayList<>();
 
         @Override
         public void run() {
             Log.d("automatonInitializer", "Started");
             try {
+                // Parse the automaton file
                 this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(AUTOMATON_FILE, Charset.forName("UTF-8")),
                         AutomatonFile.class);
+
+                // Parse the conjunct mapping file
+                final BufferedReader br = new BufferedReader(new FileReader(CONJUNCT_FILE));
+                while (br.ready()) {
+                    final String line = br.readLine();
+                    if (line.startsWith("#")) {
+                        // ignore comments
+                        break;
+                    }
+                    final String[] fields = line.split(",");
+                    conjunctMap.add(new ConjunctFromFile(Integer.parseInt(fields[1]), fields[0], fields[2]));
+                }
+                br.close();
             } catch (final Exception e) {
                 throw new IllegalStateException(e);
             }
@@ -158,6 +176,11 @@ public class Initializer extends Service {
         public AutomatonFile getAutomatonFile() {
             waitForLatch(latch);
             return automaton;
+        }
+
+        public List<ConjunctFromFile> getConjunctMap() {
+            waitForLatch(latch);
+            return conjunctMap;
         }
 
         private void waitForLatch(final CountDownLatch latch) {
@@ -210,6 +233,10 @@ public class Initializer extends Service {
 
     public AutomatonFile getAutomatonFile() {
         return automatonInit.getAutomatonFile();
+    }
+
+    public List<ConjunctFromFile> getConjunctMap() {
+        return automatonInit.getConjunctMap();
     }
 
     public NetworkPeerIdentifier getLocalPID() {
