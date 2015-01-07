@@ -1,0 +1,5 @@
+#conjunct_name,owner_process,expression
+#ignore owner_process
+is_p2_up,2,x2 == 1.0
+is_p2_up',2,x2 != 1.0
+is_p1_flat,1,x1 == 0.0

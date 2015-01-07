@@ -1,0 +1,9 @@
+4
+q2,I
+q0,S
+q3,PV
+q1,S
+3
+q2,q0,is_p2_up
+q2,q3,is_p1_flat&is_p2_up'
+q3,q1,is_p1_flat&is_p2_up
