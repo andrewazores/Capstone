@@ -59,7 +59,7 @@ public class Token {
             this.sent = token.sent;
         }
 
-        public Builder targetEventId(@NonNull final int id) {
+        public Builder targetEventId(final int id) {
             this.targetEventId = id;
             return this;
         }
