@@ -12,6 +12,20 @@ import Foundation
 
 class myServiceDelegate:NSObject, NSNetServiceBrowserDelegate, NSNetServiceDelegate {
     
+    class var sharedInstance: myServiceDelegate {
+        
+        struct Static {
+            static var instance: myServiceDelegate?
+            static var token: dispatch_once_t = 0
+        }
+        
+        dispatch_once(&Static.token) {
+            Static.instance = myServiceDelegate()
+        }
+        return Static.instance!
+    }
+    
+    
     var myServiceResolver = NSNetService()
     var searching:Bool
     var services = [NSNetService]()
@@ -47,7 +61,7 @@ class myServiceDelegate:NSObject, NSNetServiceBrowserDelegate, NSNetServiceDeleg
     }
     
     func netServiceWillResolve(sender: NSNetService) {
-        println("Resolved \(sender)")
+       // println("Resolved \(sender)")
     }
     
     func netServiceDidResolveAddress(services: NSNetService) {
@@ -115,10 +129,24 @@ class myServiceDelegate:NSObject, NSNetServiceBrowserDelegate, NSNetServiceDeleg
                             
                             if(spAccess.getServiceName() == services.name) {
                                 println("Found local service, ignore it")
+                                //Pass IP to service publisher
                                 let myServicePublisher = ServicePublisher.sharedInstance
                                 myServicePublisher.spIP = ip!
                             } else {
-                                self.serviceResolveList.append(listIp: String(ip!), listPort: services.port)
+                                var exists = false
+                                for(listIP, listPort) in self.serviceResolveList {
+                                    if(listIP == ip! && listPort == services.port) {
+                                        println("Found existing IP/Port in list")
+                                        exists = true
+                                    }
+                                    else {
+                                        //Doesn't exist
+                                    }
+                                }
+                                if(exists == false) {
+                                    println("Added to list")
+                                    self.serviceResolveList.append(listIp: String(ip!), listPort: services.port)
+                                }
                             }
  
                             
