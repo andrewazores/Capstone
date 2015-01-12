@@ -17,21 +17,19 @@ import Foundation
 
 
 class ViewController: UIViewController {
-     var mySensor = SensorManager()
+     let mySensor = SensorManager.sharedInstance
     
     @IBAction func accelerometerDataBtn(sender: AnyObject) {
         mySensor.getAccelerationData()
     }
     
     @IBAction func msgA(sender: AnyObject) {
-        println("JSON A SHOWN")
-        self.jsonMsg = ["posts" : [[ "id" : 1, "message" : "hello world"],[ "id" : 2, "message" : "sample message"]], "new_updates" : false]
+        
     }
     
     @IBAction func msgB(sender: AnyObject) {
-        println("JSON B SHOWN")
-        self.jsonMsg = ["posts" : [[ "id" : 1, "message" : "hello world"],[ "id" : 2, "message" : "sample message"]], "new_updates" : true]
-    
+ 
+    myBonjourServiceDelegate.printServiceResolveList()
     }
     
    
@@ -39,21 +37,20 @@ class ViewController: UIViewController {
     
     var bonjourServiceBrowser = NSNetServiceBrowser();
     var myBonjourServiceDelegate = myServiceDelegate();
-    var myBonjourPublish = NSNetService(domain: "local", type: "_http._tcp", name: "dkCapstone", port: 8060);
-   // var myService = ServicePublisher(domain: "local", name: "_http._tcp", type: "dkCapstone")
+    //var myBonjourPublish = NSNetService(domain: "local", type: "_http._tcp", name: "CapstoneLocationNSD-", port: 8060);
+   // var myService = ServicePublisher(domain: "local", name: "CapstoneLocationNSD-", type: "_http._tcp")
+    var myService = ServicePublisher.sharedInstance
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         //If service initialized publish it
-        //myService.startService()
-        myBonjourPublish.publish()
-        
-        //Start HTTP Server
-        let myHTTPServer = HttpServer()
-        myHTTPServer["/hello"] = { request in return .OK(.JSON(self.jsonMsg))
- }
-        myHTTPServer.start(listenPort: 8060, error: nil)
+        myService.startService()
+       myService.startWebServer()
+        myService.singletonTest()
+
 
         //Start service search
         searchForServices()
@@ -76,9 +73,6 @@ func searchForServices() {
     bonjourServiceBrowser.delegate = myBonjourServiceDelegate
     bonjourServiceBrowser.searchForServicesOfType("_http._tcp", inDomain: "local")
    
-    
-    //bonjourServiceBrowser.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-    
     
 }
 
