@@ -19,21 +19,8 @@ import Foundation
 class ViewController: UIViewController {
      let mySensor = SensorManager.sharedInstance
     
-    @IBAction func accelerometerDataBtn(sender: AnyObject) {
-        mySensor.getAccelerationData()
-    }
-    
-    @IBAction func msgA(sender: AnyObject) {
-        
-    }
-    
-    @IBAction func msgB(sender: AnyObject) {
- 
-    myBonjourServiceDelegate.printServiceResolveList()
-    }
-    
-   
-    var jsonMsg = ["posts" : [[ "id" : 1, "message" : "hello world"],[ "id" : 2, "message" : "sample message"]], "new_updates" : false]
+
+  
     
     var bonjourServiceBrowser = NSNetServiceBrowser();
     var myBonjourServiceDelegate = myServiceDelegate();

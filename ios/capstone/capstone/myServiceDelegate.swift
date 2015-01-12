@@ -115,6 +115,8 @@ class myServiceDelegate:NSObject, NSNetServiceBrowserDelegate, NSNetServiceDeleg
                             
                             if(spAccess.getServiceName() == services.name) {
                                 println("Found local service, ignore it")
+                                let myServicePublisher = ServicePublisher.sharedInstance
+                                myServicePublisher.spIP = ip!
                             } else {
                                 self.serviceResolveList.append(listIp: String(ip!), listPort: services.port)
                             }

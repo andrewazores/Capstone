@@ -26,7 +26,7 @@ class ServicePublisher: NSObject, NSNetServiceDelegate {
         return Static.instance!
     }
 
-    
+    var spIP: String
     var spPort:Int32
     var spDomain:String
     var spType:String
@@ -41,6 +41,7 @@ class ServicePublisher: NSObject, NSNetServiceDelegate {
     
     
     init (domain: String, name: String, type: String) {
+        spIP = ""
         spPort = Int32(arc4random_uniform(500) + 8000)
         spDomain = domain
         spType = type
@@ -65,7 +66,7 @@ class ServicePublisher: NSObject, NSNetServiceDelegate {
     }
     
     func startService() {
-         spService.delegate = self       
+         spService.delegate = self
         spService.publish()
         println("service published")
         
@@ -75,13 +76,13 @@ class ServicePublisher: NSObject, NSNetServiceDelegate {
     func startWebServer() {
         //Start HTTP Server
 
-        self.myHTTPServer["/hello"] = {
+        self.myHTTPServer["/"] = {
             
             request in
             var test = self.sensorManager.getAccelerationData()
             println("\(test)")
             return {
-                .OK(.JSON(["rotationX": self.sensorManager.rotX]))
+                .OK(.JSON(["ip": self.spIP, "location": ["linearAcceleration": [0,0,0], "gravity": [self.sensorManager.accelX, self.sensorManager.accelY,self.sensorManager.accelZ], "barometerPressure": 0.0, "speed": 0.0, "altitude": self.sensorManager.altitude, "latitude": self.sensorManager.latitude, "logitude": self.sensorManager.longitude, "accuracy": 0.0, "bearing": 0.0], "port": true]))
                 }()
         }
         self.myHTTPServer.start(listenPort: UInt16(spPort), error:nil)

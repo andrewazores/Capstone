@@ -8,11 +8,13 @@
 
 import Foundation
 import CoreMotion
+import CoreLocation
 
-class SensorManager {
+class SensorManager: NSObject, CLLocationManagerDelegate, NSObjectProtocol {
     
     let mySensorManager: CMMotionManager
     let myAltimeterManager: CMAltimeter
+    let myLocationManager: CLLocationManager
     var accelX:Double = 0.0
     var accelY:Double = 0.0
     var accelZ:Double = 0.0
@@ -20,6 +22,9 @@ class SensorManager {
     var rotY:Double = 0.0
     var rotZ:Double = 0.0
     var altitude:Float = 0.0
+    var pressure: Float = 0.0
+    var latitude: Double = 0.0
+    var longitude: Double = 0.0
     
     class var sharedInstance: SensorManager{
         
@@ -34,41 +39,70 @@ class SensorManager {
         return Static.instance!
     }
     
-    init () {
+   override init () {
         mySensorManager = CMMotionManager()
         myAltimeterManager = CMAltimeter()
-        
+        myLocationManager = CLLocationManager()
+        myLocationManager.requestWhenInUseAuthorization()
+    myLocationManager.requestAlwaysAuthorization()
+    
+
+
         mySensorManager.deviceMotionUpdateInterval = 0.01
         mySensorManager.accelerometerUpdateInterval = 0.01
         mySensorManager.gyroUpdateInterval = 0.01
         
-        myAltimeterManager.startRelativeAltitudeUpdatesToQueue(NSOperationQueue.currentQueue(), withHandler: {(altimeterData: CMAltitudeData!, error:NSError!)in
-            self.outputAltimeterData(altimeterData)
-            if(error != nil) {
-                println("\(error)")
-            }
-        })
+  
+     
+        super.init()
+    
+    if(CLLocationManager.locationServicesEnabled()) {
+        println("Location Enabled")
+               myLocationManager.delegate = self
+     myLocationManager.desiredAccuracy = kCLLocationAccuracyBest
+            myLocationManager.startUpdatingLocation()
+
+    }
+    myAltimeterManager.startRelativeAltitudeUpdatesToQueue(NSOperationQueue.currentQueue(), withHandler: {(altimeterData: CMAltitudeData!, error:NSError!)in
+        self.outputAltimeterData(altimeterData)
+        if(error != nil) {
+            println("\(error)")
+        }
+    })
+    
+    mySensorManager.startAccelerometerUpdatesToQueue(NSOperationQueue.currentQueue(), withHandler: {(accelerometerData: CMAccelerometerData!, error:NSError!)in
+        self.outputAccelerationData(accelerometerData.acceleration)
+        if (error != nil)
+        {
+            println("\(error)")
+        }
+    })
+    
+    mySensorManager.startGyroUpdatesToQueue(NSOperationQueue.currentQueue(), withHandler: {(gyroData: CMGyroData!, error: NSError!)in
+        self.outputRotationData(gyroData.rotationRate)
+        if (error != nil)
+        {
+            println("\(error)")
+        }
+    })
+    
+    }
+    
+    
+    func locationManager(manager: CLLocationManager!, didUpdateLocations locations: [AnyObject]!) {
         
-        mySensorManager.startAccelerometerUpdatesToQueue(NSOperationQueue.currentQueue(), withHandler: {(accelerometerData: CMAccelerometerData!, error:NSError!)in
-            self.outputAccelerationData(accelerometerData.acceleration)
-            if (error != nil)
-            {
-                println("\(error)")
-            }
-        })
+        var locValue:CLLocationCoordinate2D = manager.location.coordinate
         
-        mySensorManager.startGyroUpdatesToQueue(NSOperationQueue.currentQueue(), withHandler: {(gyroData: CMGyroData!, error: NSError!)in
-            self.outputRotationData(gyroData.rotationRate)
-            if (error != nil)
-            {
-                println("\(error)")
-            }
-        })
+        println("locations = \(locValue.latitude) \(locValue.longitude)")
+        latitude = locValue.latitude as Double!
+        longitude = locValue.longitude as Double!
         
     }
     
+
+
+    
     func outputAccelerationData(acceleration:CMAcceleration) {
-        println("Acceleration X: \(accelX)")
         accelX = acceleration.x
         accelY = acceleration.y
         accelZ = acceleration.z
@@ -84,11 +118,11 @@ class SensorManager {
     
     func outputAltimeterData(altimiter: CMAltitudeData) {
         altitude = altimiter.relativeAltitude.floatValue
+        pressure = altimiter.pressure.floatValue
     }
     
     
     func getAccelerationData() -> (Double, Double, Double) {
-        println("X: \(accelX) Y: \(accelY) Z: \(accelZ)")
         return(accelX, accelY, accelZ)
     }
     
