@@ -12,6 +12,8 @@
 	<dict>
 		<key>55E87DD7055AC5667E8C895FAF11DE80AB199512</key>
 		<string>https://github.com/andrewazores/Capstone.git</string>
+		<key>C861FC00CEE0F6A6BE81FCFF6785FAA78C58EBB3</key>
+		<string>https://github.com/SwiftyJSON/SwiftyJSON.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>ios/capstone/capstone.xcodeproj</string>
@@ -19,6 +21,8 @@
 	<dict>
 		<key>55E87DD7055AC5667E8C895FAF11DE80AB199512</key>
 		<string>../../../..</string>
+		<key>C861FC00CEE0F6A6BE81FCFF6785FAA78C58EBB3</key>
+		<string>../../../../../../../XCode%20Libraries/SwiftyJSON</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/andrewazores/Capstone.git</string>
@@ -35,6 +39,14 @@
 			<string>55E87DD7055AC5667E8C895FAF11DE80AB199512</string>
 			<key>IDESourceControlWCCName</key>
 			<string>Capstone</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>C861FC00CEE0F6A6BE81FCFF6785FAA78C58EBB3</string>
+			<key>IDESourceControlWCCName</key>
+			<string>SwiftyJSON</string>
 		</dict>
 	</array>
 </dict>
