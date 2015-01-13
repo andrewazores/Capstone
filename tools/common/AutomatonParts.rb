@@ -14,9 +14,10 @@ class StateName < JsonStringify
     @label = label
     @type = case type
               when 'I' then 'initial'
-              when 'PV' then 'partial'
-              when 'A' then 'accept'
-              when 'R' then 'reject'
+              when 'PV' then 'possible violation'
+              when 'PS' then 'possible satisfaction'
+              when 'S' then 'satisfaction'
+              when 'V' then 'violation'
               else 'unknown'
             end
   end
