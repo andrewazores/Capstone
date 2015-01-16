@@ -31,7 +31,7 @@ class myServiceDelegate:NSObject, NSNetServiceBrowserDelegate, NSNetServiceDeleg
     var services = [NSNetService]()
    // var serviceArray:NSMutableArray
     var test = 0
-    var serviceResolveList: [(listIp: String, listPort: Int)] = []
+    var clientsResolvedList: [(listIp: String, listPort: Int)] = []
     
     override init() {
         
@@ -42,7 +42,7 @@ class myServiceDelegate:NSObject, NSNetServiceBrowserDelegate, NSNetServiceDeleg
     }
     
     func printServiceResolveList() {
-        println("\(self.serviceResolveList)")
+        println("\(self.clientsResolvedList)")
     }
     
     
@@ -134,7 +134,7 @@ class myServiceDelegate:NSObject, NSNetServiceBrowserDelegate, NSNetServiceDeleg
                                 myServicePublisher.spIP = ip!
                             } else {
                                 var exists = false
-                                for(listIP, listPort) in self.serviceResolveList {
+                                for(listIP, listPort) in self.clientsResolvedList {
                                     if(listIP == ip! && listPort == services.port) {
                                         println("Found existing IP/Port in list")
                                         exists = true
@@ -145,7 +145,7 @@ class myServiceDelegate:NSObject, NSNetServiceBrowserDelegate, NSNetServiceDeleg
                                 }
                                 if(exists == false) {
                                     println("Added to list")
-                                    self.serviceResolveList.append(listIp: String(ip!), listPort: services.port)
+                                    self.clientsResolvedList.append(listIp: String(ip!), listPort: services.port)
                                 }
                             }
  

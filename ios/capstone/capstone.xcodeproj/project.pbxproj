@@ -25,6 +25,9 @@
 		EB6497EA1A50EB7B00CACC1C /* SensorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB6497E91A50EB7B00CACC1C /* SensorManager.swift */; };
 		EB7F20A11A64216B005C4258 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB7F20A01A64216B005C4258 /* SwiftyJSON.swift */; };
 		EB7F20A31A644157005C4258 /* Agent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB7F20A21A644157005C4258 /* Agent.swift */; };
+		EB91CEB91A67B0C600C3B24B /* Automaton.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB91CEB81A67B0C600C3B24B /* Automaton.swift */; };
+		EB91CEBB1A67B11700C3B24B /* Conjunct.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB91CEBA1A67B11700C3B24B /* Conjunct.swift */; };
+		EB91CEBD1A67B6E800C3B24B /* AutomatonState.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB91CEBC1A67B6E800C3B24B /* AutomatonState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +63,9 @@
 		EB6497E91A50EB7B00CACC1C /* SensorManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SensorManager.swift; sourceTree = "<group>"; };
 		EB7F20A01A64216B005C4258 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		EB7F20A21A644157005C4258 /* Agent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Agent.swift; sourceTree = "<group>"; };
+		EB91CEB81A67B0C600C3B24B /* Automaton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Automaton.swift; sourceTree = "<group>"; };
+		EB91CEBA1A67B11700C3B24B /* Conjunct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Conjunct.swift; sourceTree = "<group>"; };
+		EB91CEBC1A67B6E800C3B24B /* AutomatonState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutomatonState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +109,7 @@
 		EB3241D41A49DDE600F1FEC0 /* capstone */ = {
 			isa = PBXGroup;
 			children = (
+				EB91CEB71A67B0A700C3B24B /* Monitoring Algorithm */,
 				EB7F20A01A64216B005C4258 /* SwiftyJSON.swift */,
 				EB7F20A21A644157005C4258 /* Agent.swift */,
 				EB6497E81A50EB6C00CACC1C /* SensorData */,
@@ -171,6 +178,16 @@
 				EB6497E91A50EB7B00CACC1C /* SensorManager.swift */,
 			);
 			name = SensorData;
+			sourceTree = "<group>";
+		};
+		EB91CEB71A67B0A700C3B24B /* Monitoring Algorithm */ = {
+			isa = PBXGroup;
+			children = (
+				EB91CEB81A67B0C600C3B24B /* Automaton.swift */,
+				EB91CEBA1A67B11700C3B24B /* Conjunct.swift */,
+				EB91CEBC1A67B6E800C3B24B /* AutomatonState.swift */,
+			);
+			name = "Monitoring Algorithm";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -274,12 +291,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB91CEBB1A67B11700C3B24B /* Conjunct.swift in Sources */,
 				95B02AE61A53EF7600E7C9AA /* HttpResponse.swift in Sources */,
 				95B02AE41A53EF7600E7C9AA /* HttpParser.swift in Sources */,
 				EB3241FD1A4A726400F1FEC0 /* myServiceDelegate.swift in Sources */,
 				EB7F20A11A64216B005C4258 /* SwiftyJSON.swift in Sources */,
 				EB3241DA1A49DDE600F1FEC0 /* ViewController.swift in Sources */,
 				EB7F20A31A644157005C4258 /* Agent.swift in Sources */,
+				EB91CEB91A67B0C600C3B24B /* Automaton.swift in Sources */,
+				EB91CEBD1A67B6E800C3B24B /* AutomatonState.swift in Sources */,
 				EB3241D81A49DDE600F1FEC0 /* AppDelegate.swift in Sources */,
 				95B02AE71A53EF7600E7C9AA /* HttpServer.swift in Sources */,
 				95B02AE51A53EF7600E7C9AA /* HttpRequest.swift in Sources */,

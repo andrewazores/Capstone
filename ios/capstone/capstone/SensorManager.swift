@@ -93,7 +93,7 @@ class SensorManager: NSObject, CLLocationManagerDelegate, NSObjectProtocol {
         
         var locValue:CLLocationCoordinate2D = manager.location.coordinate
         
-        println("locations = \(locValue.latitude) \(locValue.longitude)")
+       // println("locations = \(locValue.latitude) \(locValue.longitude)")
         latitude = locValue.latitude as Double!
         longitude = locValue.longitude as Double!
         
