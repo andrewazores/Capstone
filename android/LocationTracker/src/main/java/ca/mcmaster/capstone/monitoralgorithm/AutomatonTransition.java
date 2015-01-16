@@ -96,10 +96,8 @@ public class AutomatonTransition {
                 }
             }
         }
-        if (enabled.values().contains(Conjunct.Evaluation.NONE)) {
-            throw new Exception("Found an unevaluated conjunct where all should be evaluated.");
-        }
-        if (enabled.values().contains(Conjunct.Evaluation.FALSE)) {
+        if (enabled.values().contains(Conjunct.Evaluation.FALSE)
+                || enabled.values().contains(Conjunct.Evaluation.NONE)) {
             return false;
         }
         return true;
