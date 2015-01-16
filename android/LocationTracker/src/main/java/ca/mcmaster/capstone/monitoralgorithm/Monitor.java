@@ -359,7 +359,7 @@ public class Monitor extends Service {
                         }
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
-                    } else if (trans.evaluate(globalView.getStates().values()) == Conjunct.Evaluation.FALSE) {
+                    } else {
                         globalView.getPendingTransitions().remove(trans);
                     }
                 }
