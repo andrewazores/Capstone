@@ -87,7 +87,7 @@ public class AutomatonTransition {
         return ret;
     }
 
-    public boolean enabled(@NonNull final List<Token> tokens) throws Exception {
+    public boolean enabled(@NonNull final List<Token> tokens) {
         final Map<Conjunct, Conjunct.Evaluation> enabled = new HashMap<>();
         for (final Token token : tokens) {
             for (final Conjunct conjunct : token.getConjuncts()) {
