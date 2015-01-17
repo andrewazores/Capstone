@@ -336,10 +336,14 @@ public class Monitor extends Service {
             final List<GlobalView> globalViews = getGlobalView(token);
             for (final GlobalView globalView : globalViews) {
                 globalView.updateWithToken(token);
+                boolean hasEnabled = false;
                 for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
-                    if (trans.enabled(tokens) && consistent(globalView, tokens)) {
+                    if (trans.enabled(tokens)) {
+                        hasEnabled = true;
+                    }
+                    if (hasEnabled && consistent(globalView, tokens)) {
                         for (final Token tok : tokens) {
                             globalView.updateWithToken(tok);
                         }
@@ -364,15 +368,10 @@ public class Monitor extends Service {
                     }
                 }
                 if (globalView.getPendingTransitions().isEmpty()) {
-                    boolean hasEnabled = false;
-                    for (final AutomatonTransition gvTrans : globalView.getPendingTransitions()) {
-                        if (gvTrans.evaluate(globalView.getStates().values()) == Conjunct.Evaluation.TRUE) {
-                            GV.removeAll(globalViews);
-                            hasEnabled = true;
-                            break;
-                        }
-                    }
-                    if (!hasEnabled) {
+
+                    if (hasEnabled) {
+                        GV.remove(globalView);
+                    } else {
                         globalView.setTokens(new ArrayList<>());
                         processEvent(globalView, globalView.getPendingEvents().remove());
                     }
