@@ -138,7 +138,7 @@ public class Initializer extends Service {
     }
 
     private static class AutomatonInitializer implements Runnable {
-        private static final File AUTOMATON_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/automaton");
+        private static final File AUTOMATON_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/automaton.json");
         private static final File CONJUNCT_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/conjunct_mapping.my");
         private static final File INITIAL_STATE_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/initial_state.json");
         private final CountDownLatch latch = new CountDownLatch(1);
