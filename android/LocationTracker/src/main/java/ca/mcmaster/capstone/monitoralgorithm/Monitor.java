@@ -432,8 +432,8 @@ public class Monitor extends Service {
             for (final Conjunct conjunct : conjunctsMap.keySet()) {
                 conjunctsMap.put(conjunct, Conjunct.Evaluation.FALSE);
             }
-            final Event eventPrime = history.get(token.getTargetEventId());
-            final Token newToken = new Token.Builder(token).cut(eventPrime.getVC()).conjuncts(conjunctsMap).targetProcessState(eventPrime.getState()).build();
+            final Event targetEvent = history.get(token.getTargetEventId());
+            final Token newToken = new Token.Builder(token).cut(targetEvent.getVC()).conjuncts(conjunctsMap).targetProcessState(targetEvent.getState()).build();
             Log.d("monitor", "Sending a token back home.");
             send(newToken, newToken.getOwner());
         }
