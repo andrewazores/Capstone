@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import ca.mcmaster.capstone.initializer.InitialState;
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
@@ -103,32 +104,31 @@ public class Monitor extends Service {
                 initializerServiceConnection.getInitializer().getConjunctMap(),
                 virtualIdentifiers);
 
-        //TODO: Eventually this will be constructed from a text file or something.
-        final Valuation<Double> val1 = new Valuation<>(new HashMap<String, Double>() {{
-            put("x1", 0.0);
-        }});
-        final Valuation<Double> val2 = new Valuation<>(new HashMap<String, Double>() {{
-            put("x2", 0.0);
-        }});
+        //FIXME: This is pretty messy. We can pobably do better given some time to think.
+        List<InitialState.ValuationDummy> valuationDummies = initializerServiceConnection.getInitializer().getInitialState().getValuations();
+        Map<NetworkPeerIdentifier, Integer> initialVectorClock = new HashMap<>();
+        Map<NetworkPeerIdentifier, Valuation> valuations = new HashMap();
+        for (InitialState.ValuationDummy valuation : valuationDummies) {
+            Map<String, Double> val = new HashMap<>();
+            for (InitialState.Variable variable : valuation.getVariables()) {
+                val.put(variable.getVariable(), Double.parseDouble(variable.getValue()));
+            }
+            NetworkPeerIdentifier currentProcess = virtualIdentifiers.get(valuation.getVariables().get(0).getVariable());
+            initialVectorClock.put(currentProcess, 0);
+            valuations.put(currentProcess, new Valuation(val));
+        }
 
-        final VectorClock vec = new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
-            put(virtualIdentifiers.get("x1"), 0);
-            put(virtualIdentifiers.get("x2"), 0);
-        }});
-        final Map<NetworkPeerIdentifier, ProcessState> initialStates = new HashMap<NetworkPeerIdentifier, ProcessState>() {{
-            //FIXME: Double use of virtualIdentifiers on each line makes me think there's some possible refactoring here
-            put(virtualIdentifiers.get("x1"), new ProcessState(virtualIdentifiers.get("x1"), val1, vec));
-            put(virtualIdentifiers.get("x2"), new ProcessState(virtualIdentifiers.get("x2"), val2, vec));
-        }};
+        VectorClock vectorClock = new VectorClock(initialVectorClock);
+        final Map<NetworkPeerIdentifier, ProcessState> initialStates = new HashMap<>();
+        for (Map.Entry<NetworkPeerIdentifier, Valuation> entry : valuations.entrySet()) {
+            initialStates.put(entry.getKey(), new ProcessState(entry.getKey(), entry.getValue(), vectorClock));
+        }
 
         final GlobalView initialGV = new GlobalView();
         initialGV.setCurrentState(Automaton.getInitialState());
         initialGV.setStates(initialStates);
         initialGV.setCurrentState(Automaton.advance(initialGV));
-        initialGV.setCut(new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
-            put(virtualIdentifiers.get("x1"), 0);
-            put(virtualIdentifiers.get("x2"), 0);
-        }}));
+        initialGV.setCut(vectorClock);
         GV.add(initialGV);
         Log.d("monitor", "Finished initializing monitor");
     }
