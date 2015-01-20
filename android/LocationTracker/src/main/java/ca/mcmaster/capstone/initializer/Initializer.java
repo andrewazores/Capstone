@@ -181,6 +181,11 @@ public class Initializer extends Service {
             return conjunctMap;
         }
 
+        public InitialState getInitialState() {
+            waitForLatch(latch);
+            return initialState;
+        }
+
         private void waitForLatch(final CountDownLatch latch) {
             Log.v("automatonInitializer", "waiting for latch: " + latch);
             while (latch.getCount() > 0) {
@@ -236,6 +241,8 @@ public class Initializer extends Service {
     public List<ConjunctFromFile> getConjunctMap() {
         return automatonInit.getConjunctMap();
     }
+
+    public InitialState getInitialState() { return automatonInit.getInitialState(); }
 
     public NetworkPeerIdentifier getLocalPID() {
         return network.getLocalPID();
