@@ -368,7 +368,6 @@ public class Monitor extends Service {
                     }
                 }
                 if (globalView.getPendingTransitions().isEmpty()) {
-
                     if (hasEnabled) {
                         GV.remove(globalView);
                     } else {

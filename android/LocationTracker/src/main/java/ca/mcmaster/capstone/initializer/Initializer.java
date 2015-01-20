@@ -26,6 +26,8 @@ import org.apache.commons.io.FileUtils;
 
 import ca.mcmaster.capstone.monitoralgorithm.Automaton;
 import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
+import ca.mcmaster.capstone.monitoralgorithm.ProcessState;
+import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.JsonUtil;
@@ -142,9 +144,11 @@ public class Initializer extends Service {
     private static class AutomatonInitializer implements Runnable {
         private static final File AUTOMATON_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/automaton");
         private static final File CONJUNCT_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/conjunct_mapping.my");
+        private static final File INITIAL_STATE_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/initial_state.json");
         private final CountDownLatch latch = new CountDownLatch(1);
         private AutomatonFile automaton = null;
         private final List<ConjunctFromFile> conjunctMap = new ArrayList<>();
+        private InitialState initialState = null;
 
         @Override
         public void run() {
@@ -154,15 +158,18 @@ public class Initializer extends Service {
                 this.automaton = JsonUtil.fromJson(FileUtils.readFileToString(AUTOMATON_FILE, Charset.forName("UTF-8")),
                         AutomatonFile.class);
                 // Parse the conjunct mapping file
-                final BufferedReader br = new BufferedReader(new FileReader(CONJUNCT_FILE));
-                while (br.ready()) {
-                    final String line = br.readLine();
+                final BufferedReader mapping = new BufferedReader(new FileReader(CONJUNCT_FILE));
+                while (mapping.ready()) {
+                    final String line = mapping.readLine();
                     if (!line.startsWith("#")) {
                         final String[] fields = line.split(",");
                         conjunctMap.add(new ConjunctFromFile(fields[1], fields[0], fields[2]));
                     }
                 }
-                br.close();
+                mapping.close();
+                //Parse initial valuation
+                this.initialState = JsonUtil.fromJson(FileUtils.readFileToString(INITIAL_STATE_FILE, Charset.forName("UTF-8")), InitialState.class);
+                Log.d("automatonInitializer", initialState.toString());
             } catch (final Exception e) {
                 throw new IllegalStateException(e);
             }
