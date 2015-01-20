@@ -14,7 +14,7 @@ public class InitialState {
     public static class ValuationDummy {
         List<Variable> variables = new ArrayList();
     }
-    
+
     @Value
     public static class Variable {
         @NonNull String variable;

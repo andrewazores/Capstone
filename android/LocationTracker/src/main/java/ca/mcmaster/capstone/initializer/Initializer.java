@@ -9,7 +9,6 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,10 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 
-import ca.mcmaster.capstone.monitoralgorithm.Automaton;
 import ca.mcmaster.capstone.monitoralgorithm.NetworkServiceConnection;
-import ca.mcmaster.capstone.monitoralgorithm.ProcessState;
-import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.JsonUtil;
@@ -169,7 +165,6 @@ public class Initializer extends Service {
                 mapping.close();
                 //Parse initial valuation
                 this.initialState = JsonUtil.fromJson(FileUtils.readFileToString(INITIAL_STATE_FILE, Charset.forName("UTF-8")), InitialState.class);
-                Log.d("automatonInitializer", initialState.toString());
             } catch (final Exception e) {
                 throw new IllegalStateException(e);
             }
