@@ -8,6 +8,7 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -32,16 +33,27 @@ import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
 public class Initializer extends Service {
     private static class NetworkInitializer implements Runnable, NpiUpdateCallbackReceiver {
         private final NetworkServiceConnection serviceConnection;
-        private final int numPeers;
+        private int numPeers = 0;
         private NetworkPeerIdentifier localPID;
         private final Map<String, NetworkPeerIdentifier> virtualIdentifiers = new HashMap<>();
         private final CountDownLatch initializationLatch = new CountDownLatch(1);
         private final CountDownLatch peerCountLatch = new CountDownLatch(1);
         private volatile boolean cancelled = false;
+        private static final File NUMPEERS_FILE = new File(Environment.getExternalStorageDirectory(), "monitorInit/numPeers");
 
-        public NetworkInitializer(final int numPeers, final NetworkServiceConnection serviceConnection) {
+        public NetworkInitializer(final NetworkServiceConnection serviceConnection) {
             Log.v("networkInitializer", "created");
-            this.numPeers = numPeers;
+            //FIXME: I would like to redo the initializer and combine the configuratoin into a more coherant set of file, but this will do for now
+            try {
+                final BufferedReader br = new BufferedReader(new FileReader(NUMPEERS_FILE));
+                while (br.ready()) {
+                    final String line = br.readLine();
+                    this.numPeers = Integer.parseInt(line);
+                }
+                br.close();
+            } catch (final Exception e) {
+                throw new IllegalStateException(e);
+            }
             this.serviceConnection = serviceConnection;
             cancelled = false;
         }
@@ -203,8 +215,7 @@ public class Initializer extends Service {
     private Intent networkServiceIntent;
     private Future<?> networkInitJob = null;
 
-    // FIXME: the magic number will be read in from the input file, but for now is hard coded
-    private final NetworkInitializer network = new NetworkInitializer(2, networkServiceConnection);
+    private final NetworkInitializer network = new NetworkInitializer(networkServiceConnection);
     private final AutomatonInitializer automatonInit = new AutomatonInitializer();
 
     @Override
