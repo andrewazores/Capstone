@@ -19,15 +19,18 @@ import lombok.ToString;
 
 /* Class to represent an Automaton.*/
 @EqualsAndHashCode @ToString
-// FIXME: re-implement using Singleton pattern rather than static everything
 public class Automaton {
     public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED}
 
-    private static AutomatonState initialState;
-    private static Map<String, AutomatonState> states = new HashMap<>();
-    private static Set<AutomatonTransition> transitions = new HashSet<>();
+    public static final Automaton INSTANCE = new Automaton();
 
-    public static void processAutomatonFile(final AutomatonFile automatonFile, final List<ConjunctFromFile> conjunctMap,
+    private AutomatonState initialState;
+    private Map<String, AutomatonState> states = new HashMap<>();
+    private Set<AutomatonTransition> transitions = new HashSet<>();
+
+    private Automaton() {};
+
+    public void processAutomatonFile(final AutomatonFile automatonFile, final List<ConjunctFromFile> conjunctMap,
                                             final Map<String, NetworkPeerIdentifier> virtualIdentifierMap) {
         final Set<AutomatonFile.Name> names = automatonFile.getStateNames();
         final Set<AutomatonFile.Transition> transitions = automatonFile.getTransitions();
@@ -65,10 +68,10 @@ public class Automaton {
                 conjunctsWithExpresssions.add(new Conjunct(virtualIdentifierMap.get("x" + conjunct.getOwnerProcess()), conjunct.getExpression()));
             }
 
-            Automaton.transitions.add(new AutomatonTransition(source, destination, conjunctsWithExpresssions));
+            INSTANCE.transitions.add(new AutomatonTransition(source, destination, conjunctsWithExpresssions));
         }
-        Log.d("automaton", "states: " + Automaton.states.toString());
-        Log.d("automaton", "transitions: " + Automaton.transitions.toString());
+        Log.d("automaton", "states: " + INSTANCE.states.toString());
+        Log.d("automaton", "transitions: " + INSTANCE.transitions.toString());
     }
 
     /*
@@ -76,7 +79,7 @@ public class Automaton {
      *
      * @return The initial state of the automaton.
      */
-    public static AutomatonState getInitialState() {
+    public AutomatonState getInitialState() {
         return initialState;
     }
 
@@ -86,7 +89,7 @@ public class Automaton {
      * @param gv The GlobalView to use to compute the next state.
      * @return The next state of the automaton.
      */
-    public static AutomatonState advance(@NonNull final GlobalView gv) {
+    public AutomatonState advance(@NonNull final GlobalView gv) {
         for (final AutomatonTransition transition : transitions) {
             if (transition.getFrom() == gv.getCurrentState() && transition.getFrom() != transition.getTo()) {
                 if (transition.evaluate(gv.getStates().values()) == Conjunct.Evaluation.TRUE) {
@@ -97,7 +100,7 @@ public class Automaton {
         return gv.getCurrentState();
     }
 
-    public static Set<AutomatonTransition> getTransitions() {
+    public Set<AutomatonTransition> getTransitions() {
         return transitions;
     }
 }

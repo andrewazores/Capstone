@@ -42,6 +42,7 @@ public class Monitor extends Service {
     private Intent initializerServiceIntent;
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private static final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
+    private static final Automaton automaton = Automaton.INSTANCE;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -100,7 +101,7 @@ public class Monitor extends Service {
         monitorID = initializerServiceConnection.getInitializer().getLocalPID();
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = initializerServiceConnection.getInitializer().getVirtualIdentifiers();
 
-        Automaton.processAutomatonFile(initializerServiceConnection.getInitializer().getAutomatonFile(),
+        automaton.processAutomatonFile(initializerServiceConnection.getInitializer().getAutomatonFile(),
                 initializerServiceConnection.getInitializer().getConjunctMap(),
                 virtualIdentifiers);
 
@@ -125,9 +126,9 @@ public class Monitor extends Service {
         }
 
         final GlobalView initialGV = new GlobalView();
-        initialGV.setCurrentState(Automaton.getInitialState());
+        initialGV.setCurrentState(automaton.getInitialState());
         initialGV.setStates(initialStates);
-        initialGV.setCurrentState(Automaton.advance(initialGV));
+        initialGV.setCurrentState(automaton.advance(initialGV));
         initialGV.setCut(vectorClock);
         GV.add(initialGV);
         Log.d("monitor", "Finished initializing monitor");
@@ -255,7 +256,7 @@ public class Monitor extends Service {
     public static void processEvent(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering processEvent");
         gv.updateWithEvent(event);
-        gv.setCurrentState(Automaton.advance(gv));
+        gv.setCurrentState(automaton.advance(gv));
         if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
             Log.d("processEvent", "I am satisfied!");
         } else if (gv.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
@@ -274,7 +275,7 @@ public class Monitor extends Service {
     private static void checkOutgoingTransitions(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering checkOutgoingTransitions");
         final Map<NetworkPeerIdentifier, Set<AutomatonTransition>> consult = new HashMap<>();
-        for (final AutomatonTransition trans : Automaton.getTransitions()) {
+        for (final AutomatonTransition trans : automaton.getTransitions()) {
             final AutomatonState current = gv.getCurrentState();
             if (trans.getFrom().equals(current) && !trans.getTo().equals(current)) {
                 final Set<NetworkPeerIdentifier> participating = trans.getParticipatingProcesses();
