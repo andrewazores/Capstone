@@ -32,7 +32,6 @@ public class Monitor extends Service {
     private static final Set<Token> waitingTokens = new LinkedHashSet<>();
     private static NetworkPeerIdentifier monitorID = null;
     private static final Set<GlobalView> GV = new HashSet<>();
-    private static final int numPeers = 2;
     private static ExecutorService workQueue;
     private static volatile boolean cancelled = false;
     private static Future<?> monitorJob = null;
