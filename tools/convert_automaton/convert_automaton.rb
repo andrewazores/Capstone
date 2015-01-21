@@ -16,7 +16,7 @@ class FileFormatVerifier
   private
     @@num_states_or_transitions_pattern = /^\d+$/
     @@state_name_pattern = /^\w+,\w+$/
-    @@transition_pattern = /^\w+,\w+,\w+/
+    @@transition_pattern = /^\w+,\w+,[\w&!]+/
   public
   def initialize(lines, verbose=false)
     @lines = lines
