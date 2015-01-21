@@ -110,20 +110,6 @@ public class GlobalView {
     }
 
     /*
-     * Checks if the GlobalView is consistent for all known processes.
-     *
-     * @return True if the GlobalView is consistent, False if not.
-     */
-    public boolean isConsistent() {
-        boolean consistent = true;
-        for (int i = 0; i < cut.size(); ++i) {
-            //TODO: I'm pretty sure this is wrong.
-            //consistent &= this.states.get(i).getId() == this.cut.process(i);
-        }
-        return consistent;
-    }
-
-    /*
      * Finds the token that has the most conjuncts requested to be evaluated.
      *
      * @return A reference to The token with the most conjuncts requested to be evaluated, or null if

@@ -255,13 +255,11 @@ public class Monitor extends Service {
     public static void processEvent(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering processEvent");
         gv.updateWithEvent(event);
-        if (gv.isConsistent()) {
-            gv.setCurrentState(Automaton.advance(gv));
-            if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
-                Log.d("processEvent", "I am satisfied!");
-            } else if (gv.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
-                Log.d("processEvent", "I feel violated!");
-            }
+        gv.setCurrentState(Automaton.advance(gv));
+        if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
+            Log.d("processEvent", "I am satisfied!");
+        } else if (gv.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
+            Log.d("processEvent", "I feel violated!");
         }
         checkOutgoingTransitions(gv, event);
     }
