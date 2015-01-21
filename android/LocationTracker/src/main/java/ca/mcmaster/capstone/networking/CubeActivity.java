@@ -329,6 +329,7 @@ public class CubeActivity extends Activity {
                 }
             }
             Log.d("cube", "My variable is: " + CubeActivity.this.variableName);
+            Toast.makeText(CubeActivity.this, "My variable is: " + CubeActivity.this.variableName, Toast.LENGTH_LONG).show();
         }
 
         @Override
