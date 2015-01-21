@@ -11,7 +11,9 @@ Or, write one by hand.
 
 Then do this:
 
-ltl2tgba -F formulae --lenient -B | tee automaton | dot -Tpdf > graph.pdf && xdg-open graph.pdf
+DEPRECATED: ltl2tgba -F formulae --lenient -B | tee automaton | dot -Tpdf > graph.pdf && xdg-open graph.pdf
+
+./formula_to_automaton.sh "$FORMULA" | ./automaton_to_pdf.sh
 
 To convert the LTL formula into a Buchi Automaton and display it with GraphViz. The BA
 will also be stored in the file 'automaton' in GraphViz format, which should be fairly
