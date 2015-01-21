@@ -97,6 +97,7 @@ public class Monitor extends Service {
             }
         }
 
+
         monitorID = initializerServiceConnection.getInitializer().getLocalPID();
         final Map<String, NetworkPeerIdentifier> virtualIdentifiers = initializerServiceConnection.getInitializer().getVirtualIdentifiers();
 
@@ -257,9 +258,9 @@ public class Monitor extends Service {
         gv.updateWithEvent(event);
         gv.setCurrentState(automaton.advance(gv));
         if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
-            Log.d("processEvent", "I am satisfied!");
+            Log.d("processEvent", "I am satisfied in state " + gv.getCurrentState().getStateName() + "!");
         } else if (gv.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
-            Log.d("processEvent", "I feel violated!");
+            Log.d("processEvent", "I feel violated in state " + gv.getCurrentState().getStateName() + "!");
         }
         checkOutgoingTransitions(gv, event);
     }
@@ -355,9 +356,9 @@ public class Monitor extends Service {
                         GV.add(gvn1);
                         GV.add(gvn2);
                         if (gvn1.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
-                            Log.d("processEvent", "I am satisfied!");
+                            Log.d("processEvent", "I am satisfied in state " + gvn1.getCurrentState().getStateName() + "!");
                         } else if (gvn1.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
-                            Log.d("processEvent", "I feel violated!");
+                            Log.d("processEvent", "I feel violated in state " + gvn1.getCurrentState().getStateName() + "!");
                         }
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));

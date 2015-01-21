@@ -93,6 +93,7 @@ public class Automaton {
         for (final AutomatonTransition transition : transitions) {
             if (transition.getFrom() == gv.getCurrentState() && transition.getFrom() != transition.getTo()) {
                 if (transition.evaluate(gv.getStates().values()) == Conjunct.Evaluation.TRUE) {
+                    Log.d("automaton", "Advanced to state: " + transition.getTo().getStateName());
                     return transition.getTo();
                 }
             }
