@@ -184,9 +184,9 @@ public class Monitor extends Service {
 
     private static void send(@NonNull final Token token, @NonNull final NetworkPeerIdentifier pid) {
         if (pid.equals(token.getOwner())) {
-            Log.d("monitor", "Sending a token back home.");
+            Log.d("monitor", "Sending a token back home. To: " + pid.toString());
         } else {
-            Log.d("monitor", "Sending a token.");
+            Log.d("monitor", "Sending a token. To: " + pid.toString());
         }
         networkServiceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
     }
