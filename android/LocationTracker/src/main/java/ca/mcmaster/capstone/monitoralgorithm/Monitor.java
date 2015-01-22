@@ -183,7 +183,11 @@ public class Monitor extends Service {
     }
 
     private static void send(@NonNull final Token token, @NonNull final NetworkPeerIdentifier pid) {
-        Log.d("monitor", "sending token");
+        if (pid.equals(token.getOwner())) {
+            Log.d("monitor", "Sending a token back home.");
+        } else {
+            Log.d("monitor", "Sending a token.");
+        }
         networkServiceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
     }
 
@@ -316,7 +320,6 @@ public class Monitor extends Service {
         final Token token = gv.getTokenWithMostConjuncts();
         //XXX: This may not be correct. More investigation required.
         if (token != null) {
-            Log.d("monitor", "Sending a nice shiny token!");
             send(token, token.getDestination());
             token.setSent(true);
         }
@@ -433,7 +436,6 @@ public class Monitor extends Service {
             }
             final Event targetEvent = history.get(token.getTargetEventId());
             final Token newToken = new Token.Builder(token).cut(targetEvent.getVC()).conjuncts(conjunctsMap).targetProcessState(targetEvent.getState()).build();
-            Log.d("monitor", "Sending a token back home.");
             send(newToken, newToken.getOwner());
         }
     }
