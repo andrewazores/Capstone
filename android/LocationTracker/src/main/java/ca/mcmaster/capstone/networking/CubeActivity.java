@@ -212,9 +212,8 @@ public class CubeActivity extends Activity {
         }
 
         public void sendEvent(double value) {
-            if (serviceConnection.getService() == null) {
-                return;
-            }
+            //Block until network is set up... I am a failure.
+            initializerServiceConnection.getInitializer().getLocalPID();
             final Valuation<?> valuation = new Valuation<>(new HashMap<String, Double>() {{
                 put(CubeActivity.this.variableName, value);
             }});
