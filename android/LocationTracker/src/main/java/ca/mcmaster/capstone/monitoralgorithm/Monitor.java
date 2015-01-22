@@ -42,6 +42,7 @@ public class Monitor extends Service {
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private static final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
     private static final Automaton automaton = Automaton.INSTANCE;
+    private static final List<Token> tokensPendingSend = new ArrayList<>();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -301,7 +302,21 @@ public class Monitor extends Service {
             }
         }
 
+        List<Token> pendingSend = new ArrayList<>();
         for (final Map.Entry<NetworkPeerIdentifier, Set<AutomatonTransition>> entry : consult.entrySet()) {
+            Token.Builder builder = new Token.Builder(monitorID, entry.getKey());
+            for (Token token : pendingSend) {
+                VectorClock.Comparison comparison = token.getCut().compareToClock(event.getVC());
+                if (token.getDestination().equals(entry.getKey())
+                        && comparison == VectorClock.Comparison.EQUAL
+                        && token.getTargetEventId() == gv.getCut().process(entry.getKey()) + 1) {
+                    //Modify one of the pending tokens
+                    builder = new Token.Builder(token);
+                    pendingSend.remove(token);
+                    break;
+                }
+            }
+
             // Get all the conjuncts for process j
             final Set<Conjunct> conjuncts = new HashSet<>();
             for (final AutomatonTransition trans : entry.getValue()) {
@@ -312,11 +327,14 @@ public class Monitor extends Service {
             for (final Conjunct conjunct : conjuncts) {
                 forToken.put(conjunct, Conjunct.Evaluation.NONE);
             }
-            final Token token = new Token.Builder(monitorID, entry.getKey()).targetEventId(gv.getCut().process(entry.getKey()) + 1)
+            final Token token = builder.targetEventId(gv.getCut().process(entry.getKey()) + 1)
                     .cut(event.getVC()).conjuncts(forToken).automatonTransitions(entry.getValue())
                     .build();
-            gv.getTokens().add(token);
+            pendingSend.add(token);
         }
+        gv.getTokens().addAll(pendingSend);
+        tokensPendingSend.addAll(pendingSend);
+        //TODO: remove this send since tokens will be sent in bulk
         final Token token = gv.getTokenWithMostConjuncts();
         //XXX: This may not be correct. More investigation required.
         if (token != null) {
