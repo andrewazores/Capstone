@@ -116,12 +116,14 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     public void onMonitorSatisfied() {
         satisfactionGlobalText = "Satisfaction: so so satisfied ;)";
         Log.d("MonitorState", "Monitor is satisfied !!!");
+        setGlobalText();
     }
 
     @Override
     public void onMonitorViolated() {
         satisfactionGlobalText = "Satisfaction: I NEED AN ADULT";
         Log.d("MonitorState", "Monitor is violated !!!");
+        setGlobalText();
     }
 
 
