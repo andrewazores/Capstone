@@ -668,12 +668,12 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     @Override
-    public void registerMonitorStateListener(final MonitorSatisfactionStateListener monitorSatisfactionStateListener) {
+    public void registerMonitorStateListener(@NonNull final MonitorSatisfactionStateListener monitorSatisfactionStateListener) {
         monitorStateListeners.add(monitorSatisfactionStateListener);
     }
 
     @Override
-    public void unregisterMonitorStateListener(final MonitorSatisfactionStateListener monitorSatisfactionStateListener) {
+    public void unregisterMonitorStateListener(@NonNull final MonitorSatisfactionStateListener monitorSatisfactionStateListener) {
         monitorStateListeners.remove(monitorSatisfactionStateListener);
     }
 

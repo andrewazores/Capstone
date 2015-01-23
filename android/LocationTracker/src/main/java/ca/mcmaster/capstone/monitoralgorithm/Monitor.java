@@ -300,7 +300,7 @@ public class Monitor extends Service {
         checkOutgoingTransitions(gv, event);
     }
 
-    private static void handleMonitorStateChange(final GlobalView gv) {
+    private static void handleMonitorStateChange(@NonNull final GlobalView gv) {
         final Automaton.Evaluation state = gv.getCurrentState().getStateType();
         switch (state) {
             case SATISFIED:
