@@ -21,7 +21,7 @@ public class Conjunct {
     }
 
     public Evaluation evaluate(@NonNull final ProcessState state) {
-        if (ownerProcess != state.getId()) {
+        if (!ownerProcess.equals(state.getId())) {
             return Evaluation.NONE;
         }
         return expression.evaluate(state);

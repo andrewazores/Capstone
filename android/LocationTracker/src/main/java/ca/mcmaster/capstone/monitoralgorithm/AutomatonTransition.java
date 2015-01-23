@@ -40,7 +40,7 @@ public class AutomatonTransition {
         final Map<Conjunct, Conjunct.Evaluation> evaluations = new HashMap<>();
         for (final ProcessState state : processStates) {
             for (final Conjunct conjunct : this.conjuncts) {
-                if (conjunct.getOwnerProcess() == state.getId()) {
+                if (conjunct.getOwnerProcess().equals(state.getId())) {
                     evaluations.put(conjunct, conjunct.evaluate(state));
                 }
             }
@@ -77,7 +77,7 @@ public class AutomatonTransition {
         for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : gv.getStates().entrySet()) {
             final ProcessState state = entry.getValue();
             for (final Conjunct conjunct : conjuncts) {
-                if (conjunct.getOwnerProcess() == state.getId()
+                if (conjunct.getOwnerProcess().equals(state.getId())
                         && conjunct.evaluate(state) == Conjunct.Evaluation.FALSE) {
                     ret.add(state.getId());
                     break;

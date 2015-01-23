@@ -91,7 +91,7 @@ public class Automaton {
      */
     public AutomatonState advance(@NonNull final GlobalView gv) {
         for (final AutomatonTransition transition : transitions) {
-            if (transition.getFrom() == gv.getCurrentState() && transition.getFrom() != transition.getTo()) {
+            if (transition.getFrom().equals(gv.getCurrentState()) && !transition.getFrom().equals(transition.getTo())) {
                 if (transition.evaluate(gv.getStates().values()) == Conjunct.Evaluation.TRUE) {
                     Log.d("automaton", "Advanced to state: " + transition.getTo().getStateName());
                     return transition.getTo();

@@ -172,7 +172,7 @@ public class GlobalView {
      */
     public GlobalView merge(@NonNull final GlobalView gv) {
         final VectorClock.Comparison compare = this.cut.compareToClock(gv.cut);
-        if (this.currentState == gv.currentState &&
+        if (this.currentState.equals(gv.currentState) &&
                 (compare == VectorClock.Comparison.CONCURRENT || compare == VectorClock.Comparison.EQUAL)) {
             final GlobalView ret = new GlobalView();
             //XXX: I'm not sure that these are guaranteed to be the same. We may be losing information here.
