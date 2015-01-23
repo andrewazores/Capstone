@@ -88,20 +88,23 @@ public class GlobalView {
     }
 
     /*
-     * Updates the global view with the information in token.
+     * Finds token in the list of sent tokens and updates it with the
+     * information collected at the target process.
      *
      * @param token The token to use to update the global view.
      */
     public void updateWithToken(@NonNull final Token token) {
-        cut = cut.merge(token.getCut());
-        states.put(token.getTargetProcessState().getId(), token.getTargetProcessState());
-        // If any pending transitions are also in the token, and are evaluated in the token, remove them
-        for (final Iterator<AutomatonTransition> it = pendingTransitions.iterator(); it.hasNext();) {
-            final AutomatonTransition pending = it.next();
-            if (token.getAutomatonTransitions().contains(pending) && pending.evaluate(this.states.values()) != Conjunct.Evaluation.NONE) {
+        Token updatedToken = null;
+        for (Iterator<Token> it = this.tokens.iterator(); it.hasNext();) {
+            Token tokenInGV = it.next();
+            if (tokenInGV.getUniqueLocalIdentifier() == token.getUniqueLocalIdentifier()) {
+                updatedToken = new Token.Builder(tokenInGV).cut(token.getCut())
+                        .returned(true).targetProcessState(token.getTargetProcessState()).build();
                 it.remove();
+                break;
             }
         }
+        this.tokens.add(updatedToken);
     }
 
     /*
