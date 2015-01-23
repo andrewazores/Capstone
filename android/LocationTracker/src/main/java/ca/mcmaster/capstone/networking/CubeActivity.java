@@ -42,6 +42,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     private NetworkPeerIdentifier NSD;
     private String variableName;
     private String variableGlobalText;
+    private String satisfactionGlobalText = "Satisfaction: no clue";
 
     private final float[] gravity = new float[3];
     private OpenGLRenderer renderer;
@@ -78,7 +79,13 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
     public void setGlobalText(){
         TextView globalText = (TextView) findViewById(R.id.cube_global_info);
-        globalText.setText(variableGlobalText);
+
+        StringBuilder text = new StringBuilder();
+        text.append(variableGlobalText);
+        text.append("\n");
+        text.append(satisfactionGlobalText);
+
+        globalText.setText(text.toString());
     }
 
     private void setupGravitySensorService() {
@@ -107,13 +114,13 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
     @Override
     public void onMonitorSatisfied() {
-        Toast.makeText(getApplicationContext(), "I feel so satisfied (:", Toast.LENGTH_LONG).show();
+        satisfactionGlobalText = "Satisfaction: so so satisfied ;)";
         Log.d("MonitorState", "Monitor is satisfied !!!");
     }
 
     @Override
     public void onMonitorViolated() {
-        Toast.makeText(getApplicationContext(), "I NEED AN ADULT", Toast.LENGTH_LONG).show();
+        satisfactionGlobalText = "Satisfaction: I NEED AN ADULT";
         Log.d("MonitorState", "Monitor is violated !!!");
     }
 
@@ -280,7 +287,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
                     break;
                 }
             }
-            variableGlobalText = "My variable is: " + CubeActivity.this.variableName;
+            variableGlobalText = "I am: " + CubeActivity.this.variableName;
             Log.d("cube", variableGlobalText);
             setGlobalText();
         }
