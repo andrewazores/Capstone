@@ -22,7 +22,6 @@ import java.util.concurrent.Future;
 
 import ca.mcmaster.capstone.initializer.InitialState;
 import ca.mcmaster.capstone.initializer.Initializer;
-import ca.mcmaster.capstone.networking.CapstoneActivity;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.NonNull;
@@ -45,7 +44,6 @@ public class Monitor extends Service {
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private static final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
     private static final Automaton automaton = Automaton.INSTANCE;
-    private volatile static Context applicationContext = null;
 
     /* Class to abstract the bulk sending of tokens. */
     private static class TokenSender {
@@ -87,7 +85,6 @@ public class Monitor extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        applicationContext = getApplicationContext();
         cancelled = false;
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
@@ -299,26 +296,23 @@ public class Monitor extends Service {
         Log.d("monitor", "Entering processEvent");
         gv.updateWithEvent(event);
         gv.setCurrentState(automaton.advance(gv));
-        displaySatisfactionToast(gv);
+        handleMonitorStateChange(gv);
         checkOutgoingTransitions(gv, event);
     }
 
-    private static void displaySatisfactionToast(final GlobalView gv) {
-        if (applicationContext != null) {
-            final Automaton.Evaluation state = gv.getCurrentState().getStateType();
-            final String feeling;
-            switch (state) {
-                case SATISFIED:
-                    feeling = "am satisfied"; break;
-                case VIOLATED:
-                    feeling = "feel violated"; break;
-                default:
-                    return;
-            }
-            final String message = "I " + feeling + " in state " + gv.getCurrentState().getStateName() + "!";
-            Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show();
-            Log.d("processEvent", message);
+    private static void handleMonitorStateChange(final GlobalView gv) {
+        final Automaton.Evaluation state = gv.getCurrentState().getStateType();
+        switch (state) {
+            case SATISFIED:
+                networkServiceConnection.getNetworkLayer().signalMonitorSatisfied();
+                break;
+            case VIOLATED:
+                networkServiceConnection.getNetworkLayer().signalMonitorViolated();
+                break;
+            default:
+                return;
         }
+        Log.d("monitor", "Monitor state changed! " + state + " in state " + gv.getCurrentState().getStateName());
     }
 
     /*
@@ -420,7 +414,7 @@ public class Monitor extends Service {
                         globalView.getPendingTransitions().remove(trans);
                         GV.add(gvn1);
                         GV.add(gvn2);
-                        displaySatisfactionToast(gvn1);
+                        handleMonitorStateChange(gvn1);
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
                     } else {

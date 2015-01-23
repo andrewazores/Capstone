@@ -30,8 +30,9 @@ import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 
-public class CubeActivity extends Activity {
+public class CubeActivity extends Activity implements MonitorSatisfactionStateListener {
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -143,6 +144,18 @@ public class CubeActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onMonitorSatisfied() {
+        Toast.makeText(getApplicationContext(), "I feel so satisfied (:", Toast.LENGTH_LONG).show();
+        Log.d("MonitorState", "Monitor is satisfied !!!");
+    }
+
+    @Override
+    public void onMonitorViolated() {
+        Toast.makeText(getApplicationContext(), "I NEED AN ADULT", Toast.LENGTH_LONG).show();
+        Log.d("MonitorState", "Monitor is violated !!!");
     }
 
 
@@ -290,6 +303,7 @@ public class CubeActivity extends Activity {
 
             this.binder = (CapstoneService.CapstoneNetworkServiceBinder) service;
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
+            this.service.registerMonitorStateListener(CubeActivity.this);
 
 //            this.service.registerSensorUpdateCallback(CubeActivity.this);
 //            this.service.registerNpiUpdateCallback(CubeActivity.this);

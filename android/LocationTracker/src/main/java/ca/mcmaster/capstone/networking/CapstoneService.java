@@ -58,6 +58,7 @@ import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.DeviceLocation;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.structures.PayloadObject;
+import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import ca.mcmaster.capstone.networking.util.NetworkLayer;
 import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
@@ -108,6 +109,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     private final float[] gravity = new float[3];
     private final float[] linearAcceleration = new float[3];
+    private final Set<MonitorSatisfactionStateListener> monitorStateListeners = new HashSet<>();
 
     @Override
     public void onCreate() {
@@ -663,6 +665,30 @@ public final class CapstoneService extends Service implements NetworkLayer {
         final Set<NetworkPeerIdentifier> devices = getKnownPeers();
         devices.add(getLocalNetworkPeerIdentifier());
         return devices;
+    }
+
+    @Override
+    public void registerMonitorStateListener(final MonitorSatisfactionStateListener monitorSatisfactionStateListener) {
+        monitorStateListeners.add(monitorSatisfactionStateListener);
+    }
+
+    @Override
+    public void unregisterMonitorStateListener(final MonitorSatisfactionStateListener monitorSatisfactionStateListener) {
+        monitorStateListeners.remove(monitorSatisfactionStateListener);
+    }
+
+    @Override
+    public void signalMonitorSatisfied() {
+        for (final MonitorSatisfactionStateListener monitorSatisfactionStateListener : monitorStateListeners) {
+            monitorSatisfactionStateListener.onMonitorSatisfied();
+        }
+    }
+
+    @Override
+    public void signalMonitorViolated() {
+        for (final MonitorSatisfactionStateListener monitorSatisfactionStateListener : monitorStateListeners) {
+            monitorSatisfactionStateListener.onMonitorViolated();
+        }
     }
 
     private InetAddress findIpAddress() {
