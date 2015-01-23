@@ -16,14 +16,18 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 
+import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.initializer.InitializerBinder;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
@@ -69,6 +73,7 @@ public class CubeActivity extends Activity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_cube);
 
         serviceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
@@ -81,16 +86,24 @@ public class CubeActivity extends Activity {
 
         setupGravitySensorService();
         // Go fullscreen
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        LinearLayout gl = (LinearLayout) findViewById(R.id.gl_layout);
 
         final GLSurfaceView view = new GLSurfaceView(this);
         renderer = new OpenGLRenderer();
         view.setRenderer(renderer);
-        setContentView(view);
+        gl.addView(view);
 
         networkGetTask.execute();
+    }
+
+    private String variable;
+    public void setGlobalText(){
+        TextView globalText = (TextView) findViewById(R.id.cube_global_info);
+        globalText.setText(variable);
     }
 
     public void getEvent() throws InterruptedException {
@@ -327,8 +340,9 @@ public class CubeActivity extends Activity {
                     break;
                 }
             }
-            Log.d("cube", "My variable is: " + CubeActivity.this.variableName);
-            Toast.makeText(CubeActivity.this, "My variable is: " + CubeActivity.this.variableName, Toast.LENGTH_LONG).show();
+            variable = "My variable is: " + CubeActivity.this.variableName;
+            Log.d("cube", variable);
+            setGlobalText();
         }
 
         @Override
