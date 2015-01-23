@@ -85,4 +85,28 @@ public interface NetworkLayer {
      * @return the set of known peers, including this device
      */
     Set<NetworkPeerIdentifier> getAllNetworkDevices();
+
+    /**
+     * Called by the Monitor when the property it monitors is satisfied.
+     */
+    void signalMonitorSatisfied();
+
+    /**
+     * Called by the Monitor when the property it montors is violated.
+     */
+    void signalMonitorViolated();
+
+    /**
+     * Called by processes which are to be monitored by a Monitor, if they require knowledge of when
+     * the Monitor detects satisfaction or violation of its property.
+     * @param monitorSatisfactionStateListener the process to be monitored and which requires state knowledge.
+     */
+    void registerMonitorStateListener(MonitorSatisfactionStateListener monitorSatisfactionStateListener);
+
+    /**
+     * Called by a process which has previously registered itself a a Monitor state listener when it no longer
+     * requires updates on changes to the monitor state.
+     * @param monitorSatisfactionStateListener the process to unregister.
+     */
+    void unregisterMonitorStateListener(MonitorSatisfactionStateListener monitorSatisfactionStateListener);
 }
