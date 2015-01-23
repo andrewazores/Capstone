@@ -42,7 +42,38 @@ public class Monitor extends Service {
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private static final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
     private static final Automaton automaton = Automaton.INSTANCE;
-    private static final List<Token> tokensPendingSend = new ArrayList<>();
+
+    /* Class to abstract the bulk sending of tokens. */
+    private static class TokenSender {
+        private static final List<Token> tokensToSendOut = new ArrayList<>();
+        private static final List<Token> tokensToSendHome = new ArrayList<>();
+
+        private static void bulkTokenSendOut(final List<Token> tokens) {
+            tokensToSendOut.addAll(tokens);
+        }
+
+        private static void sendTokenOut(final Token token) {
+            tokensToSendOut.add(token);
+        }
+
+        private static void sendTokenHome(final Token token) {
+            tokensToSendHome.add(token);
+        }
+
+        private static void bulkSendTokens() {
+            for (Iterator<Token> it = tokensToSendOut.iterator(); it.hasNext(); ) {
+                final Token token = it.next();
+                send(token, token.getDestination());
+                token.setSent(true);
+                it.remove();
+            }
+            for (Iterator<Token> it = tokensToSendHome.iterator(); it.hasNext(); ) {
+                final Token token = it.next();
+                send(token, token.getOwner());
+                it.remove();
+            }
+        }
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -230,6 +261,7 @@ public class Monitor extends Service {
                 processEvent(gv, gv.getPendingEvents().remove());
             }
         }
+        TokenSender.bulkSendTokens();
         Log.d("monitor", "Exiting receiveEvent");
     }
 
@@ -302,7 +334,7 @@ public class Monitor extends Service {
             }
         }
 
-        List<Token> pendingSend = new ArrayList<>();
+        final List<Token> pendingSend = new ArrayList<>();
         for (final Map.Entry<NetworkPeerIdentifier, Set<AutomatonTransition>> entry : consult.entrySet()) {
             Token.Builder builder = new Token.Builder(monitorID, entry.getKey());
             for (Token token : pendingSend) {
@@ -333,14 +365,7 @@ public class Monitor extends Service {
             pendingSend.add(token);
         }
         gv.getTokens().addAll(pendingSend);
-        tokensPendingSend.addAll(pendingSend);
-        //TODO: remove this send since tokens will be sent in bulk
-        final Token token = gv.getTokenWithMostConjuncts();
-        //XXX: This may not be correct. More investigation required.
-        if (token != null) {
-            send(token, token.getDestination());
-            token.setSent(true);
-        }
+        TokenSender.bulkTokenSendOut(pendingSend);
     }
 
     /*
@@ -396,8 +421,7 @@ public class Monitor extends Service {
                     }
                 }
                 final Token maxConjuncts = globalView.getTokenWithMostConjuncts();
-                send(maxConjuncts, maxConjuncts.getDestination());
-                maxConjuncts.setSent(true);
+                TokenSender.sendTokenOut(maxConjuncts);
             }
         } else {
             boolean hasTarget = false;
@@ -454,7 +478,7 @@ public class Monitor extends Service {
             }
             final Event targetEvent = history.get(token.getTargetEventId());
             final Token newToken = new Token.Builder(token).cut(targetEvent.getVC()).conjuncts(conjunctsMap).targetProcessState(targetEvent.getState()).build();
-            send(newToken, newToken.getOwner());
+            TokenSender.sendTokenHome(newToken);
         }
     }
 
@@ -470,7 +494,7 @@ public class Monitor extends Service {
         token.evaluateConjuncts(event);
         if (token.anyConjunctSatisfied()) {
             final Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
-            send(newToken, newToken.getOwner());
+            TokenSender.sendTokenHome(newToken);
         } else {
             waitingTokens.add(token.waitForNextEvent());
         }
