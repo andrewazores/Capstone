@@ -1,9 +1,11 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +22,7 @@ import java.util.concurrent.Future;
 
 import ca.mcmaster.capstone.initializer.InitialState;
 import ca.mcmaster.capstone.initializer.Initializer;
+import ca.mcmaster.capstone.networking.CapstoneActivity;
 import ca.mcmaster.capstone.networking.CapstoneService;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import lombok.NonNull;
@@ -42,6 +45,7 @@ public class Monitor extends Service {
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private static final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
     private static final Automaton automaton = Automaton.INSTANCE;
+    private volatile static Context applicationContext = null;
 
     /* Class to abstract the bulk sending of tokens. */
     private static class TokenSender {
@@ -83,6 +87,7 @@ public class Monitor extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        applicationContext = getApplicationContext();
         cancelled = false;
         networkServiceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
@@ -140,7 +145,7 @@ public class Monitor extends Service {
         //FIXME: This is pretty messy. We can pobably do better given some time to think.
         List<InitialState.ValuationDummy> valuationDummies = initializerServiceConnection.getInitializer().getInitialState().getValuations();
         Map<NetworkPeerIdentifier, Integer> initialVectorClock = new HashMap<>();
-        Map<NetworkPeerIdentifier, Valuation> valuations = new HashMap();
+        Map<NetworkPeerIdentifier, Valuation> valuations = new HashMap<>();
         for (InitialState.ValuationDummy valuation : valuationDummies) {
             Map<String, Double> val = new HashMap<>();
             for (InitialState.Variable variable : valuation.getVariables()) {
@@ -148,7 +153,7 @@ public class Monitor extends Service {
             }
             NetworkPeerIdentifier currentProcess = virtualIdentifiers.get(valuation.getVariables().get(0).getVariable());
             initialVectorClock.put(currentProcess, 0);
-            valuations.put(currentProcess, new Valuation(val));
+            valuations.put(currentProcess, new Valuation<>(val));
         }
 
         VectorClock vectorClock = new VectorClock(initialVectorClock);
@@ -294,12 +299,26 @@ public class Monitor extends Service {
         Log.d("monitor", "Entering processEvent");
         gv.updateWithEvent(event);
         gv.setCurrentState(automaton.advance(gv));
-        if (gv.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
-            Log.d("processEvent", "I am satisfied in state " + gv.getCurrentState().getStateName() + "!");
-        } else if (gv.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
-            Log.d("processEvent", "I feel violated in state " + gv.getCurrentState().getStateName() + "!");
-        }
+        displaySatisfactionToast(gv);
         checkOutgoingTransitions(gv, event);
+    }
+
+    private static void displaySatisfactionToast(final GlobalView gv) {
+        if (applicationContext != null) {
+            final Automaton.Evaluation state = gv.getCurrentState().getStateType();
+            final String feeling;
+            switch (state) {
+                case SATISFIED:
+                    feeling = "am satisfied"; break;
+                case VIOLATED:
+                    feeling = "feel violated"; break;
+                default:
+                    return;
+            }
+            final String message = "I " + feeling + " in state " + gv.getCurrentState().getStateName() + "!";
+            Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show();
+            Log.d("processEvent", message);
+        }
     }
 
     /*
@@ -401,11 +420,7 @@ public class Monitor extends Service {
                         globalView.getPendingTransitions().remove(trans);
                         GV.add(gvn1);
                         GV.add(gvn2);
-                        if (gvn1.getCurrentState().getStateType() == Automaton.Evaluation.SATISFIED) {
-                            Log.d("processEvent", "I am satisfied in state " + gvn1.getCurrentState().getStateName() + "!");
-                        } else if (gvn1.getCurrentState().getStateType() == Automaton.Evaluation.VIOLATED) {
-                            Log.d("processEvent", "I feel violated in state " + gvn1.getCurrentState().getStateName() + "!");
-                        }
+                        displaySatisfactionToast(gvn1);
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
                     } else {
@@ -420,6 +435,7 @@ public class Monitor extends Service {
                         processEvent(globalView, globalView.getPendingEvents().remove());
                     }
                 }
+
                 final Token maxConjuncts = globalView.getTokenWithMostConjuncts();
                 TokenSender.sendTokenOut(maxConjuncts);
             }
