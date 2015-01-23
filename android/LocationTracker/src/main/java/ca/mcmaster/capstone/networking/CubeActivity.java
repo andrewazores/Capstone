@@ -10,7 +10,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -20,7 +19,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,37 +42,18 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     private String variableName;
 
     private final float[] gravity = new float[3];
-    private final float[] linearAcceleration = new float[3];
     private OpenGLRenderer renderer;
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
     private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
-    private Intent serviceIntent = null;
-    private Intent initializerServiceIntent = null;
-    private boolean back = false;
-
-    private final HashMap<NetworkPeerIdentifier, Double> deviceMap = new HashMap<>();
-    private AsyncTask<Object, Void, Object> networkGetTask = new AsyncTask<Object, Void, Object>() {
-        @Override
-        protected Object doInBackground(final Object[] params) {
-            while(!back) {
-//                try {
-//                    getEvent();
-//                } catch (final InterruptedException ie) {
-//                    return null;
-//                }
-            }
-            return null;
-        }
-    };
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        serviceIntent = new Intent(this, CapstoneService.class);
+        Intent serviceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
 
-        initializerServiceIntent = new Intent(this, Initializer.class);
+        Intent initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -90,30 +69,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         renderer = new OpenGLRenderer();
         view.setRenderer(renderer);
         setContentView(view);
-
-        networkGetTask.execute();
-    }
-
-    public void getEvent() throws InterruptedException {
-        if (serviceConnection.getService() == null) {
-            return;
-        }
-        final Event e = serviceConnection.getService().receiveEvent();
-        if (e == null) {
-            return;
-        }
-
-        deviceMap.put(e.getPid(), (Double)e.getVal().getValue(this.variableName));
-
-        int i = 0;
-        final StringBuilder sb = new StringBuilder();
-        for(final double d : deviceMap.values()) {
-            sb.append(" Device ").append(i).append(": ");
-            sb.append(d);
-            ++i;
-        }
-
-        runOnUiThread(() -> Toast.makeText(CubeActivity.this, sb.toString(), Toast.LENGTH_SHORT).show());
     }
 
     private void setupGravitySensorService() {
@@ -125,8 +80,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     @Override
     public void onDestroy() {
         super.onDestroy();
-        back = true;
-        networkGetTask.cancel(true);
         mSensorManager.unregisterListener(mSensorEventListener);
         getApplicationContext().unbindService(serviceConnection);
         getApplicationContext().unbindService(initializerServiceConnection);
@@ -139,10 +92,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
         return super.onOptionsItemSelected(item);
     }
 
@@ -165,25 +114,17 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
         @Override
         public void onSensorChanged(final SensorEvent event) {
-            // Isolate the force of gravity with the low-pass filter.
             gravity[0] = ALPHA * gravity[0] + (1 - ALPHA) * event.values[0];
             gravity[1] = ALPHA * gravity[1] + (1 - ALPHA) * event.values[1];
             gravity[2] = ALPHA * gravity[2] + (1 - ALPHA) * event.values[2];
-
-            // Remove the gravity contribution with the high-pass filter.
-            linearAcceleration[0] = event.values[0] - gravity[0];
-            linearAcceleration[1] = event.values[1] - gravity[1];
-            linearAcceleration[2] = event.values[2] - gravity[2];
 
             final float[] z_axis = new float[] {0, 0, 1};
 
             float[] target_dir = normalise( gravity );
             float rot_angle = (float) Math.acos( dot_product(target_dir,z_axis) );
 
-            if( Math.abs(rot_angle) > Double.MIN_VALUE ) {
-                float[] rot_axis = normalise(cross_product(target_dir, z_axis));
-
-                renderer.axis = rot_axis;
+            if (Math.abs(rot_angle) > Double.MIN_VALUE) {
+                renderer.axis = normalise(cross_product(target_dir, z_axis));
                 renderer.angle = rot_angle;
             }
 
@@ -293,32 +234,20 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
     public class LocationServiceConnection implements ServiceConnection {
 
-        public CapstoneService service;
-        private CapstoneService.CapstoneNetworkServiceBinder binder;
+        private CapstoneService service;
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             Toast.makeText(CubeActivity.this, "Service connected", Toast.LENGTH_LONG).show();
-//            log("Service connected");
 
-            this.binder = (CapstoneService.CapstoneNetworkServiceBinder) service;
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerMonitorStateListener(CubeActivity.this);
-
-//            this.service.registerSensorUpdateCallback(CubeActivity.this);
-//            this.service.registerNpiUpdateCallback(CubeActivity.this);
-//            updateSelfInfo();
         }
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
             Toast.makeText(CubeActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
-//            log("Service disconnected");
             this.service = null;
-        }
-
-        public boolean isBound() {
-            return this.service != null;
         }
 
         public CapstoneService getService() {
