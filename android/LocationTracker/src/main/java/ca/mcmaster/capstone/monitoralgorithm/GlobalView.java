@@ -65,12 +65,18 @@ public class GlobalView {
     }
 
     public Set<Token> getTokens() {
-        return tokens;
+        return new HashSet<>(tokens);
     }
 
     public void setTokens(@NonNull final List<Token> tokens) {
         this.tokens.clear();
         this.tokens.addAll(tokens);
+    }
+
+    public void addTokens(@NonNull final List<Token> tokens) {
+        for (Token token : tokens) {
+            this.tokens.add(new Token.Builder(token).sent(true).build());
+        }
     }
 
     public Queue<Event> getPendingEvents() {

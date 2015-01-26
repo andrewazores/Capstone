@@ -25,8 +25,8 @@ public class Token {
         private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
         private final Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
         private ProcessState targetProcessState = null;
-        public boolean returned = false;
-        public boolean sent = false;
+        private boolean returned = false;
+        private boolean sent = false;
 
         private static class TokenIdCounter {
             private static int tokenIdCounter = 0;
@@ -107,8 +107,8 @@ public class Token {
     private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
     private final Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
     @NonNull @Getter private final ProcessState targetProcessState;
-    @Setter private boolean returned = false;
-    @Setter private boolean sent = false;
+    private boolean returned = false;
+    private boolean sent = false;
 
     public Token(@NonNull final Builder builder) {
         this.uniqueLocalIdentifier = builder.uniqueLocalIdentifier;
@@ -119,6 +119,8 @@ public class Token {
         this.automatonTransitions.addAll(builder.automatonTransitions);
         this.conjuncts.putAll(builder.conjuncts);
         this.targetProcessState = builder.targetProcessState;
+        this.returned = builder.returned;
+        this.sent = builder.sent;
     }
 
     public Set<Conjunct> getConjuncts() {

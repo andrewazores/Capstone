@@ -66,7 +66,6 @@ public class Monitor extends Service {
             for (Iterator<Token> it = tokensToSendOut.iterator(); it.hasNext(); ) {
                 final Token token = it.next();
                 send(token, token.getDestination());
-                token.setSent(true);
                 it.remove();
             }
             for (Iterator<Token> it = tokensToSendHome.iterator(); it.hasNext(); ) {
@@ -377,7 +376,7 @@ public class Monitor extends Service {
                     .build();
             pendingSend.add(token);
         }
-        gv.getTokens().addAll(pendingSend);
+        gv.addTokens(pendingSend);
         TokenSender.bulkTokenSendOut(pendingSend);
     }
 
