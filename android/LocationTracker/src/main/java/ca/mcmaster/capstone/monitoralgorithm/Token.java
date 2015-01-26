@@ -107,8 +107,8 @@ public class Token {
     private final Set<AutomatonTransition> automatonTransitions = new HashSet<>();
     private final Map<Conjunct, Conjunct.Evaluation> conjuncts = new HashMap<>();
     @NonNull @Getter private final ProcessState targetProcessState;
-    private boolean returned = false;
-    private boolean sent = false;
+    @Getter private boolean returned = false;
+    @Getter private boolean sent = false;
 
     public Token(@NonNull final Builder builder) {
         this.uniqueLocalIdentifier = builder.uniqueLocalIdentifier;

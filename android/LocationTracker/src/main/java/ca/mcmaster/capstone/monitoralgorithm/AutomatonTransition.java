@@ -87,19 +87,16 @@ public class AutomatonTransition {
         return ret;
     }
 
-    public boolean enabled(@NonNull final List<Token> tokens) {
-        final Map<Conjunct, Conjunct.Evaluation> enabled = new HashMap<>();
-        for (final Token token : tokens) {
-            for (final Conjunct conjunct : token.getConjuncts()) {
-                if (this.conjuncts.contains(conjunct)) {
-                    enabled.put(conjunct, token.getConjunctsMap().get(conjunct));
-                }
+    public boolean enabled(@NonNull GlobalView globalView, @NonNull final List<Token> tokens) {
+        Map<NetworkPeerIdentifier, ProcessState> states = new HashMap<>(globalView.getStates());
+        for (Token token : tokens) {
+            if (!token.isReturned()) {
+                return false;
             }
+            final ProcessState targetProcessState = token.getTargetProcessState();
+            states.put(targetProcessState.getId(), targetProcessState);
         }
-        if (enabled.values().contains(Conjunct.Evaluation.FALSE)
-                || enabled.values().contains(Conjunct.Evaluation.NONE)) {
-            return false;
-        }
-        return true;
+
+        return this.evaluate(states.values()) == Conjunct.Evaluation.TRUE;
     }
 }

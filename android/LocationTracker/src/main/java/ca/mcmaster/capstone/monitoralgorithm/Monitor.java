@@ -397,7 +397,7 @@ public class Monitor extends Service {
                 for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
-                    if (trans.enabled(tokens)) {
+                    if (trans.enabled(globalView, tokens)) {
                         hasEnabled = true;
                     }
                     if (hasEnabled && consistent(globalView, tokens)) {
