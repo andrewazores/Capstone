@@ -336,7 +336,7 @@ public class Monitor extends Service {
                     // union
                     forbidding.addAll(participating);
                     for (final NetworkPeerIdentifier process : forbidding) {
-                        gv.getPendingTransitions().add(trans);
+                        gv.addPendingTransition(trans);
                         if (consult.get(process) == null) {
                             consult.put(process, new HashSet<>());
                         }
@@ -416,7 +416,7 @@ public class Monitor extends Service {
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
                     } else if (!enabled) {
-                        globalView.getPendingTransitions().remove(trans);
+                        globalView.removePendingTransition(trans);
                     }
                 }
                 if (globalView.getPendingTransitions().isEmpty()) {

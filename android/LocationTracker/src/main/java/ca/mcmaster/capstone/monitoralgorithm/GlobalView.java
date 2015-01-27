@@ -87,6 +87,14 @@ public class GlobalView {
         return new ArrayList<>(pendingTransitions);
     }
 
+    public void addPendingTransition(AutomatonTransition trans) {
+        pendingTransitions.add(trans);
+    }
+
+    public void removePendingTransition(AutomatonTransition trans) {
+        pendingTransitions.remove(trans);
+    }
+
     /*
      * Finds token in the list of sent tokens and updates it with the
      * information collected at the target process.
