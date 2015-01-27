@@ -397,10 +397,9 @@ public class Monitor extends Service {
                 for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
-                    if (trans.enabled(globalView, tokens)) {
-                        hasEnabled = true;
-                    }
-                    if (hasEnabled && consistent(globalView, trans)) {
+                    final boolean enabled = trans.enabled(globalView, tokens);
+                    hasEnabled &= enabled;
+                    if (enabled && consistent(globalView, trans)) {
                         for (final Token tok : tokens) {
                             globalView.updateWithToken(tok);
                         }
@@ -416,7 +415,7 @@ public class Monitor extends Service {
                         handleMonitorStateChange(gvn1);
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
-                    } else {
+                    } else if (!enabled) {
                         globalView.getPendingTransitions().remove(trans);
                     }
                 }
