@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
-@EqualsAndHashCode @ToString
+@ToString
 public class ProcessState {
     @NonNull @Getter private final NetworkPeerIdentifier id;
     @NonNull private final Valuation<?> val;
@@ -47,5 +47,27 @@ public class ProcessState {
          */
     public ProcessState update(@NonNull final Event event) {
         return new ProcessState(this.id, event.getVal(), this.VC.merge(event.getVC()));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ProcessState that = (ProcessState) o;
+
+        if (!VC.equals(that.VC)) return false;
+        if (!id.equals(that.id)) return false;
+        if (!val.equals(that.val)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + val.hashCode();
+        result = 31 * result + VC.hashCode();
+        return result;
     }
 }
