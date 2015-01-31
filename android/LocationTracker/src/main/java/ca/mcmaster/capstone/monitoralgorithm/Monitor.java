@@ -399,7 +399,7 @@ public class Monitor extends Service {
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
                     final boolean enabled = trans.enabled(globalView, tokens);
-                    hasEnabled &= enabled;
+                    hasEnabled |= enabled;
                     if (enabled && consistent(globalView, trans)) {
                         Log.d("monitor", "The transition is enabled and the global view is consistent.");
                         for (final Token tok : tokens) {
