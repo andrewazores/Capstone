@@ -395,11 +395,13 @@ public class Monitor extends Service {
                 globalView.updateWithToken(token);
                 boolean hasEnabled = false;
                 for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
+                    Log.d("monitor", "Checking if transition is enabled: " + trans.toString());
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
                     final boolean enabled = trans.enabled(globalView, tokens);
                     hasEnabled &= enabled;
                     if (enabled && consistent(globalView, trans)) {
+                        Log.d("monitor", "The transition is enabled and the global view is consistent.");
                         for (final Token tok : tokens) {
                             globalView.updateWithToken(tok);
                         }
@@ -416,11 +418,13 @@ public class Monitor extends Service {
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
                     } else if (!enabled) {
+                        Log.d("moonitor", "Removing a pending transition from the global view.");
                         globalView.removePendingTransition(trans);
                     }
                 }
                 if (globalView.getPendingTransitions().isEmpty()) {
                     if (hasEnabled) {
+                        Log.d("monitor", "Removing a global view.");
                         GV.remove(globalView);
                     } else {
                         globalView.setTokens(new ArrayList<>());
@@ -441,6 +445,7 @@ public class Monitor extends Service {
                 }
             }
             if (!hasTarget) {
+                Log.d("monitor", "Adding a token to waitingTokens.");
                 waitingTokens.add(token);
             }
         }
