@@ -430,10 +430,10 @@ public class Monitor extends Service {
                         globalView.setTokens(new ArrayList<>());
                         processEvent(globalView, globalView.getPendingEvents().remove());
                     }
+                } else {
+                    final Token maxConjuncts = globalView.getTokenWithMostConjuncts();
+                    TokenSender.sendTokenOut(maxConjuncts);
                 }
-
-                final Token maxConjuncts = globalView.getTokenWithMostConjuncts();
-                TokenSender.sendTokenOut(maxConjuncts);
             }
         } else {
             boolean hasTarget = false;
