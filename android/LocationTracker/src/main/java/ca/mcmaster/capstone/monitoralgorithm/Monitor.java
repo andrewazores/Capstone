@@ -398,9 +398,8 @@ public class Monitor extends Service {
                     Log.d("monitor", "Checking if transition is enabled: " + trans.toString());
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
-                    final boolean enabled = trans.enabled(globalView, tokens);
-                    hasEnabled |= enabled;
-                    if (enabled && consistent(globalView, trans)) {
+                    if (trans.enabled(globalView, tokens) && consistent(globalView, trans)) {
+                        hasEnabled |= true;
                         Log.d("monitor", "The transition is enabled and the global view is consistent.");
                         for (final Token tok : tokens) {
                             globalView.updateWithToken(tok);
@@ -417,7 +416,7 @@ public class Monitor extends Service {
                         handleMonitorStateChange(gvn1);
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
-                    } else if (!enabled) {
+                    } else {
                         Log.d("moonitor", "Removing a pending transition from the global view.");
                         globalView.removePendingTransition(trans);
                     }
@@ -428,7 +427,10 @@ public class Monitor extends Service {
                         GV.remove(globalView);
                     } else {
                         globalView.setTokens(new ArrayList<>());
-                        processEvent(globalView, globalView.getPendingEvents().remove());
+                        Event pendingEvent = globalView.getPendingEvents().remove();
+                        if (pendingEvent != null) {
+                            processEvent(globalView, pendingEvent);
+                        }
                     }
                 } else {
                     final Token maxConjuncts = globalView.getTokenWithMostConjuncts();
