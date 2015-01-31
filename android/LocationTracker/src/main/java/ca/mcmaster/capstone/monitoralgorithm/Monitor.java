@@ -484,9 +484,8 @@ public class Monitor extends Service {
         // Compare the vector clock of each state
         for (ProcessState state1 : statesToCheck) {
             for (ProcessState state2 : statesToCheck) {
-                VectorClock.Comparison comp = null;
                 if (!state1.equals(state2)) {
-                    comp = state1.getVC().compareToClock(state2.getVC());
+                    VectorClock.Comparison comp = state1.getVC().compareToClock(state2.getVC());
                     if (comp != VectorClock.Comparison.CONCURRENT
                             && comp != VectorClock.Comparison.EQUAL) {
                         return false;
