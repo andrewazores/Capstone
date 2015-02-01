@@ -190,6 +190,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
             final Valuation<?> valuation = new Valuation<>(new HashMap<String, Double>() {{
                 put(CubeActivity.this.variableName, value);
             }});
+            ++eventCounter;
             final Event e = new Event(eventCounter, NSD, Event.EventType.INTERNAL, valuation,
                     new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
                         put(serviceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
@@ -199,7 +200,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
                     }}));
             Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
             serviceConnection.getService().sendEventToMonitor(e);
-            ++eventCounter;
         }
 
         public boolean checkCondition(float[] gravity) {
