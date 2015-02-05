@@ -330,7 +330,7 @@ public class Monitor extends Service {
                 final Set<NetworkPeerIdentifier> participating = trans.getParticipatingProcesses();
                 final Set<NetworkPeerIdentifier> forbidding = trans.getForbiddingProcesses(gv);
                 if (!forbidding.contains(monitorID)) {
-                    final Set<NetworkPeerIdentifier> inconsistent = gv.getInconsistentProcesses();
+                    final Set<NetworkPeerIdentifier> inconsistent = gv.getInconsistentProcesses(monitorID);
                     // intersection
                     participating.retainAll(inconsistent);
                     // union

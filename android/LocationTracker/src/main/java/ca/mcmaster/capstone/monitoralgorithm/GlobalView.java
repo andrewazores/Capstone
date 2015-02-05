@@ -168,12 +168,13 @@ public class GlobalView {
      *
      * @return A set of process ids, for inconsistent processes.
      */
-    public Set<NetworkPeerIdentifier> getInconsistentProcesses() {
+    public Set<NetworkPeerIdentifier> getInconsistentProcesses(NetworkPeerIdentifier localProcessID) {
         final Set<NetworkPeerIdentifier> ret = new HashSet<>();
+        final ProcessState localState = this.states.get(localProcessID);
         for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : this.states.entrySet()) {
             final ProcessState state = entry.getValue();
-            if (!(this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.EQUAL ||
-                    this.cut.compareToClock(state.getVC()) == VectorClock.Comparison.CONCURRENT)) {
+            final VectorClock.Comparison comp = localState.getVC().compareToClock(state.getVC());
+            if (comp != VectorClock.Comparison.EQUAL || comp != VectorClock.Comparison.CONCURRENT) {
                 ret.add(state.getId());
             }
         }
