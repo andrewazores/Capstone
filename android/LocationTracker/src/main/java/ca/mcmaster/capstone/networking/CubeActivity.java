@@ -81,8 +81,8 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         TextView globalText = (TextView) findViewById(R.id.cube_global_info);
 
         StringBuilder text = new StringBuilder();
-        text.append(variableGlobalText);
-        text.append("\n");
+        text.append(variableGlobalText + "\n");
+        text.append("localID: " + NSD.toString() + "\n");
         text.append(satisfactionGlobalText);
 
         globalText.setText(text.toString());
