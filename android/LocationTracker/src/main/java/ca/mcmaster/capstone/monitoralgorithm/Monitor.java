@@ -388,7 +388,7 @@ public class Monitor extends Service {
      * @param token The token being received.
      */
     public static void receiveToken(@NonNull final Token token) {
-        Log.d("monitor", "Entering receiveToken");
+        Log.d("monitor", "Entering receiveToken. Token from: " + token.getOwner());
         if (token.getOwner().equals(monitorID)) {
             final List<GlobalView> globalViews = getGlobalView(token);
             for (final GlobalView globalView : globalViews) {
@@ -537,6 +537,7 @@ public class Monitor extends Service {
             final Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
             TokenSender.sendTokenHome(newToken);
         } else {
+            Log.d("monitor", "Adding a token to waitingTokens.");
             waitingTokens.add(token.waitForNextEvent());
         }
     }
