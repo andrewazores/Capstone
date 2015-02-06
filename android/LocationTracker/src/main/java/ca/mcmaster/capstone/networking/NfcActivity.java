@@ -1,5 +1,6 @@
 package ca.mcmaster.capstone.networking;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,7 +18,7 @@ import java.util.List;
 import ca.mcmaster.capstone.R;
 
 
-public class NfcActivity extends ActionBarActivity {
+public class NfcActivity extends Activity {
 
 
     protected NfcAdapter nfcAdapter;
