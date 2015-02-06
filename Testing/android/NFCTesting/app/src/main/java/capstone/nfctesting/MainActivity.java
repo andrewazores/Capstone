@@ -100,7 +100,7 @@ public class MainActivity extends ActionBarActivity {
 
             String uid = ByteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
 
-            if(uid.equals(destinations.get(0).dest))
+            if(uid.equals(destinations.get(0).dest.text))
                 destinations.remove(0);
 
             TextView text = (TextView) findViewById(R.id.next_destination);
