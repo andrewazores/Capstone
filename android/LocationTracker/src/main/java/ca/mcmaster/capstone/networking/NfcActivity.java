@@ -2,8 +2,12 @@ package ca.mcmaster.capstone.networking;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Sensor;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -16,6 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.initializer.Initializer;
+import ca.mcmaster.capstone.monitoralgorithm.InitializerServiceConnection;
+import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import ca.mcmaster.capstone.networking.CapstoneActivity.
+import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 
 
 public class NfcActivity extends Activity {
@@ -23,9 +32,14 @@ public class NfcActivity extends Activity {
 
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
+    private NetworkPeerIdentifier NSD;
+    private SensorManager mSensorManager;
+    private Sensor mSensor;
+    private SensorEventListener mSensorEventListener;
 
     private List<Destination> destinations = new ArrayList<Destination>();
-    private Destination nextDest;
+
+    private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
 
     private enum DestinationEnum {
         A("041AB3329A3D80"),
@@ -79,6 +93,12 @@ public class NfcActivity extends Activity {
         destinations.add(new Destination(DestinationEnum.E));
 
         updateViews();
+
+        Intent initializerServiceIntent = new Intent(this, Initializer.class);
+        getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
     }
 
     public void updateViews(){
@@ -105,15 +125,15 @@ public class NfcActivity extends Activity {
 
             TextView text = (TextView) findViewById(R.id.next_destination);
 
-            if(uid.equals("041AB3329A3D80"))
+            if(uid.equals(DestinationEnum.A.text))
                 text.setText("You Just Found " + DestinationEnum.valueOf("A"));
-            if(uid.equals("0414B3329A3D80"))
+            if(uid.equals(DestinationEnum.B.text))
                 text.setText("You Just Found " + DestinationEnum.valueOf("B"));
-            if(uid.equals("0417B3329A3D80"))
+            if(uid.equals(DestinationEnum.C.text))
                 text.setText("You Just Found " + DestinationEnum.valueOf("C"));
-            if(uid.equals("0412B3329A3D80"))
+            if(uid.equals(DestinationEnum.D.text))
                 text.setText("You Just Found " + DestinationEnum.valueOf("D"));
-            if(uid.equals("041DB3329A3D80"))
+            if(uid.equals(DestinationEnum.E.text))
                 text.setText("You Just Found " + DestinationEnum.valueOf("E"));
 
             updateViews();
