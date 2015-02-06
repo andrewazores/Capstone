@@ -174,7 +174,7 @@ public class GlobalView {
         for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : this.states.entrySet()) {
             final ProcessState state = entry.getValue();
             final VectorClock.Comparison comp = localState.getVC().compareToClock(state.getVC());
-            if (comp != VectorClock.Comparison.EQUAL || comp != VectorClock.Comparison.CONCURRENT) {
+            if (comp != VectorClock.Comparison.EQUAL && comp != VectorClock.Comparison.CONCURRENT) {
                 ret.add(state.getId());
             }
         }
