@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -90,6 +91,19 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
             }
             else
                 Toast.makeText(CapstoneActivity.this, "NSD Conenction invalid", Toast.LENGTH_SHORT).show();
+        });
+
+        final Button nfcButton = (Button) findViewById(R.id.nfc);
+        nfcButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (networkPeerIdentifier != null) {
+                    Intent i = new Intent(CapstoneActivity.this, NfcActivity.class);
+                    startActivity(i);
+                }
+                else
+                    Toast.makeText(CapstoneActivity.this, "NSD Connection invalid", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 

@@ -64,10 +64,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
 
         setupGravitySensorService();
-        // Go fullscreen
-//        requestWindowFeature(Window.FEATURE_NO_TITLE);
-//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         LinearLayout gl = (LinearLayout) findViewById(R.id.gl_layout);
 
