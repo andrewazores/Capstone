@@ -23,10 +23,7 @@ import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.monitoralgorithm.InitializerServiceConnection;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 
-
 public class NfcActivity extends Activity {
-
-
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
     private NetworkPeerIdentifier NSD;
@@ -52,7 +49,7 @@ public class NfcActivity extends Activity {
         }
     }
 
-    private class Destination{
+    private class Destination {
         DestinationEnum dest;
 
         public Destination(DestinationEnum dest){
@@ -82,7 +79,6 @@ public class NfcActivity extends Activity {
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
-
         destinations.add(new Destination(DestinationEnum.A));
         destinations.add(new Destination(DestinationEnum.B));
         destinations.add(new Destination(DestinationEnum.C));
@@ -98,40 +94,43 @@ public class NfcActivity extends Activity {
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
     }
 
-    public void updateViews(){
+    public void updateViews() {
         TextView list = (TextView) findViewById(R.id.destination_list);
         String s = "";
-        for(Destination d : destinations){
+        for(Destination d : destinations) {
             s = s + ", " + d.dest;
         }
 
         list.setText(s);
-
-
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
-
         if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
 
             String uid = byteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
 
-            if(uid.equals(destinations.get(0).dest.text))
+            if(uid.equals(destinations.get(0).dest.text)) {
                 destinations.remove(0);
+            }
 
             TextView text = (TextView) findViewById(R.id.next_destination);
 
-            if(uid.equals(DestinationEnum.A.text))
+            if(uid.equals(DestinationEnum.A.text)) {
                 text.setText("You Just Found " + DestinationEnum.valueOf("A"));
-            if(uid.equals(DestinationEnum.B.text))
+            }
+            if(uid.equals(DestinationEnum.B.text)) {
                 text.setText("You Just Found " + DestinationEnum.valueOf("B"));
-            if(uid.equals(DestinationEnum.C.text))
+            }
+            if(uid.equals(DestinationEnum.C.text)) {
                 text.setText("You Just Found " + DestinationEnum.valueOf("C"));
-            if(uid.equals(DestinationEnum.D.text))
+            }
+            if(uid.equals(DestinationEnum.D.text)) {
                 text.setText("You Just Found " + DestinationEnum.valueOf("D"));
-            if(uid.equals(DestinationEnum.E.text))
+            }
+            if(uid.equals(DestinationEnum.E.text)) {
                 text.setText("You Just Found " + DestinationEnum.valueOf("E"));
+            }
 
             updateViews();
         }
@@ -140,7 +139,8 @@ public class NfcActivity extends Activity {
     public void enableForegroundMode() {
         Log.d("NfcActivity", "enableForegroundMode");
 
-        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED); // filter for all
+        // filter for all
+        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
         IntentFilter[] writeTagFilters = new IntentFilter[] {tagDetected};
         nfcAdapter.enableForegroundDispatch(this, nfcPendingIntent, writeTagFilters, null);
     }
@@ -176,9 +176,6 @@ public class NfcActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-
         return super.onOptionsItemSelected(item);
     }
 }
