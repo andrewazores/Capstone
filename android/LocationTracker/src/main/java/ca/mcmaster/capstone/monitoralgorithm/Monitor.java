@@ -364,7 +364,12 @@ public class Monitor extends Service {
             // Get all the conjuncts for process j
             final Set<Conjunct> conjuncts = new HashSet<>();
             for (final AutomatonTransition trans : entry.getValue()) {
-                conjuncts.addAll(trans.getConjuncts());
+                final List<Conjunct> transitionConjuncts = trans.getConjuncts();
+                for (Conjunct conjunct : transitionConjuncts) {
+                    if (conjunct.getOwnerProcess().equals(entry.getKey())) {
+                        conjuncts.addAll(trans.getConjuncts());
+                    }
+                }
             }
             //Build map to add to token
             final Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
