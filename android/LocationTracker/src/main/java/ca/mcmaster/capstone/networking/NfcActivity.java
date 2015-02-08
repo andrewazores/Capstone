@@ -10,7 +10,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,8 +22,6 @@ import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.monitoralgorithm.InitializerServiceConnection;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
-import ca.mcmaster.capstone.networking.CapstoneActivity.
-import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 
 
 public class NfcActivity extends Activity {
@@ -118,7 +115,7 @@ public class NfcActivity extends Activity {
 
         if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
 
-            String uid = ByteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
+            String uid = byteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
 
             if(uid.equals(destinations.get(0).dest.text))
                 destinations.remove(0);
@@ -154,7 +151,7 @@ public class NfcActivity extends Activity {
         nfcAdapter.disableForegroundDispatch(this);
     }
 
-    private String ByteArrayToHexString(byte[] array) {
+    private String byteArrayToHexString(byte[] array) {
         String[] hex = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
         String output = "";
         for (int i = 0; i < array.length; ++i) {
