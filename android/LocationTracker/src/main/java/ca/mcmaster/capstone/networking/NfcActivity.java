@@ -138,7 +138,7 @@ public class NfcActivity extends Activity {
     }
 
     public void enableForegroundMode() {
-        Log.d("We Have Dicks!!", "enableForegroundMode");
+        Log.d("NfcActivity", "enableForegroundMode");
 
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED); // filter for all
         IntentFilter[] writeTagFilters = new IntentFilter[] {tagDetected};
@@ -146,7 +146,7 @@ public class NfcActivity extends Activity {
     }
 
     public void disableForegroundMode() {
-        Log.d("No More Dicks", "disableForegroundMode");
+        Log.d("NfcActivity", "disableForegroundMode");
 
         nfcAdapter.disableForegroundDispatch(this);
     }
