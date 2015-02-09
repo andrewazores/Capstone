@@ -138,7 +138,7 @@ public class Monitor extends Service {
                 initializerServiceConnection.getInitializer().getConjunctMap(),
                 virtualIdentifiers);
 
-        //FIXME: This is pretty messy. We can pobably do better given some time to think.
+        //FIXME: This is pretty messy. We can probably do better given some time to think.
         List<InitialState.ValuationDummy> valuationDummies = initializerServiceConnection.getInitializer().getInitialState().getValuations();
         Map<NetworkPeerIdentifier, Integer> initialVectorClock = new HashMap<>();
         Map<NetworkPeerIdentifier, Valuation> valuations = new HashMap<>();
