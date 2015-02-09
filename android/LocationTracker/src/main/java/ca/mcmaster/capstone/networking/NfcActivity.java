@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,11 +106,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass())
                                         .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
-        destinations.add(NfcDestinations.A);
-        destinations.add(NfcDestinations.B);
-        destinations.add(NfcDestinations.C);
-        destinations.add(NfcDestinations.D);
-        destinations.add(NfcDestinations.E);
+        destinations.addAll(EnumSet.allOf(NfcDestinations.class));
 
         updateUI();
 
