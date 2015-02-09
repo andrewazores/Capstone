@@ -73,14 +73,16 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     }
 
     public void setLabelText(@NonNull final String satisfactionState) {
-        final TextView globalText = (TextView) findViewById(R.id.cube_global_info);
+        runOnUiThread(() -> {
+            final TextView globalText = (TextView) findViewById(R.id.cube_global_info);
 
-        final StringBuilder text = new StringBuilder();
-        text.append("Virtual ID: ").append(variableName).append("\n");
-        text.append("localID: ").append(NSD.toString()).append("\n");
-        text.append("Satisfaction: ").append(satisfactionState);
+            final StringBuilder text = new StringBuilder();
+            text.append("Virtual ID: ").append(variableName).append("\n");
+            text.append("localID: ").append(NSD.toString()).append("\n");
+            text.append("Satisfaction: ").append(satisfactionState);
 
-        globalText.setText(text.toString());
+            globalText.setText(text.toString());
+        });
     }
 
     private void setupGravitySensorService() {
