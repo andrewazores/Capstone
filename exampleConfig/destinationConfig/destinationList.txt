@@ -1,5 +1,2 @@
-A
-B
-C
-D
-E
+x1: A E
+x2: B E
