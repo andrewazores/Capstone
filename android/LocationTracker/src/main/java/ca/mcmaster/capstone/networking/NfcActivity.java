@@ -157,13 +157,15 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     }
 
     public void updateUI() {
-        final TextView text = (TextView) findViewById(R.id.next_destination);
+        runOnUiThread(() -> {
+            final TextView text = (TextView) findViewById(R.id.next_destination);
 
-        if (destinations.isEmpty()) {
-            text.setText("You're done!");
-        } else {
-            text.setText(destinations.get(0).getLabel());
-        }
+            if (destinations.isEmpty()) {
+                text.setText("You're done!");
+            } else {
+                text.setText(destinations.get(0).getLabel());
+            }
+        });
     }
 
     public void sendEvent(final double value) {
