@@ -534,7 +534,6 @@ public class Monitor extends Service {
      * @param token The token whose predicates will be evaluated.
      * @param event The event to use to evaluate the token.
      */
-    //FIXME: This needs to be refactored
     public static void evaluateToken(@NonNull final Token token, @NonNull final Event event) {
         Log.d("monitor", "Entering evaluateToken");
         token.evaluateConjuncts(event);

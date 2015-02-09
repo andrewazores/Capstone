@@ -36,7 +36,6 @@ public class VectorClock {
      *         if clock has a more recent event, CONCURRENT each has some more recent events.
      * @throws IllegalArgumentException If the clocks are of different size this exception is thrown.
      */
-    //FIXME: I suspect that Comparison.EQUAL is redundant as it is a special case of Comparison.CONCURRENT
     public Comparison compareToClock(@NonNull final VectorClock clock) {
         if (this.size() != clock.size()) {
             throw new IllegalArgumentException("Clock passed to merge must match size of caller.");
