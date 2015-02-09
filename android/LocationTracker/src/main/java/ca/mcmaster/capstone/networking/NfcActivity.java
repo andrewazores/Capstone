@@ -44,7 +44,8 @@ import static ca.mcmaster.capstone.util.CollectionUtils.filter;
 
 public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
 
-    public static final Pattern NFC_TAG_PATTERN = Pattern.compile("^([0-9A-Za-z]+)\\s+([0-9]+)\\s+([A-Za-z]+)$");
+    public static final Pattern NFC_TAG_ID_PATTERN = Pattern.compile("^([0-9A-Za-z]+)\\s+([\\d]+)\\s+([\\w]+)$");
+    public static final Pattern NFC_LABEL_PATTERN = Pattern.compile("^([\\w]+)$");
     public static final Set<NfcTagIDs> NFC_TAG_IDS = new HashSet<>();
     public static final String NFC_INIT_STORAGE_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/nfcInit/";
     public static final String GLOBAL_NFC_TAG_SET_CONFIG_FILENAME = "destinations.txt";
@@ -104,7 +105,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         }
 
         try {
-            destinations.addAll(getNfcTagIDsFromFile(NFC_INIT_STORAGE_DIRECTORY + LOCAL_NFC_TAG_LIST_CONFIG_FILENAME));
+            destinations.addAll(getNfcTagPathFromFile(NFC_INIT_STORAGE_DIRECTORY + LOCAL_NFC_TAG_LIST_CONFIG_FILENAME));
         } catch (final IOException ioe) {
             Toast.makeText(getApplicationContext(), "Destination list config file could not be read!", Toast.LENGTH_LONG).show();
         }
@@ -119,16 +120,30 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 BIND_AUTO_CREATE);
     }
 
-    public static List<NfcTagIDs> getNfcTagIDsFromFile(@NonNull final String path) throws IOException {
-        final List<NfcTagIDs> destinations = new ArrayList<>();
+    public static Set<NfcTagIDs> getNfcTagIDsFromFile(@NonNull final String path) throws IOException {
+        final Set<NfcTagIDs> destinations = new HashSet<>();
         try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String line = bufferedReader.readLine();
             while (line != null) {
-                final Matcher matcher = NFC_TAG_PATTERN.matcher(line);
+                final Matcher matcher = NFC_TAG_ID_PATTERN.matcher(line);
                 final String uuid = matcher.group(1);
                 final double id = Double.parseDouble(matcher.group(2));
                 final String label = matcher.group(3);
                 destinations.add(new NfcTagIDs(uuid, id, label));
+                line = bufferedReader.readLine();
+            }
+        }
+        return destinations;
+    }
+
+    public static List<NfcTagIDs> getNfcTagPathFromFile(@NonNull final String path) throws IOException {
+        final List<NfcTagIDs> destinations = new ArrayList<>();
+        try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                final Matcher matcher = NFC_LABEL_PATTERN.matcher(line);
+                final String label = matcher.group(1);
+                destinations.addAll(filter(NFC_TAG_IDS, id -> id.getLabel().equals(label)));
                 line = bufferedReader.readLine();
             }
         }
