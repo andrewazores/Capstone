@@ -191,12 +191,12 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         nfcAdapter.disableForegroundDispatch(this);
     }
 
-    static String byteArrayToHexString(final byte[] bytes) {
+    static String byteArrayToHexString(@NonNull final byte[] bytes) {
         BigInteger bi = new BigInteger(1, bytes);
         return String.format("%0" + (bytes.length << 1) + "X", bi);
     }
 
-    static <T> Collection<T> filter(final Collection<? extends T> collection, final Predicate<T> predicate) {
+    static <T> Collection<T> filter(@NonNull final Collection<? extends T> collection, @NonNull final Predicate<T> predicate) {
         final List<T> results = new ArrayList<>();
         for (final T t : collection) {
             if (predicate.apply(t)) {
