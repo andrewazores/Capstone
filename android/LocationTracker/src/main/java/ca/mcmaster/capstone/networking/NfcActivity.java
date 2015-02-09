@@ -119,7 +119,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                                             BIND_AUTO_CREATE);
     }
 
-    public void updateUI(){
+    public void updateUI() {
         final TextView text = (TextView) findViewById(R.id.next_destination);
 
         if (destinations.isEmpty()) {
