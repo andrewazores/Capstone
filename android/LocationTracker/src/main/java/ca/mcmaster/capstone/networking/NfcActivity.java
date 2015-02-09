@@ -16,8 +16,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -40,7 +39,9 @@ import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import lombok.NonNull;
 import lombok.Value;
 
+import static ca.mcmaster.capstone.util.CollectionUtils.each;
 import static ca.mcmaster.capstone.util.CollectionUtils.filter;
+import static ca.mcmaster.capstone.util.FileUtil.getLines;
 
 public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
 
@@ -122,37 +123,30 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
     public static Set<NfcTagIDs> getNfcTagIDsFromFile(@NonNull final String path) throws IOException {
         final Set<NfcTagIDs> destinations = new HashSet<>();
-        try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
-            String line = bufferedReader.readLine();
-            while (line != null) {
-                final Matcher matcher = NFC_TAG_ID_PATTERN.matcher(line);
-                if (!matcher.matches()) {
-                    throw new IllegalStateException("Invalid NFC Tag ID line: \"" + line + "\" in file " + path);
-                }
-                final String uuid = matcher.group(1);
-                final double id = Double.parseDouble(matcher.group(2));
-                final String label = matcher.group(3);
-                destinations.add(new NfcTagIDs(uuid, id, label));
-                line = bufferedReader.readLine();
+        // TODO: implement and use CollectionUtils.map
+        each(getLines(new File(path)), line -> {
+            final Matcher matcher = NFC_TAG_ID_PATTERN.matcher(line);
+            if (!matcher.matches()) {
+                throw new IllegalStateException("Invalid NFC Tag ID line: \"" + line + "\" in file " + path);
             }
-        }
+            final String uuid = matcher.group(1);
+            final double id = Double.parseDouble(matcher.group(2));
+            final String label = matcher.group(3);
+            destinations.add(new NfcTagIDs(uuid, id, label));
+        });
         return destinations;
     }
 
     public static List<NfcTagIDs> getNfcTagPathFromFile(@NonNull final String path) throws IOException {
         final List<NfcTagIDs> destinations = new ArrayList<>();
-        try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
-            String line = bufferedReader.readLine();
-            while (line != null) {
-                final Matcher matcher = NFC_LABEL_PATTERN.matcher(line);
-                if (!matcher.matches()) {
-                    throw new IllegalStateException("Invalid NFC Label line: \"" + line + "\" in file " + path);
-                }
-                final String label = matcher.group(1);
-                destinations.addAll(filter(NFC_TAG_IDS, id -> id.getLabel().equals(label)));
-                line = bufferedReader.readLine();
+        each(getLines(new File(path)), line -> {
+            final Matcher matcher = NFC_LABEL_PATTERN.matcher(line);
+            if (!matcher.matches()) {
+                throw new IllegalStateException("Invalid NFC Label line: \"" + line + "\" in file " + path);
             }
-        }
+            final String label = matcher.group(1);
+            destinations.addAll(filter(NFC_TAG_IDS, id -> id.getLabel().equals(label)));
+        });
         return destinations;
     }
 
