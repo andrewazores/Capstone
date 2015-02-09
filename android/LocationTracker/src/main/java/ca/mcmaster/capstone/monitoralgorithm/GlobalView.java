@@ -25,11 +25,7 @@ public class GlobalView {
     private final Queue<Event> pendingEvents = new ArrayDeque<>();
     private final Set<AutomatonTransition> pendingTransitions = new HashSet<>();
 
-    public GlobalView() {
-        //TODO: construct correct default objects
-        //this.cut = new VectorClock();
-        this.currentState = new AutomatonState("", Automaton.Evaluation.UNDECIDED);
-    }
+    public GlobalView() {}
 
     public GlobalView(@NonNull final GlobalView gv) {
         this.states.putAll(gv.states);
