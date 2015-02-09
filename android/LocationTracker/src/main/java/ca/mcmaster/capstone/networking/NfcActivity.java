@@ -31,13 +31,12 @@ import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Value;
 
 public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
     private NetworkPeerIdentifier NSD;
-    private List<Destination> destinations = new ArrayList<>();
+    private List<NfcDestinations> destinations = new ArrayList<>();
 
     private int eventCounter = 0;
     private String variableName;
@@ -48,8 +47,8 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     @Override
     public void onMonitorSatisfied() {
         destinations.remove(0);
-        TextView text = (TextView) findViewById(R.id.next_destination);
-        text.setText(destinations.get(0).getDestination().name());
+        final TextView text = (TextView) findViewById(R.id.next_destination);
+        text.setText(destinations.get(0).name());
         updateUI();
     }
 
@@ -58,7 +57,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
     }
 
-    private static enum DestinationEnum {
+    private static enum NfcDestinations {
         A("041AB3329A3D80", 1),
         B("0414B3329A3D80", 2),
         C("0417B3329A3D80", 3),
@@ -68,23 +67,19 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         @Getter private final String text;
         @Getter private final double value;
 
-        private DestinationEnum(final String text, final double value) {
+        private NfcDestinations(final String text, final double value) {
             this.text = text;
             this.value = value;
         }
 
-        public static DestinationEnum fromUUID(@NonNull final String uuid) {
-            for (final DestinationEnum destinationEnum : DestinationEnum.values()) {
-                if (destinationEnum.getText().equals(uuid)) {
-                    return destinationEnum;
+        public static NfcDestinations fromUUID(@NonNull final String uuid) {
+            for (final NfcDestinations nfcDestinations : NfcDestinations.values()) {
+                if (nfcDestinations.getText().equals(uuid)) {
+                    return nfcDestinations;
                 }
             }
             return null;
         }
-    }
-
-    @Value private static class Destination {
-        DestinationEnum destination;
     }
 
     @Override
@@ -110,11 +105,11 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass())
                                         .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
-        destinations.add(new Destination(DestinationEnum.A));
-        destinations.add(new Destination(DestinationEnum.B));
-        destinations.add(new Destination(DestinationEnum.C));
-        destinations.add(new Destination(DestinationEnum.D));
-        destinations.add(new Destination(DestinationEnum.E));
+        destinations.add(NfcDestinations.A);
+        destinations.add(NfcDestinations.B);
+        destinations.add(NfcDestinations.C);
+        destinations.add(NfcDestinations.D);
+        destinations.add(NfcDestinations.E);
 
         updateUI();
 
@@ -133,7 +128,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         if (destinations.isEmpty()) {
             text.setText("You're done!");
         } else {
-            text.setText(destinations.get(0).getDestination().name());
+            text.setText(destinations.get(0).name());
         }
     }
 
@@ -160,11 +155,11 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
             final String uid = byteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
 
-            if (uid.equals(destinations.get(0).getDestination().getText())) {
+            if (uid.equals(destinations.get(0).getText())) {
                 destinations.remove(0);
             }
 
-            sendEvent(DestinationEnum.fromUUID(uid).getValue());
+            sendEvent(NfcDestinations.fromUUID(uid).getValue());
         }
     }
 
