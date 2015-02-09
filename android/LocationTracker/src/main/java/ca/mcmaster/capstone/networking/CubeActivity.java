@@ -30,6 +30,7 @@ import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
+import lombok.NonNull;
 
 public class CubeActivity extends Activity implements MonitorSatisfactionStateListener {
 
@@ -42,7 +43,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     private NetworkPeerIdentifier NSD;
     private String variableName;
     private String variableGlobalText;
-    private String satisfactionGlobalText = "Satisfaction: no clue";
 
     private final float[] gravity = new float[3];
     private OpenGLRenderer renderer;
@@ -73,13 +73,13 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         gl.addView(view);
     }
 
-    public void setGlobalText(){
-        TextView globalText = (TextView) findViewById(R.id.cube_global_info);
+    public void setGlobalText(@NonNull final String textLabel) {
+        final TextView globalText = (TextView) findViewById(R.id.cube_global_info);
 
-        StringBuilder text = new StringBuilder();
-        text.append(variableGlobalText + "\n");
-        text.append("localID: " + NSD.toString() + "\n");
-        text.append(satisfactionGlobalText);
+        final StringBuilder text = new StringBuilder();
+        text.append(variableGlobalText).append("\n");
+        text.append("localID: ").append(NSD.toString()).append("\n");
+        text.append(textLabel);
 
         globalText.setText(text.toString());
     }
@@ -110,16 +110,14 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
     @Override
     public void onMonitorSatisfied() {
-        satisfactionGlobalText = "Satisfaction: so so satisfied ;)";
         Log.d("MonitorState", "Monitor is satisfied !!!");
-        setGlobalText();
+        setGlobalText("Satisfaction: satisfied");
     }
 
     @Override
     public void onMonitorViolated() {
-        satisfactionGlobalText = "Satisfaction: I NEED AN ADULT";
         Log.d("MonitorState", "Monitor is violated !!!");
-        setGlobalText();
+        setGlobalText("Satisfaction: violated");
     }
 
 
@@ -287,7 +285,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
             }
             variableGlobalText = "I am: " + CubeActivity.this.variableName;
             Log.d("cube", variableGlobalText);
-            setGlobalText();
+            setGlobalText("Satisfaction: indeterminate");
         }
 
         @Override
