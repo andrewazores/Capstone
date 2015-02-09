@@ -112,7 +112,13 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                                         .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
 
-        initializeDestinations(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt");
+        try {
+            initializeDestinations(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt");
+        } catch (final FileNotFoundException fnfe) {
+            Toast.makeText(getApplicationContext(), "Destination list config file missing!", Toast.LENGTH_LONG).show();
+        } catch (final IOException ioe) {
+            Toast.makeText(getApplicationContext(), "Destination list config file could not be read!", Toast.LENGTH_LONG).show();
+        }
         updateUI();
 
         final Intent serviceIntent = new Intent(this, CapstoneService.class);
@@ -124,7 +130,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 BIND_AUTO_CREATE);
     }
 
-    public void initializeDestinations(@NonNull final String path){
+    public void initializeDestinations(@NonNull final String path) throws FileNotFoundException, IOException {
         try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String line = bufferedReader.readLine();
             while (line != null) {
@@ -132,10 +138,6 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 line = bufferedReader.readLine();
             }
 
-        } catch (final FileNotFoundException e) {
-            Log.e("NfcActivity", "Initialize text file missing");
-        } catch (IOException e) {
-            Log.e("NfcActivity", "Error reading file");
         }
     }
 
