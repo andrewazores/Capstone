@@ -28,20 +28,20 @@ import lombok.NonNull;
 // TODO: refactor Service components out into MonitorService to separate from actual Monitor logic
 public class Monitor extends Service {
 
-    private static final Map<Integer, Event> history = new HashMap<>();
-    private static final Set<Token> waitingTokens = new LinkedHashSet<>();
-    private static NetworkPeerIdentifier monitorID = null;
-    private static final Set<GlobalView> GV = new HashSet<>();
-    private static ExecutorService workQueue;
-    private static volatile boolean cancelled = false;
-    private static Future<?> monitorJob = null;
-    private static Future<?> tokenPollJob = null;
-    private static Future<?> eventPollJob = null;
+    private final Map<Integer, Event> history = new HashMap<>();
+    private final Set<Token> waitingTokens = new LinkedHashSet<>();
+    private NetworkPeerIdentifier monitorID = null;
+    private final Set<GlobalView> GV = new HashSet<>();
+    private ExecutorService workQueue;
+    private volatile boolean cancelled = false;
+    private Future<?> monitorJob = null;
+    private Future<?> tokenPollJob = null;
+    private Future<?> eventPollJob = null;
     private Intent networkServiceIntent;
     private Intent initializerServiceIntent;
     private static final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
-    private static final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
-    private static final Automaton automaton = Automaton.INSTANCE;
+    private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
+    private final Automaton automaton = Automaton.INSTANCE;
 
     /* Class to abstract the bulk sending of tokens. */
     private static class TokenSender {
@@ -74,6 +74,8 @@ public class Monitor extends Service {
         }
     }
 
+    public Monitor() {}
+
     @Override
     public IBinder onBind(Intent intent) {
         return new MonitorBinder(this);
@@ -90,7 +92,7 @@ public class Monitor extends Service {
 
         workQueue = Executors.newSingleThreadExecutor();
 
-        monitorJob = workQueue.submit(Monitor::monitorLoop);
+        monitorJob = workQueue.submit(() -> this.monitorLoop());
         Log.d("thread", "Started monitor!");
     }
 
@@ -105,7 +107,7 @@ public class Monitor extends Service {
         getApplicationContext().unbindService(initializerServiceConnection);
     }
 
-    private static void cancelJobs(@NonNull final Future<?> ... jobs) {
+    private void cancelJobs(@NonNull final Future<?> ... jobs) {
         for (final Future<?> job : jobs) {
             if (job != null) {
                 job.cancel(true);
@@ -118,7 +120,7 @@ public class Monitor extends Service {
      *
      * @param initialStates The initial state of each known process.
      */
-    public static void init() {
+    public void init() {
         Log.d("monitor", "Initializing monitor");
         while (networkServiceConnection.getNetworkLayer() == null && !cancelled) {
             try {
@@ -170,14 +172,14 @@ public class Monitor extends Service {
      *
      * @param initialStates The initial state of each known process.
      */
-    public static void monitorLoop() {
+    public void monitorLoop() {
         init();
         Log.d("monitor", "submitting loop tasks");
-        tokenPollJob = Executors.newSingleThreadExecutor().submit(Monitor::pollTokens);
-        eventPollJob = Executors.newSingleThreadExecutor().submit(Monitor::pollEvents);
+        tokenPollJob = Executors.newSingleThreadExecutor().submit(() -> this.pollTokens());
+        eventPollJob = Executors.newSingleThreadExecutor().submit(() -> this.pollEvents());
     }
 
-    private static void pollTokens() {
+    private void pollTokens() {
         while (!cancelled) {
             Log.d("monitor", "pollTokens looping");
             final Token token = receive();
@@ -188,7 +190,7 @@ public class Monitor extends Service {
         Log.d("monitor", "pollTokens exiting");
     }
 
-    private static void pollEvents() {
+    private void pollEvents() {
         while (!cancelled) {
             Log.d("monitor", "pollEvents looping");
             final Event event = read();
@@ -199,7 +201,7 @@ public class Monitor extends Service {
         Log.d("monitor", "pollEvents exiting");
     }
 
-    private static Token receive() {
+    private Token receive() {
         Log.d("monitor", "receive entered");
         Token token = null;
         while (token == null && !cancelled) {
@@ -222,7 +224,7 @@ public class Monitor extends Service {
         networkServiceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
     }
 
-    private static Event read() {
+    private Event read() {
         Log.d("monitor", "read entered");
         Event event = null;
         while (event == null && !cancelled) {
@@ -241,7 +243,7 @@ public class Monitor extends Service {
      *
      * @param event The event to be processed.
      */
-    public static void receiveEvent(@NonNull final Event event) {
+    public void receiveEvent(@NonNull final Event event) {
         Log.d("monitor", "Entering receiveEvent");
         history.put(event.getEid(), event);
         for (final Iterator<Token> i = waitingTokens.iterator(); i.hasNext();) {
@@ -264,7 +266,7 @@ public class Monitor extends Service {
         Log.d("monitor", "Exiting receiveEvent");
     }
 
-    private static Set<GlobalView> mergeSimilarGlobalViews(@NonNull final Collection<GlobalView> gv) {
+    private Set<GlobalView> mergeSimilarGlobalViews(@NonNull final Collection<GlobalView> gv) {
         Log.d("monitor", "Entering mergeSimilarGlobalViews with " + gv.size() + " globalViews.");
         final Set<GlobalView> merged = new HashSet<>();
         for (GlobalView gv1 : gv) {
@@ -290,7 +292,7 @@ public class Monitor extends Service {
      * @param gv The global view to compute the next monitor state for.
      * @param event The event to be evaluated.
      */
-    public static void processEvent(@NonNull final GlobalView gv, @NonNull final Event event) {
+    public void processEvent(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering processEvent");
         gv.updateWithEvent(event);
         gv.setCurrentState(automaton.advance(gv));
@@ -299,7 +301,7 @@ public class Monitor extends Service {
         Log.d("monitor", "Exiting processEvent");
     }
 
-    private static void handleMonitorStateChange(@NonNull final GlobalView gv) {
+    private void handleMonitorStateChange(@NonNull final GlobalView gv) {
         final Automaton.Evaluation state = gv.getCurrentState().getStateType();
         switch (state) {
             case SATISFIED:
@@ -321,7 +323,7 @@ public class Monitor extends Service {
      * @param gv The global view to use for finding concurrent events.
      * @param event The event to find concurrent events for.
      */
-    private static void checkOutgoingTransitions(@NonNull final GlobalView gv, @NonNull final Event event) {
+    private void checkOutgoingTransitions(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering checkOutgoingTransitions");
         final Map<NetworkPeerIdentifier, Set<AutomatonTransition>> consult = new HashMap<>();
         final Set<Conjunct> forbiddingConjuncts = new HashSet<>();
@@ -397,7 +399,7 @@ public class Monitor extends Service {
      *
      * @param token The token being received.
      */
-    public static void receiveToken(@NonNull final Token token) {
+    public void receiveToken(@NonNull final Token token) {
         Log.d("monitor", "Entering receiveToken. Token from: " + token.getOwner());
         if (token.getOwner().equals(monitorID)) {
             final List<GlobalView> globalViews = getGlobalView(token);
@@ -473,7 +475,7 @@ public class Monitor extends Service {
      * @param trans  The AutomatonTransition which the considered processes must take part in.
      * @return   true if all vector clock comparisons return EQUAL or CONCURRENT
      */
-    private static boolean consistent(@NonNull final GlobalView gv, @NonNull final AutomatonTransition trans) {
+    private boolean consistent(@NonNull final GlobalView gv, @NonNull final AutomatonTransition trans) {
         Set<NetworkPeerIdentifier> participatingProcesses = trans.getParticipatingProcesses();
         Set<ProcessState> statesToCheck = new HashSet<>();
 
@@ -515,7 +517,7 @@ public class Monitor extends Service {
      * @param token The token to process.
      * @param event The event to update token with.
      */
-    public static void processToken(@NonNull final Token token, @NonNull final Event event) {
+    public void processToken(@NonNull final Token token, @NonNull final Event event) {
         Log.d("monitor", "Entering processToken");
         final VectorClock.Comparison comp = token.getCut().compareToClock(event.getVC());
         if (comp == VectorClock.Comparison.CONCURRENT || comp == VectorClock.Comparison.EQUAL) {
@@ -541,7 +543,7 @@ public class Monitor extends Service {
      * @param token The token whose predicates will be evaluated.
      * @param event The event to use to evaluate the token.
      */
-    public static void evaluateToken(@NonNull final Token token, @NonNull final Event event) {
+    public void evaluateToken(@NonNull final Token token, @NonNull final Event event) {
         Log.d("monitor", "Entering evaluateToken");
         token.evaluateConjuncts(event);
         if (token.anyConjunctSatisfied()) {
@@ -560,7 +562,7 @@ public class Monitor extends Service {
      * @param token The token to search for.
      * @return A list of GlobalViews that have a copy of token.
      */
-    private static List<GlobalView> getGlobalView(@NonNull final Token token) {
+    private List<GlobalView> getGlobalView(@NonNull final Token token) {
         final List<GlobalView> ret = new ArrayList<>();
         for (final GlobalView gv : GV) {
             for (final Token t : gv.getTokens()) {
