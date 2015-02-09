@@ -102,7 +102,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_nfc);
 
@@ -118,28 +118,26 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
         updateUI();
 
-        Intent serviceIntent = new Intent(this, CapstoneService.class);
+        final Intent serviceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
 
-        Intent initializerServiceIntent = new Intent(this, Initializer.class);
+        final Intent initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent,
                                             initializerServiceConnection,
                                             BIND_AUTO_CREATE);
-
     }
 
     public void updateUI(){
-        TextView text = (TextView) findViewById(R.id.next_destination);
+        final TextView text = (TextView) findViewById(R.id.next_destination);
 
-        if(destinations.isEmpty()){
-            text.setText("Your done!!!");
-        }
-        else {
-            text.setText(destinations.get(0).dest.name());
+        if (destinations.isEmpty()) {
+            text.setText("You're done!");
+        } else {
+            text.setText(destinations.get(0).getDestination().name());
         }
     }
 
-    public void sendEvent(double value) {
+    public void sendEvent(final double value) {
         //Block until network is set up... I am a failure.
         initializerServiceConnection.getInitializer().getLocalPID();
         final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
@@ -158,7 +156,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(final Intent intent) {
         if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
             final String uid = byteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
 
@@ -173,8 +171,8 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     public void enableForegroundMode() {
         Log.d("NfcActivity", "enableForegroundMode");
 
-        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
-        IntentFilter[] writeTagFilters = new IntentFilter[] {tagDetected};
+        final IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+        final IntentFilter[] writeTagFilters = new IntentFilter[] {tagDetected};
         nfcAdapter.enableForegroundDispatch(this, nfcPendingIntent, writeTagFilters, null);
     }
 
@@ -189,21 +187,19 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         return String.format("%0" + (bytes.length << 1) + "X", bi);
     }
 
-
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(final Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return super.onOptionsItemSelected(item);
     }
-
 
     public class LocationServiceConnection implements ServiceConnection {
 
