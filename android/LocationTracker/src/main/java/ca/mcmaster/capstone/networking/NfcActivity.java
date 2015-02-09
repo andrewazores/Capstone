@@ -124,11 +124,11 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 BIND_AUTO_CREATE);
     }
 
-    public void initializeDestinations(final String path){
+    public void initializeDestinations(@NonNull final String path){
         try {
-            BufferedReader br = new BufferedReader(new FileReader(path));
-            String line = br.readLine();
+            final BufferedReader br = new BufferedReader(new FileReader(path));
 
+            String line = br.readLine();
             while (line != null) {
                 if (line.equals("A")) {
                     destinations.add(NfcDestinations.A);
@@ -145,7 +145,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 line = br.readLine();
             }
 
-        }catch(FileNotFoundException e){
+        }catch (final FileNotFoundException e) {
             Log.e("NfcActivity", "Initialize text file missing");
         } catch (IOException e) {
             Log.e("NfcActivity", "Error reading file");
