@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -183,17 +184,9 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         nfcAdapter.disableForegroundDispatch(this);
     }
 
-    private String byteArrayToHexString(byte[] array) {
-        String[] hex = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
-        String output = "";
-        for (int i = 0; i < array.length; ++i) {
-            int input = (int) array[i] & 0xff;
-            int temp = (input >> 4) & 0x0f;
-            output += hex[temp];
-            temp = input & 0x0f;
-            output += hex[temp];
-        }
-        return output;
+    static String byteArrayToHexString(final byte[] bytes) {
+        BigInteger bi = new BigInteger(1, bytes);
+        return String.format("%0" + (bytes.length << 1) + "X", bi);
     }
 
 
