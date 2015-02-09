@@ -2,38 +2,57 @@ package ca.mcmaster.capstone.networking;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.content.Context;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.Sensor;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
+import android.content.ServiceConnection;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.initializer.Initializer;
-import ca.mcmaster.capstone.monitoralgorithm.InitializerServiceConnection;
+import ca.mcmaster.capstone.initializer.InitializerBinder;
+import ca.mcmaster.capstone.monitoralgorithm.Event;
+import ca.mcmaster.capstone.monitoralgorithm.Valuation;
+import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 
-public class NfcActivity extends Activity {
+public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
     private NetworkPeerIdentifier NSD;
-    private SensorManager mSensorManager;
-    private Sensor mSensor;
-    private SensorEventListener mSensorEventListener;
-
     private List<Destination> destinations = new ArrayList<Destination>();
 
+    private int eventCounter = 0;
+    private String variableName;
+
+    private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
     private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
+
+    @Override
+    public void onMonitorSatisfied() {
+        destinations.remove(0);
+        TextView text = (TextView) findViewById(R.id.next_destination);
+        text.setText(destinations.get(0).dest.name());
+        updateUI();
+    }
+
+    @Override
+    public void onMonitorViolated() {
+
+    }
 
     private enum DestinationEnum {
         A("041AB3329A3D80"),
@@ -77,7 +96,8 @@ public class NfcActivity extends Activity {
         setContentView(R.layout.activity_nfc);
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass())
+                                        .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
         destinations.add(new Destination(DestinationEnum.A));
         destinations.add(new Destination(DestinationEnum.B));
@@ -85,23 +105,45 @@ public class NfcActivity extends Activity {
         destinations.add(new Destination(DestinationEnum.D));
         destinations.add(new Destination(DestinationEnum.E));
 
-        updateViews();
+        updateUI();
+
+        Intent serviceIntent = new Intent(this, CapstoneService.class);
+        getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
 
         Intent initializerServiceIntent = new Intent(this, Initializer.class);
-        getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
+        getApplicationContext().bindService(initializerServiceIntent,
+                                            initializerServiceConnection,
+                                            BIND_AUTO_CREATE);
 
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
     }
 
-    public void updateViews() {
-        TextView list = (TextView) findViewById(R.id.destination_list);
-        String s = "";
-        for(Destination d : destinations) {
-            s = s + ", " + d.dest;
-        }
+    public void updateUI(){
+        TextView text = (TextView) findViewById(R.id.next_destination);
 
-        list.setText(s);
+        if(destinations.isEmpty()){
+            text.setText("Your done!!!");
+        }
+        else {
+            text.setText(destinations.get(0).dest.name());
+        }
+    }
+
+    public void sendEvent(double value) {
+        //Block until network is set up... I am a failure.
+        initializerServiceConnection.getInitializer().getLocalPID();
+        final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
+            put(NfcActivity.this.variableName, value);
+        }});
+        ++eventCounter;
+        final Event e = new Event(eventCounter, NSD, Event.EventType.INTERNAL, valuation,
+                new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
+                    put(serviceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
+                    for (final NetworkPeerIdentifier peer : serviceConnection.getService().getKnownPeers()) {
+                        put(peer, 0);
+                    }
+                }}));
+        Toast.makeText(NfcActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
+        serviceConnection.getService().sendEventToMonitor(e);
     }
 
     @Override
@@ -114,32 +156,31 @@ public class NfcActivity extends Activity {
                 destinations.remove(0);
             }
 
-            TextView text = (TextView) findViewById(R.id.next_destination);
+            double value = 0;
 
-            if(uid.equals(DestinationEnum.A.text)) {
-                text.setText("You Just Found " + DestinationEnum.valueOf("A"));
+            if(uid.equals(DestinationEnum.A.text)){
+                value = 1;
             }
-            if(uid.equals(DestinationEnum.B.text)) {
-                text.setText("You Just Found " + DestinationEnum.valueOf("B"));
+            else if(uid.equals(DestinationEnum.B.text)){
+                value = 2;
             }
-            if(uid.equals(DestinationEnum.C.text)) {
-                text.setText("You Just Found " + DestinationEnum.valueOf("C"));
+            else if(uid.equals(DestinationEnum.C.text)){
+                value = 3;
             }
-            if(uid.equals(DestinationEnum.D.text)) {
-                text.setText("You Just Found " + DestinationEnum.valueOf("D"));
+            else if(uid.equals(DestinationEnum.D.text)){
+                value = 4;
             }
-            if(uid.equals(DestinationEnum.E.text)) {
-                text.setText("You Just Found " + DestinationEnum.valueOf("E"));
+            else if(uid.equals(DestinationEnum.E.text)){
+                value = 5;
             }
 
-            updateViews();
+            sendEvent(value);
         }
     }
 
     public void enableForegroundMode() {
         Log.d("NfcActivity", "enableForegroundMode");
 
-        // filter for all
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
         IntentFilter[] writeTagFilters = new IntentFilter[] {tagDetected};
         nfcAdapter.enableForegroundDispatch(this, nfcPendingIntent, writeTagFilters, null);
@@ -178,4 +219,56 @@ public class NfcActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         return super.onOptionsItemSelected(item);
     }
+
+
+    public class LocationServiceConnection implements ServiceConnection {
+
+        private CapstoneService service;
+
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder service) {
+            Toast.makeText(NfcActivity.this, "Service connected", Toast.LENGTH_LONG).show();
+
+            this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
+            this.service.registerMonitorStateListener(NfcActivity.this);
+        }
+
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            Toast.makeText(NfcActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
+            this.service = null;
+        }
+
+        public CapstoneService getService() {
+            return service;
+        }
+    }
+
+    public class InitializerServiceConnection implements ServiceConnection{
+        private Initializer initializer;
+
+        @Override
+        public void onServiceConnected(final ComponentName componentName, final IBinder iBinder) {
+            this.initializer = ((InitializerBinder) iBinder).getInitializer();
+
+            NfcActivity.this.NSD = initializer.getLocalPID();
+            //FIXME: this is for testing out simple test case. More work is needed for more complex variableGlobalText arrangements
+            for (Map.Entry<String, NetworkPeerIdentifier> virtualID : initializer.getVirtualIdentifiers().entrySet()) {
+                if (virtualID.getValue() == NSD) {
+                    NfcActivity.this.variableName = virtualID.getKey();
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(final ComponentName componentName) {
+            this.initializer = null;
+        }
+
+        public Initializer getInitializer() {
+            return this.initializer;
+        }
+    }
+
 }
