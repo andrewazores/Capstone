@@ -126,6 +126,9 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
             String line = bufferedReader.readLine();
             while (line != null) {
                 final Matcher matcher = NFC_TAG_ID_PATTERN.matcher(line);
+                if (!matcher.matches()) {
+                    throw new IllegalStateException("Invalid NFC Tag ID line: \"" + line + "\" in file " + path);
+                }
                 final String uuid = matcher.group(1);
                 final double id = Double.parseDouble(matcher.group(2));
                 final String label = matcher.group(3);
@@ -142,6 +145,9 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
             String line = bufferedReader.readLine();
             while (line != null) {
                 final Matcher matcher = NFC_LABEL_PATTERN.matcher(line);
+                if (!matcher.matches()) {
+                    throw new IllegalStateException("Invalid NFC Label line: \"" + line + "\" in file " + path);
+                }
                 final String label = matcher.group(1);
                 destinations.addAll(filter(NFC_TAG_IDS, id -> id.getLabel().equals(label)));
                 line = bufferedReader.readLine();
