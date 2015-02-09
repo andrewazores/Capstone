@@ -114,8 +114,6 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
         try {
             initializeDestinations(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt");
-        } catch (final FileNotFoundException fnfe) {
-            Toast.makeText(getApplicationContext(), "Destination list config file missing!", Toast.LENGTH_LONG).show();
         } catch (final IOException ioe) {
             Toast.makeText(getApplicationContext(), "Destination list config file could not be read!", Toast.LENGTH_LONG).show();
         }
@@ -130,7 +128,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 BIND_AUTO_CREATE);
     }
 
-    public void initializeDestinations(@NonNull final String path) throws FileNotFoundException, IOException {
+    public void initializeDestinations(@NonNull final String path) throws IOException {
         try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String line = bufferedReader.readLine();
             while (line != null) {
