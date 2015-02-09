@@ -129,8 +129,8 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 BIND_AUTO_CREATE);
     }
 
-    public static Collection<NfcDestinations> getDestinationsFromFile(@NonNull final String path) throws IOException {
-        final Set<NfcDestinations> destinations = EnumSet.noneOf(NfcDestinations.class);
+    public static List<NfcDestinations> getDestinationsFromFile(@NonNull final String path) throws IOException {
+        final List<NfcDestinations> destinations = new ArrayList<>();
         try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String line = bufferedReader.readLine();
             while (line != null) {
