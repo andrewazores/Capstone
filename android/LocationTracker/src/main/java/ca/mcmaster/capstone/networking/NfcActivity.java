@@ -45,6 +45,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
     public static final Pattern NFC_TAG_PATTERN = Pattern.compile("^([0-9A-Za-z]+)\\s+([0-9]+)\\s+([A-Za-z]+)$");
     public static final Set<NfcTagIDs> NFC_TAG_IDS = new HashSet<>();
+    public static final String NFC_INIT_STORAGE_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/nfcInit/";
 
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
@@ -94,13 +95,13 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                                         .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
         try {
-            NFC_TAG_IDS.addAll(getNfcTagIDsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinations.txt"));
+            NFC_TAG_IDS.addAll(getNfcTagIDsFromFile(NFC_INIT_STORAGE_DIRECTORY + "destinations.txt"));
         } catch (final IOException ioe) {
             Toast.makeText(getApplicationContext(), "Destination file could not be read!", Toast.LENGTH_LONG).show();
         }
 
         try {
-            destinations.addAll(getNfcTagIDsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt"));
+            destinations.addAll(getNfcTagIDsFromFile(NFC_INIT_STORAGE_DIRECTORY + "destinationList.txt"));
         } catch (final IOException ioe) {
             Toast.makeText(getApplicationContext(), "Destination list config file could not be read!", Toast.LENGTH_LONG).show();
         }
