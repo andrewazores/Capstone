@@ -22,11 +22,13 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.initializer.Initializer;
@@ -36,14 +38,18 @@ import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
-import lombok.Getter;
 import lombok.NonNull;
+import lombok.Value;
 
 public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
+
+    public static final Pattern NFC_TAG_PATTERN = Pattern.compile("^([0-9A-Za-z]+) ([0-9]+) ([A-Za-z]+)$");
+    public static final Set<NfcTagIDs> NFC_TAG_IDS = new HashSet<>();
+
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
     private NetworkPeerIdentifier NSD;
-    private List<NfcDestinations> destinations = new ArrayList<>();
+    private List<NfcTagIDs> destinations = new ArrayList<>();
 
     private int eventCounter = 0;
     private String variableName;
@@ -55,38 +61,13 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     public void onMonitorSatisfied() {
         destinations.remove(0);
         final TextView text = (TextView) findViewById(R.id.next_destination);
-        text.setText(destinations.get(0).name());
+        text.setText(destinations.get(0).getLabel());
         updateUI();
     }
 
     @Override
     public void onMonitorViolated() {
 
-    }
-
-    private static enum NfcDestinations {
-        A("041AB3329A3D80", 1),
-        B("0414B3329A3D80", 2),
-        C("0417B3329A3D80", 3),
-        D("0412B3329A3D80", 4),
-        E("041DB3329A3D80", 5);
-
-        @Getter private final String text;
-        @Getter private final double value;
-
-        private NfcDestinations(final String text, final double value) {
-            this.text = text;
-            this.value = value;
-        }
-
-        public static NfcDestinations fromUUID(@NonNull final String uuid) {
-            for (final NfcDestinations nfcDestinations : NfcDestinations.values()) {
-                if (nfcDestinations.getText().equals(uuid)) {
-                    return nfcDestinations;
-                }
-            }
-            return null;
-        }
     }
 
     @Override
@@ -112,6 +93,11 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass())
                                         .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
+        try {
+            NFC_TAG_IDS.addAll(getDestinationsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinations.txt"));
+        } catch (final IOException ioe) {
+            Toast.makeText(getApplicationContext(), "Destination file could not be read!", Toast.LENGTH_LONG).show();
+        }
 
         try {
             destinations.addAll(getDestinationsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt"));
@@ -129,12 +115,16 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 BIND_AUTO_CREATE);
     }
 
-    public static List<NfcDestinations> getDestinationsFromFile(@NonNull final String path) throws IOException {
-        final List<NfcDestinations> destinations = new ArrayList<>();
+    public static List<NfcTagIDs> getDestinationsFromFile(@NonNull final String path) throws IOException {
+        final List<NfcTagIDs> destinations = new ArrayList<>();
         try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String line = bufferedReader.readLine();
             while (line != null) {
-                destinations.add(NfcDestinations.valueOf(line.trim()));
+                final Matcher matcher = NFC_TAG_PATTERN.matcher(line);
+                final String uuid = matcher.group(1);
+                final double id = Double.parseDouble(matcher.group(2));
+                final String label = matcher.group(3);
+                destinations.add(new NfcTagIDs(uuid, id, label));
                 line = bufferedReader.readLine();
             }
         }
@@ -147,7 +137,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         if (destinations.isEmpty()) {
             text.setText("You're done!");
         } else {
-            text.setText(destinations.get(0).name());
+            text.setText(destinations.get(0).getLabel());
         }
     }
 
@@ -172,13 +162,15 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     @Override
     protected void onNewIntent(final Intent intent) {
         if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
-            final String uid = byteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
+            final String uuid = byteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
 
-            if (uid.equals(destinations.get(0).getText())) {
+            if (uuid.equals(destinations.get(0).getUuid())) {
                 destinations.remove(0);
             }
 
-            sendEvent(NfcDestinations.fromUUID(uid).getValue());
+            for (final NfcTagIDs nfcTagID : filter(NFC_TAG_IDS, id -> id.getUuid().equals(uuid))) {
+                sendEvent(nfcTagID.getId());
+            }
         }
     }
 
@@ -201,6 +193,16 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         return String.format("%0" + (bytes.length << 1) + "X", bi);
     }
 
+    static <T> Collection<T> filter(final Collection<? extends T> collection, final Predicate<T> predicate) {
+        final List<T> results = new ArrayList<>();
+        for (final T t : collection) {
+            if (predicate.apply(t)) {
+                results.add(t);
+            }
+        }
+        return results;
+    }
+
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -213,6 +215,16 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return super.onOptionsItemSelected(item);
+    }
+
+    @Value private static class NfcTagIDs {
+        String uuid;
+        double id;
+        String label;
+    }
+
+    public static interface Predicate<T> {
+        boolean apply(T t);
     }
 
     public class LocationServiceConnection implements ServiceConnection {
