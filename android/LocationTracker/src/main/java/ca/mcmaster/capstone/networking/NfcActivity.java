@@ -33,7 +33,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
     private NetworkPeerIdentifier NSD;
-    private List<Destination> destinations = new ArrayList<Destination>();
+    private List<Destination> destinations = new ArrayList<>();
 
     private int eventCounter = 0;
     private String variableName;
