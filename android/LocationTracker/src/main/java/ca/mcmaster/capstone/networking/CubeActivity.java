@@ -193,8 +193,10 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
                             put(peer, 0);
                         }
                     }}));
-            Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
-            serviceConnection.getService().sendEventToMonitor(e);
+            if (eventCounter != 0) {
+                Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
+                serviceConnection.getService().sendEventToMonitor(e);
+            }
         }
 
         public boolean checkCondition(float[] gravity) {
