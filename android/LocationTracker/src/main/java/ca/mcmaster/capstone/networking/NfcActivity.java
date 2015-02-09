@@ -47,7 +47,7 @@ import static ca.mcmaster.capstone.util.FileUtil.getLines;
 public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
 
     public static final Pattern NFC_TAG_ID_PATTERN = Pattern.compile("^([0-9A-Za-z]+)\\s+([\\d]+)\\s+([\\w]+)$");
-    public static final Pattern NFC_PATH_PATTERN = Pattern.compile("^([\\w]+):\\s+((?: [\\w]+)*)$");
+    public static final Pattern NFC_PATH_PATTERN = Pattern.compile("^([\\w]+):\\s+((?:\\s+[\\w]+)*)$");
     public static final Set<NfcTagIDs> NFC_TAG_IDS = new HashSet<>();
     public static final String NFC_INIT_STORAGE_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/nfcInit/";
     public static final String GLOBAL_NFC_TAG_SET_CONFIG_FILENAME = "destinations.txt";
