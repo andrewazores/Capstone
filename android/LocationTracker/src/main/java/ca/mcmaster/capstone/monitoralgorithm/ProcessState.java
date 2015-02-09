@@ -9,7 +9,7 @@ import lombok.ToString;
 @ToString
 public class ProcessState {
     @NonNull @Getter private final NetworkPeerIdentifier id;
-    @NonNull private final Valuation<?> val;
+    @NonNull private final Valuation val;
     @NonNull private final VectorClock VC;
 
     /*
@@ -19,20 +19,20 @@ public class ProcessState {
      * @param val The valuation of the process' variables.
      * @param VC The vector clock for the process.
      */
-    public ProcessState(@NonNull final NetworkPeerIdentifier id, @NonNull final Valuation<?> val, @NonNull final VectorClock VC) {
+    public ProcessState(@NonNull final NetworkPeerIdentifier id, @NonNull final Valuation val, @NonNull final VectorClock VC) {
         this.id = id;
-        this.val = new Valuation<>(val);
+        this.val = new Valuation(val);
         this.VC = new VectorClock(VC);
     }
 
     public ProcessState(@NonNull final ProcessState state) {
         this.id = state.id;
-        this.val = new Valuation<>(state.val);
+        this.val = new Valuation(state.val);
         this.VC = new VectorClock(state.VC);
     }
 
-    public Valuation<?> getVal() {
-        return new Valuation<>(val);
+    public Valuation getVal() {
+        return new Valuation(val);
     }
 
     public VectorClock getVC() {

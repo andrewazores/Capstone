@@ -13,7 +13,6 @@ public class ValueNode extends LeafNode<Double, Double> {
         super(value);
     }
     @Override public Double evaluate(@NonNull final ProcessState state) {
-        //TODO: refactor Valuation to use Double
         return value;
     }
 }

@@ -149,7 +149,7 @@ public class Monitor extends Service {
             }
             NetworkPeerIdentifier currentProcess = virtualIdentifiers.get(valuation.getVariables().get(0).getVariable());
             initialVectorClock.put(currentProcess, 0);
-            valuations.put(currentProcess, new Valuation<>(val));
+            valuations.put(currentProcess, new Valuation(val));
         }
 
         VectorClock vectorClock = new VectorClock(initialVectorClock);

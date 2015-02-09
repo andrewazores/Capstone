@@ -11,7 +11,7 @@ public final class Event {
     int eid;
     NetworkPeerIdentifier pid;
     EventType type;
-    Valuation<?> val;
+    Valuation val;
     VectorClock VC;
 
     /*

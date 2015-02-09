@@ -8,22 +8,22 @@ import lombok.NonNull;
 import lombok.ToString;
 
 @EqualsAndHashCode @ToString
-public class Valuation<T> {
-    private final Map<String, T> valuation = new HashMap<>();
+public class Valuation {
+    private final Map<String, Double> valuation = new HashMap<>();
 
-    public Valuation(@NonNull final Map<String, T> valuation) {
+    public Valuation(@NonNull final Map<String, Double> valuation) {
         this.valuation.putAll(valuation);
     }
 
-    public Valuation(@NonNull final Valuation<T> valuation) {
+    public Valuation(@NonNull final Valuation valuation) {
         this.valuation.putAll(valuation.valuation);
     }
 
-    public T add(@NonNull final String variableName, @NonNull final T value) {
+    public Double add(@NonNull final String variableName, @NonNull final Double value) {
         return this.valuation.put(variableName, value);
     }
 
-    public T getValue(@NonNull final String name){
+    public Double getValue(@NonNull final String name){
         return valuation.get(name);
     }
 }

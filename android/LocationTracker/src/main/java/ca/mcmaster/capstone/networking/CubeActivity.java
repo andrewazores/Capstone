@@ -183,7 +183,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         public void sendEvent(double value) {
             //Block until network is set up... I am a failure.
             initializerServiceConnection.getInitializer().getLocalPID();
-            final Valuation<?> valuation = new Valuation<>(new HashMap<String, Double>() {{
+            final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
                 put(CubeActivity.this.variableName, value);
             }});
             ++eventCounter;
@@ -201,7 +201,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         public boolean checkCondition(float[] gravity) {
             float dot = dot_product(gravity, new float[] {0, 0, 1});
 
-            return dot < .5;
+            return dot < 0.5;
         }
 
         @Override

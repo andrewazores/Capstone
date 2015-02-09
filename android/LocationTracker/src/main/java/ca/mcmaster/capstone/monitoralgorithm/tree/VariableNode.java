@@ -14,7 +14,6 @@ public class VariableNode extends LeafNode<String, Double> {
     }
 
     @Override public Double evaluate(@NonNull final ProcessState state) {
-        //TODO: refactor Valuation to use Double
-        return (Double) state.getVal().getValue(value);
+        return state.getVal().getValue(value);
     }
 }
