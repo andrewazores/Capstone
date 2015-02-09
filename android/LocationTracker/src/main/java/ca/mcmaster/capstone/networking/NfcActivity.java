@@ -125,13 +125,11 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     }
 
     public void initializeDestinations(@NonNull final String path){
-        try {
-            final BufferedReader br = new BufferedReader(new FileReader(path));
-
-            String line = br.readLine();
+        try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
+            String line = bufferedReader.readLine();
             while (line != null) {
                 destinations.add(NfcDestinations.valueOf(line.trim()));
-                line = br.readLine();
+                line = bufferedReader.readLine();
             }
 
         } catch (final FileNotFoundException e) {
