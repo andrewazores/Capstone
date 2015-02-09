@@ -43,7 +43,7 @@ import lombok.Value;
 
 public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
 
-    public static final Pattern NFC_TAG_PATTERN = Pattern.compile("^([0-9A-Za-z]+) ([0-9]+) ([A-Za-z]+)$");
+    public static final Pattern NFC_TAG_PATTERN = Pattern.compile("^([0-9A-Za-z]+)\\s+([0-9]+)\\s+([A-Za-z]+)$");
     public static final Set<NfcTagIDs> NFC_TAG_IDS = new HashSet<>();
 
     protected NfcAdapter nfcAdapter;
