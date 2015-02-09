@@ -28,6 +28,9 @@ import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Value;
 
 public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
     protected NfcAdapter nfcAdapter;
@@ -45,7 +48,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     public void onMonitorSatisfied() {
         destinations.remove(0);
         TextView text = (TextView) findViewById(R.id.next_destination);
-        text.setText(destinations.get(0).dest.name());
+        text.setText(destinations.get(0).getDestination().name());
         updateUI();
     }
 
@@ -54,26 +57,33 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
     }
 
-    private enum DestinationEnum {
-        A("041AB3329A3D80"),
-        B("0414B3329A3D80"),
-        C("0417B3329A3D80"),
-        D("0412B3329A3D80"),
-        E("041DB3329A3D80");
+    private static enum DestinationEnum {
+        A("041AB3329A3D80", 1),
+        B("0414B3329A3D80", 2),
+        C("0417B3329A3D80", 3),
+        D("0412B3329A3D80", 4),
+        E("041DB3329A3D80", 5);
 
-        private final String text;
+        @Getter private final String text;
+        @Getter private final double value;
 
-        private DestinationEnum(final String text) {
+        private DestinationEnum(final String text, final double value) {
             this.text = text;
+            this.value = value;
+        }
+
+        public static DestinationEnum fromUUID(@NonNull final String uuid) {
+            for (final DestinationEnum destinationEnum : DestinationEnum.values()) {
+                if (destinationEnum.getText().equals(uuid)) {
+                    return destinationEnum;
+                }
+            }
+            return null;
         }
     }
 
-    private class Destination {
-        DestinationEnum dest;
-
-        public Destination(DestinationEnum dest){
-            this.dest = dest;
-        }
+    @Value private static class Destination {
+        DestinationEnum destination;
     }
 
     @Override
@@ -149,32 +159,13 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     @Override
     protected void onNewIntent(Intent intent) {
         if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
+            final String uid = byteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
 
-            String uid = byteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID));
-
-            if(uid.equals(destinations.get(0).dest.text)) {
+            if (uid.equals(destinations.get(0).getDestination().getText())) {
                 destinations.remove(0);
             }
 
-            double value = 0;
-
-            if(uid.equals(DestinationEnum.A.text)){
-                value = 1;
-            }
-            else if(uid.equals(DestinationEnum.B.text)){
-                value = 2;
-            }
-            else if(uid.equals(DestinationEnum.C.text)){
-                value = 3;
-            }
-            else if(uid.equals(DestinationEnum.D.text)){
-                value = 4;
-            }
-            else if(uid.equals(DestinationEnum.E.text)){
-                value = 5;
-            }
-
-            sendEvent(value);
+            sendEvent(DestinationEnum.fromUUID(uid).getValue());
         }
     }
 
