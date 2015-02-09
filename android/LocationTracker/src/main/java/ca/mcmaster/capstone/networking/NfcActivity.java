@@ -17,15 +17,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.initializer.Initializer;
@@ -113,7 +114,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
 
         try {
-            initializeDestinations(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt");
+            destinations.addAll(getDestinationsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt"));
         } catch (final IOException ioe) {
             Toast.makeText(getApplicationContext(), "Destination list config file could not be read!", Toast.LENGTH_LONG).show();
         }
@@ -128,7 +129,8 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 BIND_AUTO_CREATE);
     }
 
-    public void initializeDestinations(@NonNull final String path) throws IOException {
+    public static Collection<NfcDestinations> getDestinationsFromFile(@NonNull final String path) throws IOException {
+        final Set<NfcDestinations> destinations = EnumSet.noneOf(NfcDestinations.class);
         try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String line = bufferedReader.readLine();
             while (line != null) {
@@ -136,6 +138,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 line = bufferedReader.readLine();
             }
         }
+        return destinations;
     }
 
     public void updateUI() {
