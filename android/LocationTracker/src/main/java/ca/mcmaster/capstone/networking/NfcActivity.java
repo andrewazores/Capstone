@@ -155,9 +155,9 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
             final TextView text = (TextView) findViewById(R.id.next_destination);
 
             if (destinations.isEmpty()) {
-                text.setText("You're done!");
+                text.setText(variableName + ": " + "You're done!");
             } else {
-                text.setText(destinations.get(0).getLabel());
+                text.setText(variableName + ": " + destinations.get(0).getLabel());
             }
         });
     }
