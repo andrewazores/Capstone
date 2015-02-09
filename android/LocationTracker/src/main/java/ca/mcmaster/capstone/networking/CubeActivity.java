@@ -42,7 +42,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     private double flat = 1.0;
     private NetworkPeerIdentifier NSD;
     private String variableName;
-    private String variableGlobalText;
 
     private final float[] gravity = new float[3];
     private OpenGLRenderer renderer;
@@ -73,13 +72,13 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         gl.addView(view);
     }
 
-    public void setGlobalText(@NonNull final String textLabel) {
+    public void setLabelText(@NonNull final String satisfactionState) {
         final TextView globalText = (TextView) findViewById(R.id.cube_global_info);
 
         final StringBuilder text = new StringBuilder();
-        text.append(variableGlobalText).append("\n");
+        text.append("Virtual ID: ").append(variableName).append("\n");
         text.append("localID: ").append(NSD.toString()).append("\n");
-        text.append(textLabel);
+        text.append("Satisfaction: ").append(satisfactionState);
 
         globalText.setText(text.toString());
     }
@@ -111,13 +110,13 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     @Override
     public void onMonitorSatisfied() {
         Log.d("MonitorState", "Monitor is satisfied !!!");
-        setGlobalText("Satisfaction: satisfied");
+        setLabelText("satisfied");
     }
 
     @Override
     public void onMonitorViolated() {
         Log.d("MonitorState", "Monitor is violated !!!");
-        setGlobalText("Satisfaction: violated");
+        setLabelText("violated");
     }
 
 
@@ -283,9 +282,8 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
                     break;
                 }
             }
-            variableGlobalText = "I am: " + CubeActivity.this.variableName;
-            Log.d("cube", variableGlobalText);
-            setGlobalText("Satisfaction: indeterminate");
+            Log.d("cube", "I am: " + CubeActivity.this.variableName);
+            setLabelText("indeterminate");
         }
 
         @Override
