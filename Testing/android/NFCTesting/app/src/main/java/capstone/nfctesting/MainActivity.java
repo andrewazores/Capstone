@@ -121,7 +121,6 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void enableForegroundMode() {
-        Log.d("We Have Dicks!!", "enableForegroundMode");
 
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED); // filter for all
         IntentFilter[] writeTagFilters = new IntentFilter[] {tagDetected};
@@ -129,8 +128,6 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void disableForegroundMode() {
-        Log.d("No More Dicks", "disableForegroundMode");
-
         nfcAdapter.disableForegroundDispatch(this);
     }
 
