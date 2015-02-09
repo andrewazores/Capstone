@@ -94,13 +94,13 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                                         .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
         try {
-            NFC_TAG_IDS.addAll(getDestinationsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinations.txt"));
+            NFC_TAG_IDS.addAll(getNfcTagIDsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinations.txt"));
         } catch (final IOException ioe) {
             Toast.makeText(getApplicationContext(), "Destination file could not be read!", Toast.LENGTH_LONG).show();
         }
 
         try {
-            destinations.addAll(getDestinationsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt"));
+            destinations.addAll(getNfcTagIDsFromFile(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt"));
         } catch (final IOException ioe) {
             Toast.makeText(getApplicationContext(), "Destination list config file could not be read!", Toast.LENGTH_LONG).show();
         }
@@ -115,7 +115,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 BIND_AUTO_CREATE);
     }
 
-    public static List<NfcTagIDs> getDestinationsFromFile(@NonNull final String path) throws IOException {
+    public static List<NfcTagIDs> getNfcTagIDsFromFile(@NonNull final String path) throws IOException {
         final List<NfcTagIDs> destinations = new ArrayList<>();
         try (final BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String line = bufferedReader.readLine();
