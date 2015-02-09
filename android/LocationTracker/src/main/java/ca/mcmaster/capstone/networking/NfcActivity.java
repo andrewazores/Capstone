@@ -130,22 +130,11 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
             String line = br.readLine();
             while (line != null) {
-                if (line.equals("A")) {
-                    destinations.add(NfcDestinations.A);
-                } else if (line.equals("B")) {
-                    destinations.add(NfcDestinations.B);
-                } else if (line.equals("C")) {
-                    destinations.add(NfcDestinations.C);
-                } else if (line.equals("D")) {
-                    destinations.add(NfcDestinations.D);
-                } else if (line.equals("E")) {
-                    destinations.add(NfcDestinations.E);
-                }
-
+                destinations.add(NfcDestinations.valueOf(line.trim()));
                 line = br.readLine();
             }
 
-        }catch (final FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             Log.e("NfcActivity", "Initialize text file missing");
         } catch (IOException e) {
             Log.e("NfcActivity", "Error reading file");
