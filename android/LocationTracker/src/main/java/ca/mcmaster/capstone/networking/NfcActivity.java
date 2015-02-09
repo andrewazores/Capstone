@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
@@ -15,6 +16,10 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -106,8 +111,8 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         nfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, this.getClass())
                                         .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
-        destinations.addAll(EnumSet.allOf(NfcDestinations.class));
 
+        initializeDestinations(Environment.getExternalStorageDirectory().getPath() + "/nfcInit/destinationList.txt");
         updateUI();
 
         final Intent serviceIntent = new Intent(this, CapstoneService.class);
@@ -115,8 +120,36 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
         final Intent initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent,
-                                            initializerServiceConnection,
-                                            BIND_AUTO_CREATE);
+                initializerServiceConnection,
+                BIND_AUTO_CREATE);
+    }
+
+    public void initializeDestinations(final String path){
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(path));
+            String line = br.readLine();
+
+            while (line != null) {
+                if (line.equals("A")) {
+                    destinations.add(NfcDestinations.A);
+                } else if (line.equals("B")) {
+                    destinations.add(NfcDestinations.B);
+                } else if (line.equals("C")) {
+                    destinations.add(NfcDestinations.C);
+                } else if (line.equals("D")) {
+                    destinations.add(NfcDestinations.D);
+                } else if (line.equals("E")) {
+                    destinations.add(NfcDestinations.E);
+                }
+
+                line = br.readLine();
+            }
+
+        }catch(FileNotFoundException e){
+            Log.e("NfcActivity", "Initialize text file missing");
+        } catch (IOException e) {
+            Log.e("NfcActivity", "Error reading file");
+        }
     }
 
     public void updateUI() {
