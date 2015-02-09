@@ -21,7 +21,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +39,8 @@ import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import lombok.NonNull;
 import lombok.Value;
+
+import static ca.mcmaster.capstone.util.CollectionUtils.filter;
 
 public class NfcActivity extends Activity implements MonitorSatisfactionStateListener {
 
@@ -196,16 +197,6 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         return String.format("%0" + (bytes.length << 1) + "X", bi);
     }
 
-    static <T> Collection<T> filter(@NonNull final Collection<? extends T> collection, @NonNull final Predicate<T> predicate) {
-        final List<T> results = new ArrayList<>();
-        for (final T t : collection) {
-            if (predicate.apply(t)) {
-                results.add(t);
-            }
-        }
-        return results;
-    }
-
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -224,10 +215,6 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         String uuid;
         double id;
         String label;
-    }
-
-    public static interface Predicate<T> {
-        boolean apply(T t);
     }
 
     public class LocationServiceConnection implements ServiceConnection {
