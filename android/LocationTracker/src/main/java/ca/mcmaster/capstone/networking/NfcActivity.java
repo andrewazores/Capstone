@@ -137,7 +137,6 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 destinations.add(NfcDestinations.valueOf(line.trim()));
                 line = bufferedReader.readLine();
             }
-
         }
     }
 
