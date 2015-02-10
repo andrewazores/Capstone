@@ -267,7 +267,7 @@ public class Monitor extends Service {
     }
 
     private static Set<GlobalView> mergeSimilarGlobalViews(@NonNull final Collection<GlobalView> gv) {
-        Log.d("monitor", "Entering mergeSimilarGlobalViews");
+        Log.d("monitor", "Entering mergeSimilarGlobalViews with " + gv.size() + " globalViews.");
         final Set<GlobalView> merged = new HashSet<>();
         for (GlobalView gv1 : gv) {
             for (GlobalView gv2 : gv) {
@@ -280,6 +280,7 @@ public class Monitor extends Service {
             }
             merged.add(gv1);
         }
+        Log.d("monitor", "Leaving mergeSimilarGlobalViews with " + merged.size() + " globalViews.");
         return merged;
     }
 
