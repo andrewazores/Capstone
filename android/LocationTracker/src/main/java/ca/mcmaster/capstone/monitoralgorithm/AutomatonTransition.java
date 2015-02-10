@@ -68,18 +68,18 @@ public class AutomatonTransition {
     }
 
     /*
-     * Returns a set of process ids for the processes that cause this transition to evaluate to false.
+     * Returns a set of conjuncts that cause this transition to evaluate to false.
      *
-     * @return A set of process ids.
+     * @return A set of Conjuncts.
      */
-    public Set<NetworkPeerIdentifier> getForbiddingProcesses(@NonNull final GlobalView gv) {
-        final Set<NetworkPeerIdentifier> ret = new HashSet<>();
+    public Set<Conjunct> getForbiddingConjuncts(@NonNull final GlobalView gv) {
+        final Set<Conjunct> ret = new HashSet<>();
         for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : gv.getStates().entrySet()) {
             final ProcessState state = entry.getValue();
             for (final Conjunct conjunct : conjuncts) {
                 if (conjunct.getOwnerProcess().equals(state.getId())
                         && conjunct.evaluate(state) == Conjunct.Evaluation.FALSE) {
-                    ret.add(state.getId());
+                    ret.add(conjunct);
                     break;
                 }
             }

@@ -326,11 +326,17 @@ public class Monitor extends Service {
     private static void checkOutgoingTransitions(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d("monitor", "Entering checkOutgoingTransitions");
         final Map<NetworkPeerIdentifier, Set<AutomatonTransition>> consult = new HashMap<>();
+        final Set<Conjunct> forbiddingConjuncts = new HashSet<>();
         for (final AutomatonTransition trans : automaton.getTransitions()) {
             final AutomatonState current = gv.getCurrentState();
             if (trans.getFrom().equals(current) && !trans.getTo().equals(current)) {
                 final Set<NetworkPeerIdentifier> participating = trans.getParticipatingProcesses();
-                final Set<NetworkPeerIdentifier> forbidding = trans.getForbiddingProcesses(gv);
+                forbiddingConjuncts.addAll(trans.getForbiddingConjuncts(gv));
+                final Set<NetworkPeerIdentifier> forbidding = new HashSet<>();
+                // Extract NetworkPeerIdentifiers for forbidding processes from the set of forbidding conjuncts
+                for (final Conjunct conjunct : forbiddingConjuncts) {
+                    forbidding.add(conjunct.getOwnerProcess());
+                }
                 if (!forbidding.contains(monitorID)) {
                     final Set<NetworkPeerIdentifier> inconsistent = gv.getInconsistentProcesses(monitorID);
                     // intersection
@@ -365,14 +371,12 @@ public class Monitor extends Service {
 
             // Get all the conjuncts for process j
             final Set<Conjunct> conjuncts = new HashSet<>();
-            for (final AutomatonTransition trans : entry.getValue()) {
-                final List<Conjunct> transitionConjuncts = trans.getConjuncts();
-                for (Conjunct conjunct : transitionConjuncts) {
-                    if (conjunct.getOwnerProcess().equals(entry.getKey())) {
-                        conjuncts.add(conjunct);
-                    }
+            for (Conjunct conjunct : forbiddingConjuncts) {
+                if (conjunct.getOwnerProcess().equals(entry.getKey())) {
+                    conjuncts.add(conjunct);
                 }
             }
+
             //Build map to add to token
             final Map<Conjunct, Conjunct.Evaluation> forToken = new HashMap<>();
             for (final Conjunct conjunct : conjuncts) {
