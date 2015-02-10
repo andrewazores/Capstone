@@ -368,7 +368,7 @@ public class Monitor extends Service {
                 final List<Conjunct> transitionConjuncts = trans.getConjuncts();
                 for (Conjunct conjunct : transitionConjuncts) {
                     if (conjunct.getOwnerProcess().equals(entry.getKey())) {
-                        conjuncts.addAll(trans.getConjuncts());
+                        conjuncts.add(conjunct);
                     }
                 }
             }
