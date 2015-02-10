@@ -60,21 +60,20 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
     private int eventCounter = 0;
     private String variableName;
+    private Boolean satisfaction = null;
 
     private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
     private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
 
     @Override
     public void onMonitorSatisfied() {
-        destinations.get(variableName).remove(0);
-        final TextView text = (TextView) findViewById(R.id.next_destination);
-        text.setText(destinations.get(variableName).get(0).getLabel());
+        satisfaction = true;
         updateUI();
     }
 
     @Override
     public void onMonitorViolated() {
-
+        satisfaction = false;
     }
 
     @Override
@@ -147,7 +146,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
             }
             final String virtualID = matcher.group(1);
             final String destinationString = matcher.group(2);
-            final List<String> destinationList = Arrays.asList(destinationString.split("\\r?\\n"));
+            final List<String> destinationList = Arrays.asList(destinationString.split("\\s+"));
             final List<NfcTagIDs> tagIDs = new ArrayList<>();
             each(destinationList, str -> tagIDs.addAll(filter(NFC_TAG_IDS, tag -> tag.getLabel().equals(str))));
             destinations.put(virtualID, tagIDs);
@@ -157,12 +156,15 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
     public void updateUI() {
         runOnUiThread(() -> {
+            if (variableName == null) {
+                return;
+            }
             final TextView text = (TextView) findViewById(R.id.next_destination);
 
-            if (destinations.isEmpty()) {
-                text.setText(variableName + ": " + "You're done!");
+            if (destinations.get(variableName).isEmpty()) {
+                text.setText(variableName + ": " + "You're done!\nSatisfied? " + satisfaction);
             } else {
-                text.setText(variableName + ": " + destinations.get(variableName).get(0).getLabel());
+                text.setText(variableName + ": " + destinations.get(variableName).get(0).getLabel() + "\nSatisfied? " + satisfaction);
             }
         });
     }
@@ -197,6 +199,8 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
             for (final NfcTagIDs nfcTagID : filter(NFC_TAG_IDS, id -> id.getUuid().equals(uuid))) {
                 sendEvent(nfcTagID.getId());
             }
+
+            updateUI();
         }
     }
 
@@ -274,6 +278,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
             for (Map.Entry<String, NetworkPeerIdentifier> virtualID : initializer.getVirtualIdentifiers().entrySet()) {
                 if (virtualID.getValue() == NSD) {
                     NfcActivity.this.variableName = virtualID.getKey();
+                    updateUI();
                     break;
                 }
             }
