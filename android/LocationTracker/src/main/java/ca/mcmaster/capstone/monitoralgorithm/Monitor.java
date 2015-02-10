@@ -249,8 +249,8 @@ public class Monitor extends Service {
         for (final Iterator<Token> i = waitingTokens.iterator(); i.hasNext();) {
             final Token t = i.next();
             if (t.getTargetEventId() == event.getEid()) {
-                processToken(t, event);
                 i.remove();
+                processToken(t, event);
             }
         }
         final Set<GlobalView> copyGV = new HashSet<>(GV);
