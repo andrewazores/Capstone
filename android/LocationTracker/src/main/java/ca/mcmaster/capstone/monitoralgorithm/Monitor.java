@@ -298,6 +298,7 @@ public class Monitor extends Service {
         gv.setCurrentState(automaton.advance(gv));
         handleMonitorStateChange(gv);
         checkOutgoingTransitions(gv, event);
+        Log.d("monitor", "Exiting processEvent");
     }
 
     private static void handleMonitorStateChange(@NonNull final GlobalView gv) {
@@ -384,6 +385,7 @@ public class Monitor extends Service {
         }
         gv.addTokens(pendingSend);
         TokenSender.bulkTokenSendOut(pendingSend);
+        Log.d("monitor", "Exiting checkOutgoingTransitions");
     }
 
     /*
@@ -457,6 +459,7 @@ public class Monitor extends Service {
                 waitingTokens.add(token);
             }
         }
+        Log.d("monitor", "Exiting receiveToken.");
     }
 
     /*
@@ -527,6 +530,7 @@ public class Monitor extends Service {
             final Token newToken = new Token.Builder(token).cut(targetEvent.getVC()).conjuncts(conjunctsMap).targetProcessState(targetEvent.getState()).build();
             TokenSender.sendTokenHome(newToken);
         }
+        Log.d("monitor", "Exiting processToken");
     }
 
     /*
@@ -545,6 +549,7 @@ public class Monitor extends Service {
             Log.d("monitor", "Adding a token to waitingTokens.");
             waitingTokens.add(token.waitForNextEvent());
         }
+        Log.d("monitor", "Exiting evaluateToken");
     }
 
     /*
