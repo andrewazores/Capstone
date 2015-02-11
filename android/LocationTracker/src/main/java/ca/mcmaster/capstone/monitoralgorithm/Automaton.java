@@ -20,6 +20,9 @@ import lombok.ToString;
 /* Class to represent an Automaton.*/
 @EqualsAndHashCode @ToString
 public class Automaton {
+
+    public static final String LOG_TAG = "automaton";
+
     public static enum Evaluation {SATISFIED, VIOLATED, UNDECIDED}
 
     public static final Automaton INSTANCE = new Automaton();
@@ -47,7 +50,7 @@ public class Automaton {
             } else if (name.getType().equals("violation")) {
                 states.put(name.getLabel(), new AutomatonState(name.getLabel(), Evaluation.VIOLATED));
             } else {
-                Log.d("automaton", "i should be throwing right now!");
+                Log.d(LOG_TAG, "i should be throwing right now!");
                 throw new IllegalArgumentException("Tried to process AutomatonState with unrecognized type.");
             }
         }
@@ -70,8 +73,8 @@ public class Automaton {
 
             INSTANCE.transitions.add(new AutomatonTransition(source, destination, conjunctsWithExpresssions));
         }
-        Log.d("automaton", "states: " + INSTANCE.states.toString());
-        Log.d("automaton", "transitions: " + INSTANCE.transitions.toString());
+        Log.d(LOG_TAG, "states: " + INSTANCE.states.toString());
+        Log.d(LOG_TAG, "transitions: " + INSTANCE.transitions.toString());
     }
 
     /*
@@ -93,7 +96,7 @@ public class Automaton {
         for (final AutomatonTransition transition : transitions) {
             if (transition.getFrom().equals(gv.getCurrentState()) && !transition.getFrom().equals(transition.getTo())) {
                 if (transition.evaluate(gv.getStates().values()) == Conjunct.Evaluation.TRUE) {
-                    Log.d("automaton", "Advanced to state: " + transition.getTo().getStateName());
+                    Log.d(LOG_TAG, "Advanced to state: " + transition.getTo().getStateName());
                     return transition.getTo();
                 }
             }

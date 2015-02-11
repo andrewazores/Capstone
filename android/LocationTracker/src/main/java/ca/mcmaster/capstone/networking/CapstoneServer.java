@@ -22,6 +22,8 @@ import static ca.mcmaster.capstone.networking.util.JsonUtil.fromJson;
 
 public class CapstoneServer extends NanoHTTPD {
 
+    public static final String LOG_TAG = "CapstoneHttpServer";
+
     public enum RequestMethod {
         UPDATE,
         IDENTIFY,
@@ -163,6 +165,6 @@ public class CapstoneServer extends NanoHTTPD {
     }
 
     private static void log(final String message) {
-        Log.v("CapstoneHttpServer", message);
+        Log.v(LOG_TAG, message);
     }
 }

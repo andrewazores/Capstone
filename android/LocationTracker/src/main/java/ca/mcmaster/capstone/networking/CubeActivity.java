@@ -34,6 +34,8 @@ import lombok.NonNull;
 
 public class CubeActivity extends Activity implements MonitorSatisfactionStateListener {
 
+    public static final String LOG_TAG = "CubeActivity";
+
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private SensorEventListener mSensorEventListener;
@@ -199,13 +201,13 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         }
 
         private void waitForNetworkLayer() {
-            Log.v("CubeActivity", "waitForNetworkLayer");
+            Log.v(LOG_TAG, "waitForNetworkLayer");
             while (serviceConnection.getService() == null) {
                 try {
-                    Log.v("CubeActivity", "waiting 1 second for network layer to appear...");
+                    Log.v(LOG_TAG, "waiting 1 second for network layer to appear...");
                     Thread.sleep(1000);
                 } catch (final InterruptedException e) {
-                    Log.d("CubeActivity", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+                    Log.d(LOG_TAG, "NetworkLayer connection is not established: " + e.getLocalizedMessage());
                 }
             }
         }

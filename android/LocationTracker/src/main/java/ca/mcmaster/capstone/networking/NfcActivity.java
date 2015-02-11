@@ -52,6 +52,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     public static final String NFC_INIT_STORAGE_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/nfcInit/";
     public static final String GLOBAL_NFC_TAG_SET_CONFIG_FILENAME = "destinations.txt";
     public static final String LOCAL_NFC_TAG_LIST_CONFIG_FILENAME = "destinationList.txt";
+    public static final String LOG_TAG = "NfcActivity";
 
     protected NfcAdapter nfcAdapter;
     protected PendingIntent nfcPendingIntent;
@@ -187,13 +188,13 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     }
 
     private void waitForNetworkLayer() {
-        Log.v("NfcActivity", "waitForNetworkLayer");
+        Log.v(LOG_TAG, "waitForNetworkLayer");
         while (serviceConnection.getService() == null) {
             try {
-                Log.v("NfcActivity", "waiting 1 second for network layer to appear...");
+                Log.v(LOG_TAG, "waiting 1 second for network layer to appear...");
                 Thread.sleep(1000);
             } catch (final InterruptedException e) {
-                Log.d("NfcActivity", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+                Log.d(LOG_TAG, "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
     }
@@ -216,7 +217,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     }
 
     public void enableForegroundMode() {
-        Log.d("NfcActivity", "enableForegroundMode");
+        Log.d(LOG_TAG, "enableForegroundMode");
 
         final IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
         final IntentFilter[] writeTagFilters = new IntentFilter[] {tagDetected};
@@ -224,7 +225,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     }
 
     public void disableForegroundMode() {
-        Log.d("NfcActivity", "disableForegroundMode");
+        Log.d(LOG_TAG, "disableForegroundMode");
 
         nfcAdapter.disableForegroundDispatch(this);
     }
