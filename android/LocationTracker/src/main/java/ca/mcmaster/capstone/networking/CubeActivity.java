@@ -180,8 +180,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         }
 
         public void sendEvent(double value) {
-            //Block until network is set up... I am a failure.
-            initializerServiceConnection.getInitializer().getLocalPID();
+            waitForNetworkLayer();
             final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
                 put(CubeActivity.this.variableName, value);
             }});
@@ -196,6 +195,18 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
             if (eventCounter != 0) {
                 Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
                 serviceConnection.getService().sendEventToMonitor(e);
+            }
+        }
+
+        private void waitForNetworkLayer() {
+            Log.v("CubeActivity", "waitForNetworkLayer");
+            while (serviceConnection.getService() == null) {
+                try {
+                    Log.v("CubeActivity", "waiting 1 second for network layer to appear...");
+                    Thread.sleep(1000);
+                } catch (final InterruptedException e) {
+                    Log.d("CubeActivity", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+                }
             }
         }
 

@@ -170,8 +170,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     }
 
     public void sendEvent(final double value) {
-        //Block until network is set up... I am a failure.
-        initializerServiceConnection.getInitializer().getLocalPID();
+        waitForNetworkLayer();
         final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
             put(NfcActivity.this.variableName, value);
         }});
@@ -185,6 +184,18 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
                 }}));
         Toast.makeText(NfcActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
         serviceConnection.getService().sendEventToMonitor(e);
+    }
+
+    private void waitForNetworkLayer() {
+        Log.v("NfcActivity", "waitForNetworkLayer");
+        while (serviceConnection.getService() == null) {
+            try {
+                Log.v("NfcActivity", "waiting 1 second for network layer to appear...");
+                Thread.sleep(1000);
+            } catch (final InterruptedException e) {
+                Log.d("NfcActivity", "NetworkLayer connection is not established: " + e.getLocalizedMessage());
+            }
+        }
     }
 
     @Override
