@@ -38,6 +38,8 @@ import static ca.mcmaster.capstone.networking.util.JsonUtil.asJson;
 public class CapstoneActivity extends Activity implements NpiUpdateCallbackReceiver,
                                                             PeerUpdateCallbackReceiver<DeviceInfo> {
 
+    public static final String LOG_TAG = "CapstoneActivity";
+
     protected TextView jsonTextView;
     protected ListView listView;
     private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
@@ -224,7 +226,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
     }
 
     private static void log(final String message) {
-        Log.v("CapstoneActivity", message);
+        Log.v(LOG_TAG, message);
     }
 
     public class NetworkServiceConnection implements ServiceConnection {

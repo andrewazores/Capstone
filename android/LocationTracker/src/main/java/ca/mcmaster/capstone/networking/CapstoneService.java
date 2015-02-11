@@ -72,6 +72,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     private static final String NSD_LOCATION_SERVICE_NAME = "CapstoneLocationNSD";
     private static final String NSD_LOCATION_SERVICE_TYPE = "_http._tcp.";
+    public static final String LOG_TAG = "CapstoneService";
 
     private InetAddress ipAddress;
 
@@ -311,7 +312,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
         try {
             locationServer.start();
         } catch (final IOException ioe) {
-            Log.e("CapstoneService", "Error starting NanoHTTPD server", ioe);
+            Log.e(LOG_TAG, "Error starting NanoHTTPD server", ioe);
         }
         logv("Done");
     }
@@ -721,7 +722,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
                 }
             }
         } catch (final SocketException se) {
-            Log.e("CapstoneService", "Error when attempting to determine local IP", se);
+            Log.e(LOG_TAG, "Error when attempting to determine local IP", se);
         }
         logv("Could not determine any valid local network interface!");
         return null;
@@ -737,11 +738,11 @@ public final class CapstoneService extends Service implements NetworkLayer {
     }
 
     private static void logv(@NonNull final String message) {
-        Log.v("CapstoneService", message);
+        Log.v(LOG_TAG, message);
     }
 
     private static void logd(@NonNull final String message) {
-        Log.d("CapstoneService", message);
+        Log.d(LOG_TAG, message);
     }
 
     public class CapstoneNetworkServiceBinder extends Binder {
