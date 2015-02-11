@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -31,7 +30,6 @@ import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.JsonUtil;
 import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
 import ca.mcmaster.capstone.networking.util.PeerUpdateCallbackReceiver;
-import ca.mcmaster.capstone.networking.util.SensorUpdateCallbackReceiver;
 
 import static ca.mcmaster.capstone.networking.util.JsonUtil.asJson;
 
