@@ -88,9 +88,9 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
             if(networkPeerIdentifier != null) {
                 Intent i = new Intent(CapstoneActivity.this, CubeActivity.class);
                 startActivity(i);
-            }
-            else
+            } else {
                 Toast.makeText(CapstoneActivity.this, "NSD Connection invalid", Toast.LENGTH_SHORT).show();
+            }
         });
 
         final Button nfcButton = (Button) findViewById(R.id.nfc);
