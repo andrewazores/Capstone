@@ -1,0 +1,8 @@
+This folder contains monitor test cases. Before running them they must first be loaded
+on to the device by running loadTest.sh PATH, where path is the location of a test.
+
+Example:
+
+    ./loadTest firstSanity
+
+will load the files in the firstSanity folder onto the connected device.
