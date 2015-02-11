@@ -87,4 +87,10 @@ public final class NetworkPeerIdentifier implements Parcelable {
         int port;
     }
 
+    public String toLogString() {
+        return "{" +
+                "serviceName='" + serviceName + '\'' +
+                ", host=" + host +
+                '}';
+    }
 }
