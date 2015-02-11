@@ -9,7 +9,7 @@ import lombok.NonNull;
 import lombok.ToString;
 
 /* Class to represent a vector clock.*/
-@EqualsAndHashCode @ToString
+@EqualsAndHashCode
 public class VectorClock {
     public static enum Comparison { EQUAL, BIGGER, SMALLER, CONCURRENT }
 
@@ -104,5 +104,17 @@ public class VectorClock {
      */
     public int size() {
         return consistentCut.size();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        for (Map.Entry<NetworkPeerIdentifier, Integer> entry : consistentCut.entrySet()) {
+            final String entryStr = "{" + entry.getKey().toLogString() + ", " + entry.getValue() + "}";
+            builder.append(entryStr);
+        }
+        return "VectorClock{" +
+                builder.toString() +
+                '}';
     }
 }

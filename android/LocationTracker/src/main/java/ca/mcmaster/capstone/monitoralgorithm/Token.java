@@ -13,7 +13,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /* Class to represent the computation slicing tokens.*/
-@EqualsAndHashCode @ToString
+@EqualsAndHashCode
 public class Token {
     public static class Builder {
         private final int uniqueLocalIdentifier;
@@ -162,5 +162,21 @@ public class Token {
      */
     public boolean anyConjunctSatisfied() {
         return conjuncts.containsValue(Conjunct.Evaluation.TRUE);
+    }
+
+    @Override
+    public String toString() {
+        return "Token{" +
+                "uniqueLocalIdentifier=" + uniqueLocalIdentifier +
+                ", owner=" + owner.toLogString() +
+                ", destination=" + destination.toLogString() +
+                ", targetEventId=" + targetEventId +
+                ", cut=" + cut +
+                ", automatonTransitions=" + automatonTransitions +
+                ", conjuncts=" + conjuncts +
+                ", targetProcessState=" + targetProcessState +
+                ", returned=" + returned +
+                ", sent=" + sent +
+                '}';
     }
 }
