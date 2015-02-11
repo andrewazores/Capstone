@@ -176,31 +176,17 @@ public class Monitor extends Service {
      */
     public void monitorLoop() {
         init();
-        Log.d(LOG_TAG, "submitting loop tasks");
-        tokenPollJob = Executors.newSingleThreadExecutor().submit(() -> this.pollTokens());
-        eventPollJob = Executors.newSingleThreadExecutor().submit(() -> this.pollEvents());
-    }
-
-    private void pollTokens() {
+        Log.d("monitor", "submitting loop tasks");
         while (!cancelled) {
-            Log.d(LOG_TAG, "pollTokens looping");
             final Token token = receive();
             if (token != null) {
-                workQueue.submit(() -> receiveToken(token));
+                receiveToken(token);
             }
-        }
-        Log.d(LOG_TAG, "pollTokens exiting");
-    }
-
-    private void pollEvents() {
-        while (!cancelled) {
-            Log.d(LOG_TAG, "pollEvents looping");
             final Event event = read();
             if (event != null) {
-                workQueue.submit(() -> receiveEvent(event));
+                receiveEvent(event);
             }
         }
-        Log.d(LOG_TAG, "pollEvents exiting");
     }
 
     private Token receive() {
