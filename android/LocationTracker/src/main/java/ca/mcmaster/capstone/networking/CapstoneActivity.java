@@ -96,15 +96,12 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
         });
 
         final Button nfcButton = (Button) findViewById(R.id.nfc);
-        nfcButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (networkPeerIdentifier != null) {
-                    Intent i = new Intent(CapstoneActivity.this, NfcActivity.class);
-                    startActivity(i);
-                }
-                else
-                    Toast.makeText(CapstoneActivity.this, "NSD Connection invalid", Toast.LENGTH_SHORT).show();
+        nfcButton.setOnClickListener(v -> {
+            if (networkPeerIdentifier != null) {
+                final Intent i = new Intent(CapstoneActivity.this, NfcActivity.class);
+                startActivity(i);
+            } else {
+                Toast.makeText(CapstoneActivity.this, "NSD Connection invalid", Toast.LENGTH_SHORT).show();
             }
         });
     }
