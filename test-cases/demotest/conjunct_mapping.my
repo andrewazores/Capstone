@@ -1,0 +1,12 @@
+oneAtA,1,x1 == 1.0
+!oneAtA,1,x1 != 1.0
+oneAtB,1,x1 == 2.0
+!oneAtB,1,x1 != 2.0
+oneAtE,1,x1 == 5.0
+!oneAtE,1,x1 != 5.0
+twoAtA,2,x2 == 1.0
+!twoAtA,2,x2 != 1.0
+twoAtB,2,x2 == 2.0
+!twoAtB,2,x2 != 2.0
+twoAtE,2,x2 == 5.0
+!twoAtE,2,x2 != 5.0
