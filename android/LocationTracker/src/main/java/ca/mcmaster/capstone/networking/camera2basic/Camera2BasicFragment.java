@@ -37,6 +37,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -188,8 +190,9 @@ public class Camera2BasicFragment extends Fragment {
      * still image is ready to be saved.
      */
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-            = reader -> {
-            };
+    = reader -> {
+        final Image image = reader.acquireNextImage();
+    };
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview
@@ -255,6 +258,11 @@ public class Camera2BasicFragment extends Fragment {
         mMessageHandler.sendMessage(message);
     }
 
+    private static int compareSizes(final Size lhs, final Size rhs) {
+        return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                (long) rhs.getWidth() * rhs.getHeight());
+    }
+
     /**
      * Given {@code choices} of {@code Size}s supported by a camera, chooses the smallest one whose
      * width and height are at least as large as the respective requested values, and whose aspect
@@ -280,7 +288,7 @@ public class Camera2BasicFragment extends Fragment {
 
         // Pick the smallest of those, assuming we found any
         if (bigEnough.size() > 0) {
-            return Collections.min(bigEnough, new CompareSizesByArea());
+            return Collections.min(bigEnough, Camera2BasicFragment::compareSizes);
         } else {
             Log.e(TAG, "Couldn't find any suitable preview size");
             return choices[0];
@@ -358,7 +366,7 @@ public class Camera2BasicFragment extends Fragment {
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
-                        new CompareSizesByArea());
+                        Camera2BasicFragment::compareSizes);
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
                         ImageFormat.JPEG, /*maxImages*/2);
                 mImageReader.setOnImageAvailableListener(
@@ -549,20 +557,6 @@ public class Camera2BasicFragment extends Fragment {
             matrix.postRotate(90 * (rotation - 2), centerX, centerY);
         }
         mTextureView.setTransform(matrix);
-    }
-
-    /**
-     * Compares two {@code Size}s based on their areas.
-     */
-    static class CompareSizesByArea implements Comparator<Size> {
-
-        @Override
-        public int compare(Size lhs, Size rhs) {
-            // We cast here to ensure the multiplications won't overflow
-            return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
-                    (long) rhs.getWidth() * rhs.getHeight());
-        }
-
     }
 
     public static class ErrorDialog extends DialogFragment {
