@@ -11,8 +11,10 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import ca.mcmaster.capstone.R;
 import lombok.NonNull;
 
 import static java.util.Arrays.asList;
@@ -26,6 +28,9 @@ public class VisionActivity extends Activity {
     @Override
     public void onCreate(final Bundle bundle) {
         cvSurface = new CVSurface(getApplicationContext());
+        setContentView(R.layout.activity_vision);
+        final LinearLayout gl = (LinearLayout) findViewById(R.id.gl_layout);
+        gl.addView(cvSurface);
     }
 
     @Override
@@ -111,6 +116,7 @@ public class VisionActivity extends Activity {
         @Override
         public void onCaptureCompleted(final CameraCaptureSession session, final CaptureRequest request, final TotalCaptureResult result) {
             super.onCaptureCompleted(session, request, result);
+
         }
     }
 }

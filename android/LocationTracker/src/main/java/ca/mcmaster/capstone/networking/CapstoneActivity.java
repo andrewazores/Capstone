@@ -102,6 +102,12 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
                 Toast.makeText(CapstoneActivity.this, "NSD Connection invalid", Toast.LENGTH_SHORT).show();
             }
         });
+
+        final Button visionButton = (Button) findViewById(R.id.visionButton);
+        visionButton.setOnClickListener(v -> {
+           final Intent intent = new Intent(CapstoneActivity.this, VisionActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void getPeerUpdate(final NetworkPeerIdentifier peer) {
