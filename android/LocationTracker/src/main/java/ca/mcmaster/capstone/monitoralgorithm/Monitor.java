@@ -328,8 +328,8 @@ public class Monitor extends Service {
     private void checkOutgoingTransitions(@NonNull final GlobalView gv, @NonNull final Event event) {
         Log.d(LOG_TAG, "Entering checkOutgoingTransitions");
         final Map<NetworkPeerIdentifier, Set<AutomatonTransition>> consult = new HashMap<>();
-        final Set<Conjunct> forbiddingConjuncts = new HashSet<>();
         for (final AutomatonTransition trans : automaton.getTransitions()) {
+            final Set<Conjunct> forbiddingConjuncts = new HashSet<>();
             final AutomatonState current = gv.getCurrentState();
             if (trans.getFrom().equals(current) && !trans.getTo().equals(current)) {
                 final Set<NetworkPeerIdentifier> participating = trans.getParticipatingProcesses();
@@ -373,9 +373,11 @@ public class Monitor extends Service {
 
             // Get all the conjuncts for process j
             final Set<Conjunct> conjuncts = new HashSet<>();
-            for (Conjunct conjunct : forbiddingConjuncts) {
-                if (conjunct.getOwnerProcess().equals(entry.getKey())) {
-                    conjuncts.add(conjunct);
+            for (AutomatonTransition transition : entry.getValue()) {
+                for (Conjunct conjunct : transition.getConjuncts()) {
+                    if (conjunct.getOwnerProcess().equals(entry.getKey())) {
+                        conjuncts.add(conjunct);
+                    }
                 }
             }
 
