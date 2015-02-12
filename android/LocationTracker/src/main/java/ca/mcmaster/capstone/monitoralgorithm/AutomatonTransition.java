@@ -90,9 +90,6 @@ public class AutomatonTransition {
     public boolean enabled(@NonNull GlobalView globalView, @NonNull final List<Token> tokens) {
         Map<NetworkPeerIdentifier, ProcessState> states = new HashMap<>(globalView.getStates());
         for (Token token : tokens) {
-            if (!token.isReturned()) {
-                return false;
-            }
             final ProcessState targetProcessState = token.getTargetProcessState();
             states.put(targetProcessState.getId(), targetProcessState);
         }

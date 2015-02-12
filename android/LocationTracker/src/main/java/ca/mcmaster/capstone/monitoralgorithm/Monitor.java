@@ -412,6 +412,12 @@ public class Monitor extends Service {
                     Log.d(LOG_TAG, "Checking if transition is enabled: " + trans.toString());
                     // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
+                    for (Token tok : tokens) {
+                        if (!tok.isReturned()) {
+                            Log.d(LOG_TAG, "Not all tokens for this transition have been returned.");
+                            return;
+                        }
+                    }
                     if (trans.enabled(globalView, tokens) && consistent(globalView, trans)) {
                         hasEnabled |= true;
                         Log.d(LOG_TAG, "The transition is enabled and the global view is consistent.");
