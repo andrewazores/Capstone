@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="org.bytedeco:javacv:0.10" type="repository">
+    <properties maven-id="org.bytedeco:javacv:0.10" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/javacv-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/javacpp-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/opencv-2.4.10-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/ffmpeg-2.5.1-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/flycapture-2.7.3.13-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libdc1394-2.2.2-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libfreenect-0.5.1-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/videoinput-0.200-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/artoolkitplus-2.3.1-0.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/flandmark-1.07-0.10.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/javacv-0.10-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

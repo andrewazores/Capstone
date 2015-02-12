@@ -55,6 +55,7 @@ dependencies {
     compile 'com.mcxiaoke.volley:library:1.0.6@aar'
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-lang3:3.3.2'
+    compile group: 'org.bytedeco', name: 'javacv', version: '0.10'
     provided 'pl.mg6.hrisey:hrisey:0.3.+'
 
     androidTestCompile 'junit:junit:4.11'
