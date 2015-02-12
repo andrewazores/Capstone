@@ -2,14 +2,19 @@ package ca.mcmaster.capstone.networking;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -24,6 +29,7 @@ public class VisionActivity extends Activity {
     public static final String TAG = "VisionActivity";
     private CameraDevice cameraDevice;
     private CVSurface cvSurface;
+    private CameraManager cameraManager;
 
     @Override
     public void onCreate(final Bundle bundle) {
@@ -37,7 +43,7 @@ public class VisionActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();
-        final CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             final String[] cameraIDs = cameraManager.getCameraIdList();
             cameraManager.openCamera(cameraIDs[0], new CameraCallback(), null);
@@ -71,7 +77,26 @@ public class VisionActivity extends Activity {
         public void onOpened(@NonNull final CameraDevice cameraDevice) {
             VisionActivity.this.cameraDevice = cameraDevice;
             try {
-                cameraDevice.createCaptureSession(asList(cvSurface.getHolder().getSurface()), new CameraPreviewCallback(), null);
+                final CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraDevice.getId());
+                final StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                final Size[] outputSizes = configurationMap.getOutputSizes(SurfaceTexture.class);
+                cvSurface.getHolder().addCallback(new SurfaceHolder.Callback() {
+                    @Override
+                    public void surfaceCreated(final SurfaceHolder surfaceHolder) {
+                        cvSurface.getHolder().setFixedSize(outputSizes[0].getWidth(), outputSizes[0].getHeight());
+                        try {
+                            cameraDevice.createCaptureSession(asList(cvSurface.getHolder().getSurface()), new CameraPreviewCallback(), null);
+                        } catch (final CameraAccessException cae) {
+                            Log.e(TAG, "Could not connect to camera!");
+                        }
+                    }
+
+                    @Override
+                    public void surfaceChanged(final SurfaceHolder surfaceHolder, final int i, final int i1, final int i2) {}
+
+                    @Override
+                    public void surfaceDestroyed(final SurfaceHolder surfaceHolder) {}
+                });
             } catch (final CameraAccessException cae) {
                 Log.e(TAG, "Could not connect to camera!");
             }
