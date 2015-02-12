@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -248,11 +249,11 @@ public class Monitor extends Service {
     public void receiveEvent(@NonNull final Event event) {
         Log.d(LOG_TAG, "Entering receiveEvent");
         history.put(event.getEid(), event);
-        for (final Iterator<Token> i = waitingTokens.iterator(); i.hasNext();) {
-            final Token t = i.next();
-            if (t.getTargetEventId() == event.getEid()) {
-                i.remove();
-                processToken(t, event);
+        // We need to make a copy of waitingTokens to iterate over since tokens may be added to the set later, which invalidates the iterator
+        final Set<Token> tokensToProcess = Collections.unmodifiableSet(new HashSet<>(waitingTokens));
+        for (final Token token : tokensToProcess) {
+            if (token.getTargetEventId() == event.getEid()) {
+                processToken(token, event);
             }
         }
         final Set<GlobalView> copyGV = new HashSet<>(GV);
