@@ -69,7 +69,7 @@ import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.R;
 
-public class Camera2BasicFragment extends Fragment implements View.OnClickListener {
+public class Camera2BasicFragment extends Fragment {
 
     /**
      * Conversion from screen rotation to JPEG orientation.
@@ -389,8 +389,6 @@ public class Camera2BasicFragment extends Fragment implements View.OnClickListen
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        view.findViewById(R.id.picture).setOnClickListener(this);
-        view.findViewById(R.id.info).setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
     }
 
@@ -745,26 +743,6 @@ public class Camera2BasicFragment extends Fragment implements View.OnClickListen
                     mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.picture: {
-                takePicture();
-                break;
-            }
-            case R.id.info: {
-                Activity activity = getActivity();
-                if (null != activity) {
-                    new AlertDialog.Builder(activity)
-                            .setMessage("Hello")
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show();
-                }
-                break;
-            }
         }
     }
 
