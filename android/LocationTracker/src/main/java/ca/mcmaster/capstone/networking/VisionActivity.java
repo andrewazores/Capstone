@@ -27,6 +27,7 @@ public class VisionActivity extends Activity {
 
     @Override
     public void onCreate(final Bundle bundle) {
+        super.onCreate(bundle);
         cvSurface = new CVSurface(getApplicationContext());
         setContentView(R.layout.activity_vision);
         final LinearLayout gl = (LinearLayout) findViewById(R.id.gl_layout);
