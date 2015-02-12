@@ -25,6 +25,7 @@ import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.initializer.InitializerBinder;
 import ca.mcmaster.capstone.monitoralgorithm.Monitor;
 import ca.mcmaster.capstone.monitoralgorithm.MonitorBinder;
+import ca.mcmaster.capstone.networking.camera2basic.CameraActivity;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.JsonUtil;
@@ -105,7 +106,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
 
         final Button visionButton = (Button) findViewById(R.id.visionButton);
         visionButton.setOnClickListener(v -> {
-           final Intent intent = new Intent(CapstoneActivity.this, VisionActivity.class);
+           final Intent intent = new Intent(CapstoneActivity.this, CameraActivity.class);
             startActivity(intent);
         });
     }
