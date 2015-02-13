@@ -201,6 +201,9 @@ public class Camera2BasicFragment extends Fragment {
      */
     private ImageReader mImageReader;
 
+    private volatile boolean circleInViewPreviously = false;
+    private volatile int circleViewCount = 0;
+
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
@@ -213,7 +216,7 @@ public class Camera2BasicFragment extends Fragment {
         processImage(image, width, height);
     };
 
-    private static void processImage(Image image, int width, int height) {
+    private void processImage(Image image, int width, int height) {
         final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
         final opencv_core.Mat mat = new opencv_core.Mat(height, width, CV_8U, new BytePointer(buffer));
         GaussianBlur(mat, mat, new opencv_core.Size(9, 9), 2);
@@ -236,14 +239,17 @@ public class Camera2BasicFragment extends Fragment {
         );
 
         final int numCircles = circles.total();
-        if (numCircles > 0) {
-            Log.v(TAG, "I see " + numCircles + " circles!");
-            for (int i = 0; i < numCircles; i++) {
-                final opencv_core.CvPoint3D32f circle = new opencv_core.CvPoint3D32f(cvGetSeqElem(circles, i));
-                final int radius = Math.round(circle.z());
-                Log.v(TAG, "r:" + radius + "@[" + circle.x() + "," + circle.y() + "]");
+        final boolean circleInView = numCircles > 0;
+        final boolean circleViewStateChanged = circleInView != circleInViewPreviously;
+        if (circleViewStateChanged) {
+            if (circleInView) {
+                showToast("Spotted a circle");
+            } else {
+                showToast("Lost track of the circle");
             }
+            ++circleViewCount;
         }
+        circleInViewPreviously = circleInView;
 
         image.close();
     }
