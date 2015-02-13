@@ -22,7 +22,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -69,7 +68,6 @@ import ca.mcmaster.capstone.R;
 
 import static org.bytedeco.javacpp.opencv_core.CV_8U;
 import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
-import static org.bytedeco.javacpp.opencv_core.cvPointFrom32f;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_HOUGH_GRADIENT;
 import static org.bytedeco.javacpp.opencv_imgproc.cvHoughCircles;
 
@@ -101,12 +99,18 @@ public class Camera2BasicFragment extends Fragment {
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
-            openCamera(width, height);
+            // TODO: refactor this into openCamera or some other helper/wrapper around it
+            final int w = mTextureView.getWidth() / 16;
+            final int h = mTextureView.getHeight() / 16;
+            Log.v(TAG, "Opening camera with dimensions [" + w + "," + h + "]");
+            openCamera(w, h);
         }
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {
-            configureTransform(width, height);
+            final int w = mTextureView.getWidth() / 16;
+            final int h = mTextureView.getHeight() / 16;
+            configureTransform(w, h);
         }
 
         @Override
@@ -128,7 +132,7 @@ public class Camera2BasicFragment extends Fragment {
     /**
      * An {@link AutoFitTextureView} for camera preview.
      */
-    private AutoFitTextureView mTextureView;
+    private TextureView mTextureView;
 
     /**
      * A {@link CameraCaptureSession } for camera preview.
@@ -194,18 +198,17 @@ public class Camera2BasicFragment extends Fragment {
      */
     private ImageReader mImageReader;
 
-    private final ExecutorService cvExecutor = Executors.newSingleThreadExecutor();
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-    = reader -> cvExecutor.submit(() -> {
+    = reader -> {
         final Image image = reader.acquireNextImage();
         final int width = reader.getWidth();
         final int height = reader.getHeight();
         processImage(image, width, height);
-    });
+    };
 
     private static void processImage(Image image, int width, int height) {
         final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
@@ -214,27 +217,24 @@ public class Camera2BasicFragment extends Fragment {
 
         final opencv_core.CvMemStorage mem = opencv_core.CvMemStorage.create();
 
+        // TODO: fine-tune these parameters
         final opencv_core.CvSeq circles = cvHoughCircles(
                 src, //Input image
                 mem, //Memory Storage
                 CV_HOUGH_GRADIENT, //Detection method
                 1, //Inverse ratio
-                100, //Minimum distance between the centers of the detected circles
+                50, //Minimum distance between the centers of the detected circles
                 100, //Higher threshold for canny edge detector
                 100, //Threshold at the center detection stage
-                15, //min radius
-                300 //max radius
+                10, //min radius
+                80 //max radius
         );
 
-        Log.v("VisionActivity", "I see " + circles.total() + " circles!");
+        Log.v(TAG, "I see " + circles.total() + " circles!");
         for (int i = 0; i < circles.total(); i++) {
             final opencv_core.CvPoint3D32f circle = new opencv_core.CvPoint3D32f(cvGetSeqElem(circles, i));
-            final opencv_core.CvPoint2D32f point2D32f = new opencv_core.CvPoint2D32f();
-            point2D32f.x(circle.x());
-            point2D32f.y(circle.y());
-            final opencv_core.CvPoint center = cvPointFrom32f(point2D32f);
             final int radius = Math.round(circle.z());
-            Log.v("VisionActivity", "\tr:" + radius + "@[" + center.x() + "," + center.y() + "]");
+            Log.v(TAG, "r:" + radius + "@[" + circle.x() + "," + circle.y() + "]");
         }
 
         image.close();
@@ -355,7 +355,8 @@ public class Camera2BasicFragment extends Fragment {
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+//        mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+        mTextureView = (TextureView) view.findViewById(R.id.texture);
     }
 
     @Override
@@ -373,7 +374,10 @@ public class Camera2BasicFragment extends Fragment {
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
         if (mTextureView.isAvailable()) {
-            openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+            final int width = mTextureView.getWidth() / 16;
+            final int height = mTextureView.getHeight() / 16;
+            Log.v(TAG, "Opening camera with dimensions [" + width + "," + height + "]");
+            openCamera(width, height);
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
@@ -409,30 +413,15 @@ public class Camera2BasicFragment extends Fragment {
                 StreamConfigurationMap map = characteristics.get(
                         CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
-                // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
                         Camera2BasicFragment::compareSizes);
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
+                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
+                        width, height, largest);
+                mImageReader = ImageReader.newInstance(mPreviewSize.getWidth(), mPreviewSize.getHeight(),
                         ImageFormat.YUV_420_888, /*maxImages*/1);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
-
-                // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
-                // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
-                // garbage capture data.
-                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
-                        width, height, largest);
-
-                // We fit the aspect ratio of TextureView to the size of preview we picked.
-                int orientation = getResources().getConfiguration().orientation;
-                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    mTextureView.setAspectRatio(
-                            mPreviewSize.getWidth(), mPreviewSize.getHeight());
-                } else {
-                    mTextureView.setAspectRatio(
-                            mPreviewSize.getHeight(), mPreviewSize.getWidth());
-                }
 
                 mCameraId = cameraId;
                 return;
