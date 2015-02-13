@@ -32,7 +32,6 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -53,16 +52,26 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import org.bytedeco.javacpp.BytePointer;
+import org.bytedeco.javacpp.opencv_core;
+
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.R;
+
+import static org.bytedeco.javacpp.opencv_core.CV_8U;
+import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
+import static org.bytedeco.javacpp.opencv_core.cvPointFrom32f;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_HOUGH_GRADIENT;
+import static org.bytedeco.javacpp.opencv_imgproc.cvHoughCircles;
 
 public class Camera2BasicFragment extends Fragment {
 
@@ -185,14 +194,51 @@ public class Camera2BasicFragment extends Fragment {
      */
     private ImageReader mImageReader;
 
+    private final ExecutorService cvExecutor = Executors.newSingleThreadExecutor();
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-    = reader -> {
+    = reader -> cvExecutor.submit(() -> {
         final Image image = reader.acquireNextImage();
-    };
+        final int width = reader.getWidth();
+        final int height = reader.getHeight();
+        processImage(image, width, height);
+    });
+
+    private static void processImage(Image image, int width, int height) {
+        final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+        final opencv_core.Mat mat = new opencv_core.Mat(height, width, CV_8U, new BytePointer(buffer));
+        final opencv_core.IplImage src = mat.asIplImage();
+
+        final opencv_core.CvMemStorage mem = opencv_core.CvMemStorage.create();
+
+        final opencv_core.CvSeq circles = cvHoughCircles(
+                src, //Input image
+                mem, //Memory Storage
+                CV_HOUGH_GRADIENT, //Detection method
+                1, //Inverse ratio
+                100, //Minimum distance between the centers of the detected circles
+                100, //Higher threshold for canny edge detector
+                100, //Threshold at the center detection stage
+                15, //min radius
+                300 //max radius
+        );
+
+        Log.v("VisionActivity", "I see " + circles.total() + " circles!");
+        for (int i = 0; i < circles.total(); i++) {
+            final opencv_core.CvPoint3D32f circle = new opencv_core.CvPoint3D32f(cvGetSeqElem(circles, i));
+            final opencv_core.CvPoint2D32f point2D32f = new opencv_core.CvPoint2D32f();
+            point2D32f.x(circle.x());
+            point2D32f.y(circle.y());
+            final opencv_core.CvPoint center = cvPointFrom32f(point2D32f);
+            final int radius = Math.round(circle.z());
+            Log.v("VisionActivity", "\tr:" + radius + "@[" + center.x() + "," + center.y() + "]");
+        }
+
+        image.close();
+    }
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview
@@ -365,10 +411,10 @@ public class Camera2BasicFragment extends Fragment {
 
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
+                        Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
                         Camera2BasicFragment::compareSizes);
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
+                        ImageFormat.YUV_420_888, /*maxImages*/1);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
@@ -507,6 +553,7 @@ public class Camera2BasicFragment extends Fragment {
                                 // Flash is automatically enabled when necessary.
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
                                         CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                                mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
 
                                 // Finally, we start displaying the camera preview.
                                 mPreviewRequest = mPreviewRequestBuilder.build();
