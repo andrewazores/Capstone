@@ -51,25 +51,37 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import org.apache.commons.lang3.builder.Diff;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.opencv_core;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.R;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.Value;
 
+import static ca.mcmaster.capstone.util.CollectionUtils.filter;
 import static org.bytedeco.javacpp.opencv_core.CV_8U;
 import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_HOUGH_GRADIENT;
 import static org.bytedeco.javacpp.opencv_imgproc.GaussianBlur;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCreateStructuringElementEx;
 import static org.bytedeco.javacpp.opencv_imgproc.cvHoughCircles;
 import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
 
@@ -201,8 +213,8 @@ public class Camera2BasicFragment extends Fragment {
      */
     private ImageReader mImageReader;
 
-    private volatile boolean circleInViewPreviously = false;
     private volatile int circleViewCount = 0;
+    private final Set<Circle> knownCircles = new HashSet<>();
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
@@ -239,22 +251,37 @@ public class Camera2BasicFragment extends Fragment {
                 200 //max radius
         );
 
-        // TODO: do some kind of filtering on this stuff to reduce how frequently state changes occur
         final int numCircles = circles.total();
-        final boolean circleInView = numCircles > 0;
-        final boolean circleViewStateChanged = circleInView != circleInViewPreviously;
-        if (circleViewStateChanged) {
-            if (circleInView) {
-                showToast("Spotted a circle");
-            } else {
-                showToast("Lost track of the circle");
+        for (int i = 0; i < numCircles; i++) {
+            final long timeNow = System.nanoTime();
+            final opencv_core.CvPoint3D32f point = new opencv_core.CvPoint3D32f(cvGetSeqElem(circles, i));
+            final Circle circle = new Circle(new Point(point.x(), point.y()), point.z(), timeNow);
+            final Collection<Circle> matchingCircles = filter(knownCircles, c -> probablySameCircle(c, circle));
+            for (final Circle otherCircle : matchingCircles) {
+                knownCircles.remove(otherCircle);
             }
-            ++circleViewCount;
+            knownCircles.add(circle);
+            if (matchingCircles.isEmpty()) {
+                showToast("Spotted a new circle: " + circle);
+                ++circleViewCount;
+            }
         }
-        circleInViewPreviously = circleInView;
+        final Collection<Circle> lostCircles = filter(knownCircles, c -> (System.nanoTime() - c.getSeenAt() > TimeUnit.SECONDS.toNanos(2)));
+        for (final Circle lostCircle : lostCircles) {
+            showToast("Lost track of a circle: " + lostCircle);
+            knownCircles.remove(lostCircle);
+        }
 
         image.close();
     }
+
+    private static boolean probablySameCircle(final Circle left, final Circle right) {
+        // TODO: take into account radii as well
+        final boolean centreXmatch = Math.abs(left.getCentre().getX() - right.getCentre().getX()) < 200;
+        final boolean centreYmatch = Math.abs(left.getCentre().getY() - right.getCentre().getY()) < 200;
+        final boolean centreMatch = centreXmatch && centreYmatch;
+        return centreMatch;
+    };
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview
@@ -616,7 +643,6 @@ public class Camera2BasicFragment extends Fragment {
     }
 
     public static class ErrorDialog extends DialogFragment {
-
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             final Activity activity = getActivity();
@@ -624,8 +650,23 @@ public class Camera2BasicFragment extends Fragment {
                     .setMessage("This device doesn't support Camera2 API.")
                     .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> {
                         activity.finish();
-                    })
-                    .create();
+                    }).create();
         }
+    }
+
+    @ToString private static class Circle {
+        @Getter @Setter Point centre;
+        @Getter @Setter double radius;
+        @Getter @Setter long seenAt;
+
+        Circle(@NonNull final Point centre, final double radius, final long seenAt) {
+            this.centre = centre;
+            this.radius = radius;
+            this.seenAt = seenAt;
+        }
+    }
+
+    @Value private static class Point {
+        double x, y;
     }
 }
