@@ -26,6 +26,7 @@ import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.initializer.InitializerBinder;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
+import ca.mcmaster.capstone.monitoralgorithm.ProcessState;
 import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
@@ -279,6 +280,15 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         @Override
         public void onServiceConnected(final ComponentName componentName, final IBinder iBinder) {
             this.initializer = ((InitializerBinder) iBinder).getInitializer();
+
+            while (initializer == null) {
+                try {
+                    Log.v("CubeActivity", "waiting 1 second for initializer to appear...");
+                    Thread.sleep(1000);
+                } catch (final InterruptedException e) {
+                    Log.d("CubeActivity", "Could not connect to initializer: " + e.getLocalizedMessage());
+                }
+            }
 
             CubeActivity.this.NSD = initializer.getLocalPID();
             //FIXME: this is for testing out simple test case. More work is needed for more complex variableGlobalText arrangements
