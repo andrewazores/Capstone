@@ -103,13 +103,13 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         try {
             NFC_TAG_IDS.addAll(getNfcTagIDsFromFile(NFC_INIT_STORAGE_DIRECTORY + GLOBAL_NFC_TAG_SET_CONFIG_FILENAME));
         } catch (final IOException ioe) {
-            Toast.makeText(getApplicationContext(), "Destination file could not be read!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Destination file could not be read!", Toast.LENGTH_SHORT).show();
         }
 
         try {
             destinations.putAll(getNfcTagPathFromFile(NFC_INIT_STORAGE_DIRECTORY + LOCAL_NFC_TAG_LIST_CONFIG_FILENAME));
         } catch (final IOException ioe) {
-            Toast.makeText(getApplicationContext(), "Destination list config file could not be read!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Destination list config file could not be read!", Toast.LENGTH_SHORT).show();
         }
         updateUI();
 
@@ -261,7 +261,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Toast.makeText(NfcActivity.this, "Service connected", Toast.LENGTH_LONG).show();
+            Toast.makeText(NfcActivity.this, "Service connected", Toast.LENGTH_SHORT).show();
 
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerMonitorStateListener(NfcActivity.this);
@@ -269,7 +269,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
-            Toast.makeText(NfcActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
+            Toast.makeText(NfcActivity.this, "Service disconnected", Toast.LENGTH_SHORT).show();
             this.service = null;
         }
 

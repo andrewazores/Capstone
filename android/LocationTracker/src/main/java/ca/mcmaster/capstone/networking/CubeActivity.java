@@ -267,7 +267,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Toast.makeText(CubeActivity.this, "Service connected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CubeActivity.this, "Service connected", Toast.LENGTH_SHORT).show();
 
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerMonitorStateListener(CubeActivity.this);
@@ -275,7 +275,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
-            Toast.makeText(CubeActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CubeActivity.this, "Service disconnected", Toast.LENGTH_SHORT).show();
             this.service = null;
         }
 

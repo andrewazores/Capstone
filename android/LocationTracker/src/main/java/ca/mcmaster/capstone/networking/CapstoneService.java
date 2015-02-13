@@ -143,7 +143,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
             }
         }.execute();
 
-        Toast.makeText(getApplicationContext(), "Capstone Location Service starting", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Capstone Location Service starting", Toast.LENGTH_SHORT).show();
         logv("Capstone Location Service starting");
     }
 
@@ -398,7 +398,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
 
     @Override
     public void onDestroy() {
-        Toast.makeText(getApplicationContext(), "Capstone Location Service stopping", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Capstone Location Service stopping", Toast.LENGTH_SHORT).show();
         locationManager.removeUpdates(locationListener);
         sensorManager.unregisterListener(barometerEventListener);
         sensorManager.unregisterListener(gravitySensorEventListener);
@@ -705,7 +705,7 @@ public final class CapstoneService extends Service implements NetworkLayer {
             return InetAddress.getByAddress(ipByteArray);
         } catch (final UnknownHostException ex) {
             logv("Unable to determine WiFi IP address!");
-            Toast.makeText(this, "Unable to determine WiFi IP address!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Unable to determine WiFi IP address!", Toast.LENGTH_SHORT).show();
         }
 
         // we weren't able to determine our WiFi IP... try looking for any other available IPs, even
