@@ -219,7 +219,7 @@ public class Camera2BasicFragment extends Fragment {
     private void processImage(Image image, int width, int height) {
         final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
         final opencv_core.Mat mat = new opencv_core.Mat(height, width, CV_8U, new BytePointer(buffer));
-        GaussianBlur(mat, mat, new opencv_core.Size(9, 9), 2);
+        GaussianBlur(mat, mat, new opencv_core.Size(7, 7), 5);
         final opencv_core.IplImage src = mat.asIplImage();
 
         final opencv_core.CvMemStorage mem = opencv_core.CvMemStorage.create();
@@ -231,10 +231,10 @@ public class Camera2BasicFragment extends Fragment {
                 mem, //Memory Storage
                 CV_HOUGH_GRADIENT, //Detection method
                 1, //Inverse ratio
-                10, //Minimum distance between the centers of the detected circles
-                100, //Higher threshold for canny edge detector
-                100, //Threshold at the center detection stage
-                10, //min radius
+                20, //Minimum distance between the centers of the detected circles
+                48, //Higher threshold for canny edge detector
+                48, //Threshold at the center detection stage
+                20, //min radius
                 200 //max radius
         );
 
