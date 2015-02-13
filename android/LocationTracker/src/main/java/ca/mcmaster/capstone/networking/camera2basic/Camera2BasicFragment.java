@@ -239,6 +239,7 @@ public class Camera2BasicFragment extends Fragment {
                 200 //max radius
         );
 
+        // TODO: do some kind of filtering on this stuff to reduce how frequently state changes occur
         final int numCircles = circles.total();
         final boolean circleInView = numCircles > 0;
         final boolean circleViewStateChanged = circleInView != circleInViewPreviously;
