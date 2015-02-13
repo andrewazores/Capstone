@@ -52,14 +52,17 @@ public class Monitor extends Service {
         private static final List<Token> tokensToSendHome = new ArrayList<>();
 
         private static void bulkTokenSendOut(final List<Token> tokens) {
+            Log.d(LOG_TAG, "Queued a bunch of tokens to send out.");
             tokensToSendOut.addAll(tokens);
         }
 
         private static void sendTokenOut(final Token token) {
+            Log.d(LOG_TAG, "Queued a token to send out.");
             tokensToSendOut.add(token);
         }
 
         private static void sendTokenHome(final Token token) {
+            Log.d(LOG_TAG, "Queued a token to send home.");
             tokensToSendHome.add(token);
         }
 
