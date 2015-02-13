@@ -226,6 +226,7 @@ public class Camera2BasicFragment extends Fragment {
         cvSmooth(src, src);
 
         // TODO: fine-tune these parameters
+        // TODO: read these from a config file?
         final opencv_core.CvSeq circles = cvHoughCircles(
                 src, //Input image
                 mem, //Memory Storage
