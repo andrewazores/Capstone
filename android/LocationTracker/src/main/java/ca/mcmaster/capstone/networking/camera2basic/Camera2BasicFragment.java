@@ -69,7 +69,9 @@ import ca.mcmaster.capstone.R;
 import static org.bytedeco.javacpp.opencv_core.CV_8U;
 import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_HOUGH_GRADIENT;
+import static org.bytedeco.javacpp.opencv_imgproc.GaussianBlur;
 import static org.bytedeco.javacpp.opencv_imgproc.cvHoughCircles;
+import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
 
 public class Camera2BasicFragment extends Fragment {
 
@@ -89,6 +91,7 @@ public class Camera2BasicFragment extends Fragment {
      * Tag for the {@link Log}.
      */
     private static final String TAG = "Camera2BasicFragment";
+    private static final int CAMERA_CV_SCALING_FACTOR = 8;
 
     /**
      * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
@@ -99,18 +102,12 @@ public class Camera2BasicFragment extends Fragment {
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
-            // TODO: refactor this into openCamera or some other helper/wrapper around it
-            final int w = mTextureView.getWidth() / 16;
-            final int h = mTextureView.getHeight() / 16;
-            Log.v(TAG, "Opening camera with dimensions [" + w + "," + h + "]");
-            openCamera(w, h);
+            openCamera();
         }
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {
-            final int w = mTextureView.getWidth() / 16;
-            final int h = mTextureView.getHeight() / 16;
-            configureTransform(w, h);
+            configureTransform();
         }
 
         @Override
@@ -123,6 +120,12 @@ public class Camera2BasicFragment extends Fragment {
         }
 
     };
+
+    private void configureTransform() {
+        final int w = mTextureView.getWidth() / CAMERA_CV_SCALING_FACTOR;
+        final int h = mTextureView.getHeight() / CAMERA_CV_SCALING_FACTOR;
+        configureTransform(w, h);
+    }
 
     /**
      * ID of the current {@link CameraDevice}.
@@ -213,9 +216,11 @@ public class Camera2BasicFragment extends Fragment {
     private static void processImage(Image image, int width, int height) {
         final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
         final opencv_core.Mat mat = new opencv_core.Mat(height, width, CV_8U, new BytePointer(buffer));
+        GaussianBlur(mat, mat, new opencv_core.Size(9, 9), 2);
         final opencv_core.IplImage src = mat.asIplImage();
 
         final opencv_core.CvMemStorage mem = opencv_core.CvMemStorage.create();
+        cvSmooth(src, src);
 
         // TODO: fine-tune these parameters
         final opencv_core.CvSeq circles = cvHoughCircles(
@@ -223,18 +228,21 @@ public class Camera2BasicFragment extends Fragment {
                 mem, //Memory Storage
                 CV_HOUGH_GRADIENT, //Detection method
                 1, //Inverse ratio
-                50, //Minimum distance between the centers of the detected circles
+                10, //Minimum distance between the centers of the detected circles
                 100, //Higher threshold for canny edge detector
                 100, //Threshold at the center detection stage
                 10, //min radius
-                80 //max radius
+                200 //max radius
         );
 
-        Log.v(TAG, "I see " + circles.total() + " circles!");
-        for (int i = 0; i < circles.total(); i++) {
-            final opencv_core.CvPoint3D32f circle = new opencv_core.CvPoint3D32f(cvGetSeqElem(circles, i));
-            final int radius = Math.round(circle.z());
-            Log.v(TAG, "r:" + radius + "@[" + circle.x() + "," + circle.y() + "]");
+        final int numCircles = circles.total();
+        if (numCircles > 0) {
+            Log.v(TAG, "I see " + numCircles + " circles!");
+            for (int i = 0; i < numCircles; i++) {
+                final opencv_core.CvPoint3D32f circle = new opencv_core.CvPoint3D32f(cvGetSeqElem(circles, i));
+                final int radius = Math.round(circle.z());
+                Log.v(TAG, "r:" + radius + "@[" + circle.x() + "," + circle.y() + "]");
+            }
         }
 
         image.close();
@@ -374,13 +382,17 @@ public class Camera2BasicFragment extends Fragment {
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
         if (mTextureView.isAvailable()) {
-            final int width = mTextureView.getWidth() / 16;
-            final int height = mTextureView.getHeight() / 16;
-            Log.v(TAG, "Opening camera with dimensions [" + width + "," + height + "]");
-            openCamera(width, height);
+            openCamera();
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
+    }
+
+    private void openCamera() {
+        final int width = mTextureView.getWidth() / CAMERA_CV_SCALING_FACTOR;
+        final int height = mTextureView.getHeight() / CAMERA_CV_SCALING_FACTOR;
+        Log.v(TAG, "Opening camera with dimensions [" + width + "," + height + "]");
+        openCamera(width, height);
     }
 
     @Override
