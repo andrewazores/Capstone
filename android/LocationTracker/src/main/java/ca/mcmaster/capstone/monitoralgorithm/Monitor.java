@@ -254,6 +254,7 @@ public class Monitor extends Service {
         history.put(event.getEid(), event);
         // We need to make a copy of waitingTokens to iterate over since tokens may be added to the set later, which invalidates the iterator
         final Set<Token> tokensToProcess = Collections.unmodifiableSet(new HashSet<>(waitingTokens));
+        waitingTokens.clear();
         for (final Token token : tokensToProcess) {
             if (token.getTargetEventId() == event.getEid()) {
                 processToken(token, event);
