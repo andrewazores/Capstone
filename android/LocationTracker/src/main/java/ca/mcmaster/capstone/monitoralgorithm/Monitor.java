@@ -319,6 +319,13 @@ public class Monitor extends Service {
                 return;
         }
         Log.d(LOG_TAG, "Monitor state changed! " + state + " in state " + gv.getCurrentState().getStateName());
+
+        // Send all waiting tokens home with the local state
+        for (Token token : waitingTokens) {
+            TokenSender.sendTokenHome(new Token.Builder(token).cut(token.getCut().merge(gv.getCut()))
+                    .targetProcessState(gv.getStates().get(monitorID)).build());
+        }
+        waitingTokens.clear();
     }
 
     /*
