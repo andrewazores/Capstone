@@ -426,9 +426,7 @@ public class Monitor extends Service {
                     if (trans.enabled(globalView, tokens) && consistent(globalView, trans)) {
                         hasEnabled |= true;
                         Log.d(LOG_TAG, "The transition is enabled and the global view is consistent.");
-                        for (final Token tok : tokens) {
-                            globalView.updateWithToken(tok);
-                        }
+                        globalView.reduceStateFromTokens(tokens);
                         final GlobalView gvn1 = new GlobalView(globalView);
                         final GlobalView gvn2 = new GlobalView(globalView);
                         gvn1.setCurrentState(trans.getTo());
