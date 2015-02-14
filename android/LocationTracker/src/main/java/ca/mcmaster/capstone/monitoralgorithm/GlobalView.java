@@ -200,6 +200,51 @@ public class GlobalView {
     }
 
     /*
+     * Checks if the VectorClock of each ProcessState in gv is consistent with that of all other processes
+     * which are taking part in the transitoin. If there is a more up to date VectorClock for that
+     * process in on of the returned tokens, use that for the comparisson.
+     *
+     * @param gv     The GlobalView to check for consistency.
+     * @param trans  The AutomatonTransition which the considered processes must take part in.
+     * @return   true if all vector clock comparisons return EQUAL or CONCURRENT
+     */
+    public boolean consistent(@NonNull final AutomatonTransition trans) {
+        Set<NetworkPeerIdentifier> participatingProcesses = trans.getParticipatingProcesses();
+        Set<ProcessState> statesToCheck = new HashSet<>();
+
+        // Filter the states for the ones needed for this transition and use the state from any tokens
+        // that have returned from the processes in question instead of the old state.
+        for (ProcessState state : this.states.values()) {
+            if (participatingProcesses.contains(state.getId())) {
+                boolean useTokenState = false;
+                for (Token token : this.tokens) {
+                    if (token.isReturned() && token.getDestination().equals(state.getId())) {
+                        useTokenState = true;
+                        statesToCheck.add(token.getTargetProcessState());
+                    }
+                }
+                if (!useTokenState) {
+                    statesToCheck.add(state);
+                }
+            }
+        }
+
+        // Compare the vector clock of each state
+        for (ProcessState state1 : statesToCheck) {
+            for (ProcessState state2 : statesToCheck) {
+                if (!state1.equals(state2)) {
+                    VectorClock.Comparison comp = state1.getVC().compareToClock(state2.getVC());
+                    if (comp != VectorClock.Comparison.CONCURRENT
+                            && comp != VectorClock.Comparison.EQUAL) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /*
      * Attempts to merge this GlobalView with gv by treating the members of each as sets,
      * and taking the union.
      *
