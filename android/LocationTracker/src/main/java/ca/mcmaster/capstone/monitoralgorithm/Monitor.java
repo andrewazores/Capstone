@@ -481,6 +481,7 @@ public class Monitor extends Service {
                 waitingTokens.add(token);
             }
         }
+        TokenSender.bulkSendTokens();
         Log.d(LOG_TAG, "Exiting receiveToken.");
     }
 
@@ -568,8 +569,14 @@ public class Monitor extends Service {
             final Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
             TokenSender.sendTokenHome(newToken);
         } else {
-            Log.d(LOG_TAG, "Adding a token to waitingTokens.");
-            waitingTokens.add(token.waitForNextEvent());
+            int nextEvent = token.getTargetEventId() + 1;
+            if (history.containsKey(nextEvent)) {
+                Log.d(LOG_TAG, "Processing token with next event.");
+                processToken(token.waitForNextEvent(), history.get(nextEvent));
+            } else {
+                Log.d(LOG_TAG, "Adding a token to waitingTokens.");
+                waitingTokens.add(token.waitForNextEvent());
+            }
         }
         Log.d(LOG_TAG, "Exiting evaluateToken");
     }
