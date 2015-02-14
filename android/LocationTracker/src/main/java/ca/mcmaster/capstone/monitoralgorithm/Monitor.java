@@ -57,11 +57,13 @@ public class Monitor extends Service {
         }
 
         private static void sendTokenOut(final Token token) {
-            send(token, token.getDestination());
+            Log.d(LOG_TAG, "Queued a token to send out.");
+            tokensToSendOut.add(token);
         }
 
         private static void sendTokenHome(final Token token) {
-            send(token, token.getOwner());
+            Log.d(LOG_TAG, "Queued a token to send home.");
+            tokensToSendHome.add(token);
         }
 
         private static void bulkSendTokens() {
