@@ -1,68 +1,42 @@
 package ca.mcmaster.capstone.networking;
 
-import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import ca.mcmaster.capstone.R;
-import ca.mcmaster.capstone.initializer.Initializer;
-import ca.mcmaster.capstone.initializer.InitializerBinder;
-import ca.mcmaster.capstone.monitoralgorithm.Event;
-import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
 import ca.mcmaster.capstone.networking.structures.Message;
-import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.MessageReceiver;
-import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import lombok.NonNull;
 
-public class CubeActivity extends Activity implements MonitorSatisfactionStateListener, MessageReceiver {
+public class CubeActivity extends MonitorableProcess implements MessageReceiver {
 
     public static final String LOG_TAG = "CubeActivity";
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private SensorEventListener mSensorEventListener;
-    private int eventCounter = 0;
     private boolean isFlat = true;
     private double flat = 1.0;
-    private NetworkPeerIdentifier localPeerIdentifier;
-    private String variableName;
-    private VectorClock messageVectorClock;
 
     private final float[] gravity = new float[3];
     private OpenGLRenderer renderer;
-    private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
-    private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
+    private VectorClock messageVectorClock;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cube);
-
-        Intent serviceIntent = new Intent(this, CapstoneService.class);
-        getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
-
-        Intent initializerServiceIntent = new Intent(this, Initializer.class);
-        getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -100,8 +74,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     public void onDestroy() {
         super.onDestroy();
         mSensorManager.unregisterListener(mSensorEventListener);
-        getApplicationContext().unbindService(serviceConnection);
-        getApplicationContext().unbindService(initializerServiceConnection);
     }
 
     @Override
@@ -193,26 +165,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
             }
         }
 
-        public void sendEvent(double value) {
-            //Block until network is set up... I am a failure.
-            initializerServiceConnection.getInitializer().getLocalPID();
-            final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
-                put(CubeActivity.this.variableName, value);
-            }});
-            ++eventCounter;
-            final Event e = new Event(eventCounter, localPeerIdentifier, Event.EventType.INTERNAL, valuation,
-                    new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
-                        put(serviceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
-                        for (final NetworkPeerIdentifier peer : serviceConnection.getService().getKnownPeers()) {
-                            put(peer, 0);
-                        }
-                    }}));
-            if (eventCounter != 0) {
-                Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
-                serviceConnection.getService().sendEventToMonitor(e);
-            }
-        }
-
         public boolean checkCondition(float[] gravity) {
             float dot = dotProduct(gravity, new float[]{0, 0, 1});
 
@@ -259,71 +211,9 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         return dot;
     }
 
-
-    public class LocationServiceConnection implements ServiceConnection {
-
-        private CapstoneService service;
-
-        @Override
-        public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Toast.makeText(CubeActivity.this, "Service connected", Toast.LENGTH_LONG).show();
-
-            this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
-            this.service.registerMonitorStateListener(CubeActivity.this);
-        }
-
-        @Override
-        public void onServiceDisconnected(final ComponentName name) {
-            Toast.makeText(CubeActivity.this, "Service disconnected", Toast.LENGTH_LONG).show();
-            this.service = null;
-        }
-
-        public CapstoneService getService() {
-            return service;
-        }
-    }
-
-    public class InitializerServiceConnection implements ServiceConnection{
-        private Initializer initializer;
-
-        @Override
-        public void onServiceConnected(final ComponentName componentName, final IBinder iBinder) {
-            this.initializer = ((InitializerBinder) iBinder).getInitializer();
-
-            while (initializer == null) {
-                try {
-                    Log.v("CubeActivity", "waiting 1 second for initializer to appear...");
-                    Thread.sleep(1000);
-                } catch (final InterruptedException e) {
-                    Log.d("CubeActivity", "Could not connect to initializer: " + e.getLocalizedMessage());
-                }
-            }
-
-            CubeActivity.this.localPeerIdentifier = initializer.getLocalPID();
-            //FIXME: this is for testing out simple test case. More work is needed for more complex variableGlobalText arrangements
-            for (Map.Entry<String, NetworkPeerIdentifier> virtualID : initializer.getVirtualIdentifiers().entrySet()) {
-                if (virtualID.getValue().equals(localPeerIdentifier)) {
-                    CubeActivity.this.variableName = virtualID.getKey();
-                    break;
-                }
-            }
-            final Map<NetworkPeerIdentifier, Integer> vec = new HashMap<>();
-            for (final NetworkPeerIdentifier peerIdentifier : initializer.getVirtualIdentifiers().values()) {
-                vec.put(peerIdentifier, 0);
-            }
-            messageVectorClock = new VectorClock(vec);
-            Log.d("cube", "I am: " + CubeActivity.this.variableName);
-            setLabelText("indeterminate");
-        }
-
-        @Override
-        public void onServiceDisconnected(final ComponentName componentName) {
-            this.initializer = null;
-        }
-
-        public Initializer getInitializer() {
-            return this.initializer;
-        }
+    @Override
+    public String getLogTag() {
+        return LOG_TAG;
     }
 
 }

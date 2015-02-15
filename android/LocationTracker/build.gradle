@@ -17,14 +17,15 @@ repositories {
 }
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion '20.0.0'
+    compileSdkVersion 21
+    buildToolsVersion '21.1.2'
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 19
+        minSdkVersion 21
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
+        multiDexEnabled = true
     }
 
     compileOptions {
@@ -55,8 +56,8 @@ dependencies {
     compile 'com.mcxiaoke.volley:library:1.0.6@aar'
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-lang3:3.3.2'
+    compile 'org.bytedeco:javacv:0.10'
     provided 'pl.mg6.hrisey:hrisey:0.3.+'
-
     androidTestCompile 'junit:junit:4.11'
     androidTestCompile 'org.robolectric:robolectric:2.4'
 }

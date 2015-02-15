@@ -25,6 +25,7 @@ import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.initializer.InitializerBinder;
 import ca.mcmaster.capstone.monitoralgorithm.Monitor;
 import ca.mcmaster.capstone.monitoralgorithm.MonitorBinder;
+import ca.mcmaster.capstone.networking.camera2basic.VisionActivity;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.util.JsonUtil;
@@ -101,6 +102,12 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
             } else {
                 Toast.makeText(CapstoneActivity.this, "NSD Connection invalid", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        final Button visionButton = (Button) findViewById(R.id.visionButton);
+        visionButton.setOnClickListener(v -> {
+           final Intent intent = new Intent(CapstoneActivity.this, VisionActivity.class);
+            startActivity(intent);
         });
     }
 
@@ -212,7 +219,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
 
     private void updateSelfInfo() {
         if (!networkServiceConnection.isBound()) {
-            Toast.makeText(this, "Service connection not established", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Service connection not established", Toast.LENGTH_SHORT).show();
             log("Service connection not established");
             return;
         }
@@ -231,7 +238,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Toast.makeText(CapstoneActivity.this, "Network service connected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CapstoneActivity.this, "Network service connected", Toast.LENGTH_SHORT).show();
             log("Service connected");
 
             this.binder = (CapstoneService.CapstoneNetworkServiceBinder) service;
@@ -243,7 +250,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
-            Toast.makeText(CapstoneActivity.this, "Network service disconnected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CapstoneActivity.this, "Network service disconnected", Toast.LENGTH_SHORT).show();
             log("Service disconnected");
             this.service = null;
         }
@@ -263,7 +270,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Toast.makeText(CapstoneActivity.this, "Monitor service connected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CapstoneActivity.this, "Monitor service connected", Toast.LENGTH_SHORT).show();
             log("Service connected");
 
             this.service = ((MonitorBinder) service).getMonitor();
@@ -271,7 +278,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
-            Toast.makeText(CapstoneActivity.this, "Monitor service disconnected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CapstoneActivity.this, "Monitor service disconnected", Toast.LENGTH_SHORT).show();
             log("Service disconnected");
             this.service = null;
         }
@@ -291,7 +298,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Toast.makeText(CapstoneActivity.this, "Initializer service connected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CapstoneActivity.this, "Initializer service connected", Toast.LENGTH_SHORT).show();
             log("Service connected");
 
             this.service = ((InitializerBinder) service).getInitializer();
@@ -299,7 +306,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
-            Toast.makeText(CapstoneActivity.this, "Initializer service disconnected", Toast.LENGTH_LONG).show();
+            Toast.makeText(CapstoneActivity.this, "Initializer service disconnected", Toast.LENGTH_SHORT).show();
             log("Service disconnected");
             this.service = null;
         }
