@@ -80,6 +80,12 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         }
     }
 
+    /**
+     * Receive a message from another process.
+     *
+     * If you override this, you must call through to super.
+     * @param message the received message.
+     */
     @Override
     public void receiveMessage(@NonNull final Message message) {
         messageVectorClock = messageVectorClock.merge(message.getVectorClock());
