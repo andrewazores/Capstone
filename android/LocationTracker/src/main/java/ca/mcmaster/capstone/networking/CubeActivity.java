@@ -25,8 +25,8 @@ public class CubeActivity extends MonitorableProcess {
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private SensorEventListener mSensorEventListener;
-    private boolean isFlat = true;
-    private double flat = 1.0;
+    private boolean isVertical = false;
+    private double flat = 0.0;
 
     private final float[] gravity = new float[3];
     private OpenGLRenderer renderer;
@@ -147,11 +147,13 @@ public class CubeActivity extends MonitorableProcess {
                 renderer.angle = rot_angle;
             }
 
-            boolean previouslyFlat = isFlat;
+            boolean stateChanged = false;
+            if (isVertical != isVertical(gravity)) {
+                stateChanged = !stateChanged;
+                isVertical = !isVertical;
+            }
 
-            isFlat = checkCondition(gravity);
-
-            if (isFlat) {
+            if (isVertical) {
                 renderer.setColor(new float[] {
                         0f,  1.0f,  0f,  1.0f,
                         0f,  1.0f,  0f,  1.0f,
@@ -174,7 +176,7 @@ public class CubeActivity extends MonitorableProcess {
                         1.0f,  1.0f,  1.0f,  1.0f
                 });
             }
-            if (previouslyFlat != isFlat) {
+            if (stateChanged) {
                 if (flat == 0.0) {
                     flat = 1.0;
                 } else {
@@ -184,7 +186,7 @@ public class CubeActivity extends MonitorableProcess {
             }
         }
 
-        public boolean checkCondition(float[] gravity) {
+        public boolean isVertical(float[] gravity) {
             float dot = dotProduct(gravity, new float[]{0, 0, 1});
 
             return dot < 0.5;
