@@ -224,7 +224,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         }
     }
 
-    private float[] normalise(float[] gravity) {
+    private static float[] normalise(float[] gravity) {
         float sum = 0;
         for (float f : gravity) {
             sum += f*f;
