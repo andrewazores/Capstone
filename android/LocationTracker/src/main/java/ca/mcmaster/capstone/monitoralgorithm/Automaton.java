@@ -42,7 +42,7 @@ public class Automaton {
             if (name.getType().equals("initial")) {
                 states.put(name.getLabel(), new AutomatonState(name.getLabel(), Evaluation.UNDECIDED));
                 initialState = states.get(name.getLabel());
-            //FIXME: When we implement LTL4 this conditoin needs to be split up
+            //FIXME: When we implement LTL4 this condition needs to be split up
             } else if (name.getType().equals("possible satisfaction") || name.getType().equals("possible violation")) {
                 states.put(name.getLabel(), new AutomatonState(name.getLabel(), Evaluation.UNDECIDED));
             } else if (name.getType().equals("satisfaction")) {
