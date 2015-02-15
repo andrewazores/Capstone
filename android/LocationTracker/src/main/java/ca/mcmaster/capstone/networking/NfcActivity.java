@@ -63,7 +63,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
     private String variableName;
     private Boolean satisfaction = null;
 
-    private final LocationServiceConnection serviceConnection = new LocationServiceConnection();
+    private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
 
     @Override
@@ -114,7 +114,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         updateUI();
 
         final Intent serviceIntent = new Intent(this, CapstoneService.class);
-        getApplicationContext().bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
+        getApplicationContext().bindService(serviceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
         final Intent initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent,
@@ -178,21 +178,21 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         ++eventCounter;
         final Event e = new Event(eventCounter, NSD, Event.EventType.INTERNAL, valuation,
                 new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
-                    put(serviceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
-                    for (final NetworkPeerIdentifier peer : serviceConnection.getService().getKnownPeers()) {
+                    put(networkServiceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
+                    for (final NetworkPeerIdentifier peer : networkServiceConnection.getService().getKnownPeers()) {
                         put(peer, 0);
                     }
                 }}));
         Toast.makeText(NfcActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
-        serviceConnection.getService().sendEventToMonitor(e);
+        networkServiceConnection.getService().sendEventToMonitor(e);
     }
 
     private void waitForNetworkLayer() {
-        Log.v(LOG_TAG, "waitForNetworkLayer");
-        while (serviceConnection.getService() == null) {
+        while (networkServiceConnection.getService() == null) {
+            Log.v(LOG_TAG, "waitForNetworkLayer");
             try {
-                Log.v(LOG_TAG, "waiting 1 second for network layer to appear...");
-                Thread.sleep(1000);
+                Log.v(LOG_TAG, "waiting for network layer to appear...");
+                networkServiceConnection.waitForService();
             } catch (final InterruptedException e) {
                 Log.d(LOG_TAG, "NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
@@ -255,9 +255,10 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
         String label;
     }
 
-    public class LocationServiceConnection implements ServiceConnection {
+    public class NetworkServiceConnection implements ServiceConnection {
 
         private CapstoneService service;
+        private final Object latch = new Object();
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
@@ -265,6 +266,7 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerMonitorStateListener(NfcActivity.this);
+            latch.notifyAll();
         }
 
         @Override
@@ -275,6 +277,12 @@ public class NfcActivity extends Activity implements MonitorSatisfactionStateLis
 
         public CapstoneService getService() {
             return service;
+        }
+
+        public void waitForService() throws InterruptedException {
+            if (service == null) {
+                latch.wait();
+            }
         }
     }
 

@@ -128,11 +128,11 @@ public class VisionActivity extends Activity implements VisionStatusListener, Mo
     }
 
     private void waitForNetworkLayer() {
-        log("waitForNetworkLayer");
         while (networkServiceConnection.getService() == null) {
+            log("waitForNetworkLayer");
             try {
-                log("waiting 1 second for network layer to appear...");
-                Thread.sleep(1000);
+                log("waiting for network layer to appear...");
+                networkServiceConnection.waitForService();
             } catch (final InterruptedException e) {
                 log("NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
@@ -142,12 +142,15 @@ public class VisionActivity extends Activity implements VisionStatusListener, Mo
     public class NetworkServiceConnection implements ServiceConnection {
 
         private CapstoneService service;
+        private final Object latch = new Object();
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             showToast("Service connected");
+
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerMonitorStateListener(VisionActivity.this);
+            latch.notifyAll();
         }
 
         @Override
@@ -158,6 +161,12 @@ public class VisionActivity extends Activity implements VisionStatusListener, Mo
 
         public CapstoneService getService() {
             return service;
+        }
+
+        public void waitForService() throws InterruptedException {
+            if (service == null) {
+                latch.wait();
+            }
         }
     }
 
