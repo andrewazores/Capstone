@@ -28,6 +28,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
     protected NetworkPeerIdentifier localPeerIdentifier;
     protected String variableName;
     protected int eventCounter = 0;
+    protected VectorClock messageVectorClock;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -138,6 +139,11 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
                     break;
                 }
             }
+            final Map<NetworkPeerIdentifier, Integer> vec = new HashMap<>();
+            for (final NetworkPeerIdentifier peer : initializer.getVirtualIdentifiers().values()) {
+                vec.put(peer, 0);
+            }
+            messageVectorClock = new VectorClock(vec);
             log("I am: " + MonitorableProcess.this.variableName);
         }
 

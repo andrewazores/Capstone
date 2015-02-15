@@ -14,7 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import ca.mcmaster.capstone.R;
-import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
 import ca.mcmaster.capstone.networking.structures.Message;
 import ca.mcmaster.capstone.networking.util.MessageReceiver;
 import lombok.NonNull;
@@ -31,7 +30,6 @@ public class CubeActivity extends MonitorableProcess implements MessageReceiver 
 
     private final float[] gravity = new float[3];
     private OpenGLRenderer renderer;
-    private VectorClock messageVectorClock;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
