@@ -35,7 +35,6 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
     protected final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
     protected NetworkPeerIdentifier localPeerIdentifier;
     protected String variableName;
-    protected int eventCounter = 0;
     protected VectorClock messageVectorClock;
     protected final ScheduledExecutorService heartbeatWorker = Executors.newSingleThreadScheduledExecutor();
     protected ScheduledFuture<?> heartbeatJob;
@@ -82,7 +81,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         }});
         final int logicalTime = messageVectorClock.incrementProcess(localPeerIdentifier);
         final Event e = new Event(logicalTime, localPeerIdentifier, type, valuation, messageVectorClock);
-        if (eventCounter != 0) {
+        if (messageVectorClock.process(localPeerIdentifier) != 0) {
             showToast("Event has left the building");
             networkServiceConnection.getService().sendEventToMonitor(e);
         }
