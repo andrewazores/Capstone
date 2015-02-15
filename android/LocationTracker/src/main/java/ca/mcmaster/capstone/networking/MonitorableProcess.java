@@ -57,14 +57,14 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         getApplicationContext().unbindService(initializerServiceConnection);
     }
 
-    protected void broadcastHeartbeat() {
+    protected final void broadcastHeartbeat() {
         waitForNetworkLayer();
         networkServiceConnection.getService().broadcastMessage(
                 new Message(localPeerIdentifier, messageVectorClock, "ticktock")
         );
     }
 
-    protected void sendEvent(final double value) {
+    protected final void sendEvent(final double value) {
         waitForNetworkLayer();
         final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
             put(MonitorableProcess.this.variableName, value);
@@ -77,7 +77,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         }
     }
 
-    protected void waitForNetworkLayer() {
+    protected final void waitForNetworkLayer() {
         while (networkServiceConnection.getService() == null) {
             log("waitForNetworkLayer");
             try {
@@ -89,14 +89,8 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         }
     }
 
-    /**
-     * Receive a message from another process.
-     *
-     * If you override this, you must call through to super.
-     * @param message the received message.
-     */
     @Override
-    public void receiveMessage(@NonNull final Message message) {
+    public final void receiveMessage(@NonNull final Message message) {
         messageVectorClock = messageVectorClock.merge(message.getVectorClock());
         onReceiveMessage(message);
     }
