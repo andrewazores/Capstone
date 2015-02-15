@@ -129,6 +129,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     @Override
     public void receiveMessage(@NonNull final Message message) {
         // TODO: generate an event?
+        messageVectorClock.merge(message.getVectorClock());
         Log.d(LOG_TAG, "Message received: " + message);
 //        serviceConnection.getService().broadcastMessage(
 //                new Message(localPeerIdentifier, messageVectorClock, "SPAM")
