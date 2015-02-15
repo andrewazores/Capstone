@@ -31,6 +31,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         final Intent serviceIntent = new Intent(this, CapstoneService.class);
         getApplicationContext().bindService(serviceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
