@@ -107,6 +107,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
 
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerMonitorStateListener(MonitorableProcess.this);
+            this.service.registerMessageReceiver(MonitorableProcess.this);
             synchronized (latch) {
                 latch.notifyAll();
             }
