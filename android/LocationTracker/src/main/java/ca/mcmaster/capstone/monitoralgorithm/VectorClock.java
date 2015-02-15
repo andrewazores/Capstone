@@ -90,10 +90,22 @@ public class VectorClock {
     /*
      * Get the clock for the ith process kept in this VectorClock.
      *
-     * @param i The index of the process whose clock to return.
-     * @return The clock for the ith process.
+     * @param pid The identifier of the process whose clock to return.
+     * @return The logical time of the specified process.
      */
     public int process(@NonNull final NetworkPeerIdentifier pid) {
+        return consistentCut.get(pid);
+    }
+
+    /*
+     * Increment the logical time of the specified process by one.
+     *
+     * @param pid The identifier of the process to increment.
+     *
+     * @return The new logical time of process pid.
+     */
+    public int incrementProcess(@NonNull final NetworkPeerIdentifier pid) {
+        consistentCut.put(pid, consistentCut.get(pid) + 1);
         return consistentCut.get(pid);
     }
 
