@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.networking.structures.Message;
 import lombok.NonNull;
 
@@ -114,7 +115,13 @@ public class CubeActivity extends MonitorableProcess {
 
     @Override
     public void onReceiveMessage(@NonNull final Message message) {
-        sendEvent(flat);
+        sendEvent(flat, Event.EventType.RECEIVE);
+    }
+
+    @Override
+    public final void broadcastHeartbeat() {
+        super.broadcastHeartbeat();
+        sendEvent(flat, Event.EventType.SEND);
     }
 
     private class GravitySensorEventListener implements SensorEventListener {
@@ -170,7 +177,7 @@ public class CubeActivity extends MonitorableProcess {
                 } else {
                     flat = 0.0;
                 }
-                sendEvent(flat);
+                sendEvent(flat, Event.EventType.INTERNAL);
             }
         }
 

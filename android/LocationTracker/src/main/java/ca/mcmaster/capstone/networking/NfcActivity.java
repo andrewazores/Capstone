@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.networking.structures.Message;
 import lombok.NonNull;
 import lombok.Value;
@@ -155,7 +156,7 @@ public class NfcActivity extends MonitorableProcess {
             }
 
             for (final NfcTagIDs nfcTagID : filter(NFC_TAG_IDS, id -> id.getUuid().equals(uuid))) {
-                sendEvent(nfcTagID.getId());
+                sendEvent(nfcTagID.getId(), Event.EventType.INTERNAL);
             }
 
             updateUI();

@@ -19,6 +19,7 @@ package ca.mcmaster.capstone.networking.camera2basic;
 import android.os.Bundle;
 
 import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.networking.MonitorableProcess;
 import ca.mcmaster.capstone.networking.structures.Message;
 import lombok.NonNull;
@@ -59,14 +60,14 @@ public class VisionActivity extends MonitorableProcess implements VisionStatusLi
     public void onCircleFound(@NonNull final Circle circle) {
         log("Found a circle");
         showToast("Found a circle at " + circle.getCentre() + " with radius " + circle.getRadius());
-        sendEvent(1);
+        sendEvent(1, Event.EventType.INTERNAL);
     }
 
     @Override
     public void onCircleLost(@NonNull final Circle circle) {
         log("Lost a circle");
         showToast("Lost a circle at " + circle.getCentre() + " with radius " + circle.getRadius());
-        sendEvent(0);
+        sendEvent(0, Event.EventType.INTERNAL);
     }
 
     @Override

@@ -62,20 +62,20 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         }
     }
 
-    protected final void broadcastHeartbeat() {
+    protected void broadcastHeartbeat() {
         waitForNetworkLayer();
         networkServiceConnection.getService().broadcastMessage(
                 new Message(localPeerIdentifier, messageVectorClock, "ticktock")
         );
     }
 
-    protected final void sendEvent(final double value) {
+    protected final void sendEvent(final double value, final Event.EventType type) {
         waitForNetworkLayer();
         final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
             put(MonitorableProcess.this.variableName, value);
         }});
         final int logicalTime = messageVectorClock.incrementProcess(localPeerIdentifier);
-        final Event e = new Event(logicalTime, localPeerIdentifier, Event.EventType.INTERNAL, valuation, messageVectorClock);
+        final Event e = new Event(logicalTime, localPeerIdentifier, type, valuation, messageVectorClock);
         if (eventCounter != 0) {
             showToast("Event has left the building");
             networkServiceConnection.getService().sendEventToMonitor(e);
