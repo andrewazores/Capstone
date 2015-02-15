@@ -26,14 +26,15 @@ import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.initializer.InitializerBinder;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
-import ca.mcmaster.capstone.monitoralgorithm.ProcessState;
 import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
+import ca.mcmaster.capstone.networking.structures.Message;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import ca.mcmaster.capstone.networking.util.MessageReceiver;
 import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import lombok.NonNull;
 
-public class CubeActivity extends Activity implements MonitorSatisfactionStateListener {
+public class CubeActivity extends Activity implements MonitorSatisfactionStateListener, MessageReceiver {
 
     public static final String LOG_TAG = "CubeActivity";
 
@@ -43,8 +44,9 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     private int eventCounter = 0;
     private boolean isFlat = true;
     private double flat = 1.0;
-    private NetworkPeerIdentifier NSD;
+    private NetworkPeerIdentifier localPeerIdentifier;
     private String variableName;
+    private VectorClock messageVectorClock;
 
     private final float[] gravity = new float[3];
     private OpenGLRenderer renderer;
@@ -81,7 +83,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
             final StringBuilder text = new StringBuilder();
             text.append("Virtual ID: ").append(variableName).append("\n");
-            text.append("localID: ").append(NSD.toString()).append("\n");
+            text.append("localID: ").append(localPeerIdentifier.toString()).append("\n");
             text.append("Satisfaction: ").append(satisfactionState);
 
             globalText.setText(text.toString());
@@ -124,6 +126,14 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         setLabelText("violated");
     }
 
+    @Override
+    public void receiveMessage(@NonNull final Message message) {
+        // TODO: generate an event?
+        Log.d(LOG_TAG, "Message received: " + message);
+//        serviceConnection.getService().broadcastMessage(
+//                new Message(localPeerIdentifier, messageVectorClock, "SPAM")
+//        );
+    }
 
     private class GravitySensorEventListener implements SensorEventListener {
 
@@ -189,7 +199,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
                 put(CubeActivity.this.variableName, value);
             }});
             ++eventCounter;
-            final Event e = new Event(eventCounter, NSD, Event.EventType.INTERNAL, valuation,
+            final Event e = new Event(eventCounter, localPeerIdentifier, Event.EventType.INTERNAL, valuation,
                     new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
                         put(serviceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
                         for (final NetworkPeerIdentifier peer : serviceConnection.getService().getKnownPeers()) {
@@ -290,14 +300,19 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
                 }
             }
 
-            CubeActivity.this.NSD = initializer.getLocalPID();
+            CubeActivity.this.localPeerIdentifier = initializer.getLocalPID();
             //FIXME: this is for testing out simple test case. More work is needed for more complex variableGlobalText arrangements
             for (Map.Entry<String, NetworkPeerIdentifier> virtualID : initializer.getVirtualIdentifiers().entrySet()) {
-                if (virtualID.getValue() == NSD) {
+                if (virtualID.getValue().equals(localPeerIdentifier)) {
                     CubeActivity.this.variableName = virtualID.getKey();
                     break;
                 }
             }
+            final Map<NetworkPeerIdentifier, Integer> vec = new HashMap<>();
+            for (final NetworkPeerIdentifier peerIdentifier : initializer.getVirtualIdentifiers().values()) {
+                vec.put(peerIdentifier, 0);
+            }
+            messageVectorClock = new VectorClock(vec);
             Log.d("cube", "I am: " + CubeActivity.this.variableName);
             setLabelText("indeterminate");
         }
