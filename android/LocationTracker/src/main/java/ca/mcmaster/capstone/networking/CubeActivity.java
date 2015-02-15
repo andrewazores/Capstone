@@ -284,7 +284,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         }
     }
 
-    public class InitializerServiceConnection implements ServiceConnection{
+    public class InitializerServiceConnection implements ServiceConnection {
         private Initializer initializer;
 
         @Override
