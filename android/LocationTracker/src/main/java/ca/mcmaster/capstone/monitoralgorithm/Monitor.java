@@ -98,7 +98,7 @@ public class Monitor extends Service {
 
         workQueue = Executors.newSingleThreadExecutor();
 
-        monitorJob = workQueue.submit(() -> this.monitorLoop());
+        monitorJob = workQueue.submit(this::monitorLoop);
         Log.d("thread", "Started monitor!");
     }
 
@@ -181,8 +181,8 @@ public class Monitor extends Service {
     public void monitorLoop() {
         init();
         Log.d(LOG_TAG, "submitting loop tasks");
-        tokenPollJob = Executors.newSingleThreadExecutor().submit(() -> this.pollTokens());
-        eventPollJob = Executors.newSingleThreadExecutor().submit(() -> this.pollEvents());
+        tokenPollJob = Executors.newSingleThreadExecutor().submit(this::pollTokens);
+        eventPollJob = Executors.newSingleThreadExecutor().submit(this::pollEvents);
     }
 
     private void pollTokens() {
