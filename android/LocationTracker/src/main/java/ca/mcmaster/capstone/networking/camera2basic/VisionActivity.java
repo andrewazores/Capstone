@@ -161,7 +161,7 @@ public class VisionActivity extends Activity implements VisionStatusListener, Mo
         }
     }
 
-    public class InitializerServiceConnection implements ServiceConnection{
+    public class InitializerServiceConnection implements ServiceConnection {
         private Initializer initializer;
 
         @Override
