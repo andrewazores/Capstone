@@ -51,9 +51,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import org.apache.commons.lang3.builder.Diff;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.opencv_core;
 
@@ -63,25 +60,20 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.R;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.Value;
 
 import static ca.mcmaster.capstone.util.CollectionUtils.filter;
 import static org.bytedeco.javacpp.opencv_core.CV_8U;
 import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_HOUGH_GRADIENT;
 import static org.bytedeco.javacpp.opencv_imgproc.GaussianBlur;
-import static org.bytedeco.javacpp.opencv_imgproc.cvCreateStructuringElementEx;
 import static org.bytedeco.javacpp.opencv_imgproc.cvHoughCircles;
 import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
 
@@ -132,6 +124,7 @@ public class Camera2BasicFragment extends Fragment {
         }
 
     };
+    private final Set<VisionStatusListener> visionStatusListeners = new HashSet<>();
 
     private void configureTransform() {
         final int w = mTextureView.getWidth() / CAMERA_CV_SCALING_FACTOR;
@@ -213,8 +206,7 @@ public class Camera2BasicFragment extends Fragment {
      */
     private ImageReader mImageReader;
 
-    private volatile int circleViewCount = 0;
-    private final Set<Circle> knownCircles = new HashSet<>();
+    private final List<Circle> knownCircles = new LinkedList<>();
 
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
@@ -262,14 +254,17 @@ public class Camera2BasicFragment extends Fragment {
             }
             knownCircles.add(circle);
             if (matchingCircles.isEmpty()) {
-                showToast("Spotted a new circle: " + circle);
-                ++circleViewCount;
+                for (final VisionStatusListener visionStatusListener : visionStatusListeners) {
+                    visionStatusListener.onCircleFound(circle);
+                }
             }
         }
         final Collection<Circle> lostCircles = filter(knownCircles, c -> (System.nanoTime() - c.getSeenAt() > TimeUnit.SECONDS.toNanos(2)));
         for (final Circle lostCircle : lostCircles) {
-            showToast("Lost track of a circle: " + lostCircle);
             knownCircles.remove(lostCircle);
+            for (final VisionStatusListener visionStatusListener : visionStatusListeners) {
+                visionStatusListener.onCircleLost(lostCircle);
+            }
         }
 
         image.close();
@@ -384,10 +379,15 @@ public class Camera2BasicFragment extends Fragment {
         }
     }
 
-    public static Camera2BasicFragment newInstance() {
+    public static Camera2BasicFragment newInstance(@NonNull final VisionStatusListener visionStatusListener) {
         Camera2BasicFragment fragment = new Camera2BasicFragment();
         fragment.setRetainInstance(true);
+        fragment.addVisionStatusListener(visionStatusListener);
         return fragment;
+    }
+
+    public void addVisionStatusListener(@NonNull final VisionStatusListener visionStatusListener) {
+        visionStatusListeners.add(visionStatusListener);
     }
 
     @Override
@@ -654,19 +654,4 @@ public class Camera2BasicFragment extends Fragment {
         }
     }
 
-    @ToString private static class Circle {
-        @Getter @Setter Point centre;
-        @Getter @Setter double radius;
-        @Getter @Setter long seenAt;
-
-        Circle(@NonNull final Point centre, final double radius, final long seenAt) {
-            this.centre = centre;
-            this.radius = radius;
-            this.seenAt = seenAt;
-        }
-    }
-
-    @Value private static class Point {
-        double x, y;
-    }
 }

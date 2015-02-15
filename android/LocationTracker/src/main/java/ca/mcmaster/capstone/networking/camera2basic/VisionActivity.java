@@ -18,10 +18,15 @@ package ca.mcmaster.capstone.networking.camera2basic;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import ca.mcmaster.capstone.R;
+import lombok.NonNull;
 
-public class VisionActivity extends Activity {
+public class VisionActivity extends Activity implements VisionStatusListener {
+
+    private static final String LOG_TAG = "VisionActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,9 +34,28 @@ public class VisionActivity extends Activity {
         setContentView(R.layout.activity_vision);
         if (null == savedInstanceState) {
             getFragmentManager().beginTransaction()
-                    .replace(R.id.container, Camera2BasicFragment.newInstance())
+                    .replace(R.id.container, Camera2BasicFragment.newInstance(this))
                     .commit();
         }
     }
 
+    @Override
+    public void onCircleFound(@NonNull final Circle circle) {
+        log("Found a circle");
+        showToast("Found a circle at " + circle.getCentre() + " with radius " + circle.getRadius());
+    }
+
+    @Override
+    public void onCircleLost(@NonNull final Circle circle) {
+        log("Lost a circle");
+        showToast("Lost a circle at " + circle.getCentre() + " with radius " + circle.getRadius());
+    }
+
+    private static void log(@NonNull final String message) {
+        Log.v(LOG_TAG, message);
+    }
+
+    private void showToast(@NonNull final String message) {
+        runOnUiThread(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
+    }
 }
