@@ -12,6 +12,7 @@ import android.widget.Toast;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.initializer.Initializer;
 import ca.mcmaster.capstone.initializer.InitializerBinder;
@@ -89,7 +90,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
             log("waitForNetworkLayer");
             try {
                 log("waiting for network layer to appear...");
-                networkServiceConnection.waitForService();
+                Thread.sleep(TimeUnit.SECONDS.toMillis(1));
             } catch (final InterruptedException e) {
                 log("NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
