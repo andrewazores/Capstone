@@ -21,12 +21,12 @@ import android.os.Bundle;
 
 import ca.mcmaster.capstone.R;
 
-public class CameraActivity extends Activity {
+public class VisionActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_camera);
+        setContentView(R.layout.activity_vision);
         if (null == savedInstanceState) {
             getFragmentManager().beginTransaction()
                     .replace(R.id.container, Camera2BasicFragment.newInstance())

@@ -32,7 +32,7 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-        <activity android:name=".networking.camera2basic.CameraActivity" android:label="VisionActivity" />
+        <activity android:name=".networking.camera2basic.VisionActivity" android:label="VisionActivity" />
 
         <service
             android:enabled="true"
