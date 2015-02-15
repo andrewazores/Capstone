@@ -308,6 +308,13 @@ public class Monitor extends Service {
         Log.d(LOG_TAG, "Exiting processEvent");
     }
 
+    /*
+     * This method checks if the current state in gv is a satisfaction or violation state. In either
+     * case this method then returns all tokens in waitingTokens. If the current state is undecided
+     * nothing happens.
+     *
+     * @param gv The GlobalView to check the state of.
+     */
     private void handleMonitorStateChange(@NonNull final GlobalView gv) {
         final Automaton.Evaluation state = gv.getCurrentState().getStateType();
         switch (state) {
