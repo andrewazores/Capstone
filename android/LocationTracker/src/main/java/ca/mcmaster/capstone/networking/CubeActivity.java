@@ -97,7 +97,6 @@ public class CubeActivity extends MonitorableProcess {
 
     @Override
     public void onNetworkServiceConnection() {
-        setLabelText("indeterminate");
     }
 
     @Override
@@ -106,6 +105,7 @@ public class CubeActivity extends MonitorableProcess {
 
     @Override
     public void onInitializerServiceConnection() {
+        setLabelText("indeterminate");
     }
 
     @Override
