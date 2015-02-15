@@ -48,8 +48,6 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
 
         final Intent initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
-
-        heartbeatJob = heartbeatWorker.scheduleAtFixedRate(this::broadcastHeartbeat, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -57,6 +55,14 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         super.onDestroy();
         getApplicationContext().unbindService(networkServiceConnection);
         getApplicationContext().unbindService(initializerServiceConnection);
+        stopHeartbeat();
+    }
+
+    protected void startHeartbeat(Runnable command) {
+        heartbeatJob = heartbeatWorker.scheduleAtFixedRate(command, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
+    }
+
+    protected void stopHeartbeat() {
         if (heartbeatJob != null) {
             heartbeatJob.cancel(false);
         }
