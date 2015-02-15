@@ -42,7 +42,6 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
     }
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
