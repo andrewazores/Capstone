@@ -20,7 +20,6 @@ import lombok.NonNull;
 public class CubeActivity extends MonitorableProcess {
 
     public static final String LOG_TAG = "CubeActivity";
-    public static final int HEARTBEAT_INTERVAL = 500;
 
     private SensorManager mSensorManager;
     private Sensor mSensor;

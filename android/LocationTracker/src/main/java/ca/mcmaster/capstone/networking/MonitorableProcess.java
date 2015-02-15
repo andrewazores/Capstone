@@ -76,14 +76,8 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
             put(MonitorableProcess.this.variableName, value);
         }});
-        ++eventCounter;
-        final Event e = new Event(eventCounter, localPeerIdentifier, Event.EventType.INTERNAL, valuation,
-                new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
-                    put(networkServiceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
-                    for (final NetworkPeerIdentifier peer : networkServiceConnection.getService().getKnownPeers()) {
-                        put(peer, 0);
-                    }
-                }}));
+        final int logicalTime = messageVectorClock.incrementProcess(localPeerIdentifier);
+        final Event e = new Event(logicalTime, localPeerIdentifier, Event.EventType.INTERNAL, valuation, messageVectorClock);
         if (eventCounter != 0) {
             showToast("Event has left the building");
             networkServiceConnection.getService().sendEventToMonitor(e);
