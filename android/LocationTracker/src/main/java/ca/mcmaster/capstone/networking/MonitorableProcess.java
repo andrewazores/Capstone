@@ -132,7 +132,6 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
     public class NetworkServiceConnection implements ServiceConnection {
 
         private CapstoneService service;
-        private final Object latch = new Object();
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
@@ -141,9 +140,6 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerMonitorStateListener(MonitorableProcess.this);
             this.service.registerMessageReceiver(MonitorableProcess.this);
-            synchronized (latch) {
-                latch.notifyAll();
-            }
             onNetworkServiceConnection();
         }
 
@@ -158,13 +154,6 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
             return service;
         }
 
-        public void waitForService() throws InterruptedException {
-            if (service == null) {
-                synchronized (latch) {
-                    latch.wait();
-                }
-            }
-        }
     }
 
     public class InitializerServiceConnection implements ServiceConnection {
