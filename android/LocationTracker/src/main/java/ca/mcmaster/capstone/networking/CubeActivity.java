@@ -84,9 +84,6 @@ public class CubeActivity extends MonitorableProcess {
     }
 
     @Override
-    public void onReceiveMessage(@NonNull final Message message) {}
-
-    @Override
     public void onMonitorSatisfied() {
         Log.d("MonitorState", "Monitor is satisfied !!!");
         setLabelText("satisfied");
@@ -116,8 +113,7 @@ public class CubeActivity extends MonitorableProcess {
     }
 
     @Override
-    public void receiveMessage(@NonNull final Message message) {
-        super.receiveMessage(message);
+    public void onReceiveMessage(@NonNull final Message message) {
         sendEvent(flat);
     }
 
