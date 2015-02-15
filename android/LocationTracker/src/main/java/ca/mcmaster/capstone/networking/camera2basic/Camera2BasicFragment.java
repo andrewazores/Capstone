@@ -258,9 +258,8 @@ public class Camera2BasicFragment extends Fragment {
             final Circle circle = new Circle(new Point(point.x(), point.y()), point.z(), timeNow);
             final Collection<Circle> matchingCircles = filter(knownCircles, c -> probablySameCircle(c, circle));
             for (final Circle otherCircle : matchingCircles) {
-                knownCircles.remove(otherCircle);
+                otherCircle.update(circle);
             }
-            knownCircles.add(circle);
             if (matchingCircles.isEmpty()) {
                 showToast("Spotted a new circle: " + circle);
                 ++circleViewCount;
@@ -663,6 +662,12 @@ public class Camera2BasicFragment extends Fragment {
             this.centre = centre;
             this.radius = radius;
             this.seenAt = seenAt;
+        }
+
+        public void update(@NonNull final Circle other) {
+            setCentre(other.getCentre());
+            setRadius((other.getRadius()));
+            setSeenAt(other.getSeenAt());
         }
     }
 
