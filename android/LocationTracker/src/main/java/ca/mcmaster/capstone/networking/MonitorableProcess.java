@@ -95,7 +95,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
     }
 
     @Override
-    public final void receiveMessage(@NonNull final Message message) {
+    public void receiveMessage(@NonNull final Message message) {
         messageVectorClock = messageVectorClock.merge(message.getVectorClock());
         onReceiveMessage(message);
     }
