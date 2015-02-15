@@ -98,7 +98,9 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
 
             this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
             this.service.registerMonitorStateListener(MonitorableProcess.this);
-            latch.notifyAll();
+            synchronized (latch) {
+                latch.notifyAll();
+            }
         }
 
         @Override
@@ -113,7 +115,9 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
 
         public void waitForService() throws InterruptedException {
             if (service == null) {
-                latch.wait();
+                synchronized (latch) {
+                    latch.wait();
+                }
             }
         }
     }
