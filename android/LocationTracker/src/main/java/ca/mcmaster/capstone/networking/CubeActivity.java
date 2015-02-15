@@ -237,7 +237,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         return result;
     }
 
-    public float[] cross_product(float[] v1, float[] v2){
+    public static float[] cross_product(float[] v1, float[] v2){
         float[] cross =  new float[3];
 
         cross[0] = (v1[1] * v2[2]) - (v1[2] * v2[1]);
@@ -247,7 +247,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         return cross;
     }
 
-    public float dot_product(float[] v1, float[] v2){
+    public static float dot_product(float[] v1, float[] v2){
         float dot = 0;
 
         if (v1.length != v2.length) {
