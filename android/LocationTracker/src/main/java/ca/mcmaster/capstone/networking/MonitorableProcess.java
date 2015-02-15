@@ -17,11 +17,13 @@ import ca.mcmaster.capstone.initializer.InitializerBinder;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Valuation;
 import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
+import ca.mcmaster.capstone.networking.structures.Message;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
+import ca.mcmaster.capstone.networking.util.MessageReceiver;
 import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import lombok.NonNull;
 
-public abstract class MonitorableProcess extends Activity implements MonitorSatisfactionStateListener {
+public abstract class MonitorableProcess extends Activity implements MonitorSatisfactionStateListener, MessageReceiver {
 
     protected final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     protected final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
@@ -77,6 +79,11 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
                 log("NetworkLayer connection is not established: " + e.getLocalizedMessage());
             }
         }
+    }
+
+    @Override
+    public void receiveMessage(@NonNull final Message message) {
+        messageVectorClock = messageVectorClock.merge(message.getVectorClock());
     }
 
     protected void log(@NonNull final String message) {

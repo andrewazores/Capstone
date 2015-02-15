@@ -15,10 +15,9 @@ import android.widget.TextView;
 
 import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.networking.structures.Message;
-import ca.mcmaster.capstone.networking.util.MessageReceiver;
 import lombok.NonNull;
 
-public class CubeActivity extends MonitorableProcess implements MessageReceiver {
+public class CubeActivity extends MonitorableProcess {
 
     public static final String LOG_TAG = "CubeActivity";
 
@@ -98,8 +97,8 @@ public class CubeActivity extends MonitorableProcess implements MessageReceiver 
 
     @Override
     public void receiveMessage(@NonNull final Message message) {
+        super.receiveMessage(message);
         // TODO: generate an event?
-        messageVectorClock.merge(message.getVectorClock());
         Log.d(LOG_TAG, "Message received: " + message);
 //        serviceConnection.getService().broadcastMessage(
 //                new Message(localPeerIdentifier, messageVectorClock, "SPAM")
