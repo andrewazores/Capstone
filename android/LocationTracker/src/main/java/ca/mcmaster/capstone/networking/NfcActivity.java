@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ca.mcmaster.capstone.R;
+import ca.mcmaster.capstone.networking.structures.Message;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -174,6 +175,27 @@ public class NfcActivity extends MonitorableProcess {
 
         nfcAdapter.disableForegroundDispatch(this);
     }
+
+    @Override
+    public void onReceiveMessage(@NonNull final Message message) {}
+
+    @Override
+    public void onNetworkServiceConnection() {
+        updateUI();
+    }
+
+    @Override
+    public void onNetworkServiceDisconnection() {
+    }
+
+    @Override
+    public void onInitializerServiceConnection() {
+    }
+
+    @Override
+    public void onInitializerServiceDisconnection() {
+    }
+
 
     static String byteArrayToHexString(@NonNull final byte[] bytes) {
         BigInteger bi = new BigInteger(1, bytes);

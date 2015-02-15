@@ -20,6 +20,7 @@ import android.os.Bundle;
 
 import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.networking.MonitorableProcess;
+import ca.mcmaster.capstone.networking.structures.Message;
 import lombok.NonNull;
 
 public class VisionActivity extends MonitorableProcess implements VisionStatusListener {
@@ -36,6 +37,23 @@ public class VisionActivity extends MonitorableProcess implements VisionStatusLi
                     .commit();
         }
     }
+
+    @Override
+    public void onNetworkServiceConnection() {
+        showToast("I am: " + variableName);
+    }
+
+    @Override
+    public void onReceiveMessage(@NonNull final Message message) {}
+
+    @Override
+    public void onNetworkServiceDisconnection() {}
+
+    @Override
+    public void onInitializerServiceConnection() {}
+
+    @Override
+    public void onInitializerServiceDisconnection() {}
 
     @Override
     public void onCircleFound(@NonNull final Circle circle) {

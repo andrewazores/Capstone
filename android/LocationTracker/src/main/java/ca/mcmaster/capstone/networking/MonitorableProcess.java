@@ -55,8 +55,8 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final Intent serviceIntent = new Intent(this, CapstoneService.class);
-        getApplicationContext().bindService(serviceIntent, networkServiceConnection, BIND_AUTO_CREATE);
+        final Intent networkServiceIntent = new Intent(this, CapstoneService.class);
+        getApplicationContext().bindService(networkServiceIntent, networkServiceConnection, BIND_AUTO_CREATE);
 
         final Intent initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
@@ -105,7 +105,18 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
     @Override
     public void receiveMessage(@NonNull final Message message) {
         messageVectorClock = messageVectorClock.merge(message.getVectorClock());
+        onReceiveMessage(message);
     }
+
+    public abstract void onReceiveMessage(Message message);
+
+    public abstract void onNetworkServiceConnection();
+
+    public abstract void onNetworkServiceDisconnection();
+
+    public abstract void onInitializerServiceConnection();
+
+    public abstract void onInitializerServiceDisconnection();
 
     protected void log(@NonNull final String message) {
         Log.v(getLogTag(), message);
@@ -132,12 +143,14 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
             synchronized (latch) {
                 latch.notifyAll();
             }
+            onNetworkServiceConnection();
         }
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
             showToast("Service disconnected");
             this.service = null;
+            onNetworkServiceDisconnection();
         }
 
         public CapstoneService getService() {
@@ -174,11 +187,13 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
             }
             messageVectorClock = new VectorClock(vec);
             log("I am: " + MonitorableProcess.this.variableName);
+            onInitializerServiceConnection();
         }
 
         @Override
         public void onServiceDisconnected(final ComponentName componentName) {
             this.initializer = null;
+            onInitializerServiceDisconnection();
         }
 
         public Initializer getInitializer() {

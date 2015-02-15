@@ -84,6 +84,9 @@ public class CubeActivity extends MonitorableProcess {
     }
 
     @Override
+    public void onReceiveMessage(@NonNull final Message message) {}
+
+    @Override
     public void onMonitorSatisfied() {
         Log.d("MonitorState", "Monitor is satisfied !!!");
         setLabelText("satisfied");
@@ -93,6 +96,23 @@ public class CubeActivity extends MonitorableProcess {
     public void onMonitorViolated() {
         Log.d("MonitorState", "Monitor is violated !!!");
         setLabelText("violated");
+    }
+
+    @Override
+    public void onNetworkServiceConnection() {
+        setLabelText("indeterminate");
+    }
+
+    @Override
+    public void onNetworkServiceDisconnection() {
+    }
+
+    @Override
+    public void onInitializerServiceConnection() {
+    }
+
+    @Override
+    public void onInitializerServiceDisconnection() {
     }
 
     @Override
