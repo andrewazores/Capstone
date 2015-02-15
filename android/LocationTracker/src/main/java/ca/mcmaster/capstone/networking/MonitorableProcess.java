@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.initializer.Initializer;
@@ -37,6 +38,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
     protected int eventCounter = 0;
     protected VectorClock messageVectorClock;
     protected final ScheduledExecutorService heartbeatWorker = Executors.newSingleThreadScheduledExecutor();
+    protected ScheduledFuture<?> heartbeatJob;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -47,7 +49,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         final Intent initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
 
-        heartbeatWorker.scheduleAtFixedRate(this::broadcastHeartbeat, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
+        heartbeatJob = heartbeatWorker.scheduleAtFixedRate(this::broadcastHeartbeat, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -55,6 +57,9 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         super.onDestroy();
         getApplicationContext().unbindService(networkServiceConnection);
         getApplicationContext().unbindService(initializerServiceConnection);
+        if (heartbeatJob != null) {
+            heartbeatJob.cancel(false);
+        }
     }
 
     protected final void broadcastHeartbeat() {
