@@ -1,65 +1,38 @@
 package ca.mcmaster.capstone.networking;
 
-import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import ca.mcmaster.capstone.R;
-import ca.mcmaster.capstone.initializer.Initializer;
-import ca.mcmaster.capstone.initializer.InitializerBinder;
-import ca.mcmaster.capstone.monitoralgorithm.Event;
-import ca.mcmaster.capstone.monitoralgorithm.Valuation;
-import ca.mcmaster.capstone.monitoralgorithm.VectorClock;
-import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
-import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import lombok.NonNull;
 
-public class CubeActivity extends Activity implements MonitorSatisfactionStateListener {
+public class CubeActivity extends MonitorableProcess {
 
     public static final String LOG_TAG = "CubeActivity";
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private SensorEventListener mSensorEventListener;
-    private int eventCounter = 0;
     private boolean isFlat = true;
     private double flat = 1.0;
-    private NetworkPeerIdentifier NSD;
-    private String variableName;
 
     private final float[] gravity = new float[3];
     private OpenGLRenderer renderer;
-    private final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
-    private final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cube);
-
-        Intent serviceIntent = new Intent(this, CapstoneService.class);
-        getApplicationContext().bindService(serviceIntent, networkServiceConnection, BIND_AUTO_CREATE);
-
-        Intent initializerServiceIntent = new Intent(this, Initializer.class);
-        getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -80,7 +53,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
             final StringBuilder text = new StringBuilder();
             text.append("Virtual ID: ").append(variableName).append("\n");
-            text.append("localID: ").append(NSD.toString()).append("\n");
+            text.append("localID: ").append(localPeerIdentifier.toString()).append("\n");
             text.append("Satisfaction: ").append(satisfactionState);
 
             globalText.setText(text.toString());
@@ -97,8 +70,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     public void onDestroy() {
         super.onDestroy();
         mSensorManager.unregisterListener(mSensorEventListener);
-        getApplicationContext().unbindService(networkServiceConnection);
-        getApplicationContext().unbindService(initializerServiceConnection);
     }
 
     @Override
@@ -122,7 +93,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         Log.d("MonitorState", "Monitor is violated !!!");
         setLabelText("violated");
     }
-
 
     private class GravitySensorEventListener implements SensorEventListener {
 
@@ -181,37 +151,6 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
             }
         }
 
-        public void sendEvent(double value) {
-            waitForNetworkLayer();
-            final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
-                put(CubeActivity.this.variableName, value);
-            }});
-            ++eventCounter;
-            final Event e = new Event(eventCounter, NSD, Event.EventType.INTERNAL, valuation,
-                    new VectorClock(new HashMap<NetworkPeerIdentifier, Integer>() {{
-                        put(networkServiceConnection.getService().getLocalNetworkPeerIdentifier(), eventCounter);
-                        for (final NetworkPeerIdentifier peer : networkServiceConnection.getService().getKnownPeers()) {
-                            put(peer, 0);
-                        }
-                    }}));
-            if (eventCounter != 0) {
-                Toast.makeText(CubeActivity.this, "Event has left the building", Toast.LENGTH_SHORT).show();
-                networkServiceConnection.getService().sendEventToMonitor(e);
-            }
-        }
-
-        private void waitForNetworkLayer() {
-            while (networkServiceConnection.getService() == null) {
-                Log.v(LOG_TAG, "waitForNetworkLayer");
-                try {
-                    Log.v(LOG_TAG, "waiting for network layer to appear...");
-                    networkServiceConnection.waitForService();
-                } catch (final InterruptedException e) {
-                    Log.d(LOG_TAG, "NetworkLayer connection is not established: " + e.getLocalizedMessage());
-                }
-            }
-        }
-
         public boolean checkCondition(float[] gravity) {
             float dot = dot_product(gravity, new float[] {0, 0, 1});
 
@@ -260,65 +199,9 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         return dot;
     }
 
-
-    public class NetworkServiceConnection implements ServiceConnection {
-
-        private CapstoneService service;
-        private final Object latch = new Object();
-
-        @Override
-        public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Toast.makeText(CubeActivity.this, "Service connected", Toast.LENGTH_SHORT).show();
-
-            this.service = ((CapstoneService.CapstoneNetworkServiceBinder) service).getService();
-            this.service.registerMonitorStateListener(CubeActivity.this);
-            latch.notifyAll();
-        }
-
-        @Override
-        public void onServiceDisconnected(final ComponentName name) {
-            Toast.makeText(CubeActivity.this, "Service disconnected", Toast.LENGTH_SHORT).show();
-            this.service = null;
-        }
-
-        public CapstoneService getService() {
-            return service;
-        }
-
-        public void waitForService() throws InterruptedException {
-            if (service == null) {
-                latch.wait();
-            }
-        }
-    }
-
-    public class InitializerServiceConnection implements ServiceConnection {
-        private Initializer initializer;
-
-        @Override
-        public void onServiceConnected(final ComponentName componentName, final IBinder iBinder) {
-            this.initializer = ((InitializerBinder) iBinder).getInitializer();
-
-            CubeActivity.this.NSD = initializer.getLocalPID();
-            //FIXME: this is for testing out simple test case. More work is needed for more complex variableGlobalText arrangements
-            for (Map.Entry<String, NetworkPeerIdentifier> virtualID : initializer.getVirtualIdentifiers().entrySet()) {
-                if (virtualID.getValue() == NSD) {
-                    CubeActivity.this.variableName = virtualID.getKey();
-                    break;
-                }
-            }
-            Log.d("cube", "I am: " + CubeActivity.this.variableName);
-            setLabelText("indeterminate");
-        }
-
-        @Override
-        public void onServiceDisconnected(final ComponentName componentName) {
-            this.initializer = null;
-        }
-
-        public Initializer getInitializer() {
-            return this.initializer;
-        }
+    @Override
+    public String getLogTag() {
+        return LOG_TAG;
     }
 
 }
