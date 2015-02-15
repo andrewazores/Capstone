@@ -11,6 +11,7 @@ import java.util.Set;
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
+import ca.mcmaster.capstone.networking.structures.Message;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.structures.PayloadObject;
 import fi.iki.elonen.NanoHTTPD;
@@ -29,6 +30,7 @@ public class CapstoneServer extends NanoHTTPD {
         IDENTIFY,
         SEND_TOKEN,
         SEND_EVENT,
+        SEND_MESSAGE,
     }
 
     @AllArgsConstructor
@@ -103,6 +105,8 @@ public class CapstoneServer extends NanoHTTPD {
                     return servePostReceiveToken(contentBody);
                 case SEND_EVENT:
                     return servePostReceiveEvent(contentBody);
+                case SEND_MESSAGE:
+                    return servePostReceiveMessage(contentBody);
             }
         }
 
@@ -138,6 +142,12 @@ public class CapstoneServer extends NanoHTTPD {
     private Response servePostReceiveEvent(@NonNull final Map<String, String> contentBody) {
         final Event event = parseContentBody(contentBody, Event.class);
         capstoneService.receiveEventExternal(event);
+        return genericSuccess();
+    }
+
+    private Response servePostReceiveMessage(@NonNull final Map<String, String> contentBody) {
+        final Message message = parseContentBody(contentBody, Message.class);
+        capstoneService.receiveMessage(message);
         return genericSuccess();
     }
 

@@ -1,11 +1,12 @@
 package ca.mcmaster.capstone.networking.util;
 
+import java.util.Collection;
 import java.util.Set;
 
 import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
+import ca.mcmaster.capstone.networking.structures.Message;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
-import lombok.NonNull;
 
 public interface NetworkLayer {
 
@@ -109,4 +110,43 @@ public interface NetworkLayer {
      * @param monitorSatisfactionStateListener the process to unregister.
      */
     void unregisterMonitorStateListener(MonitorSatisfactionStateListener monitorSatisfactionStateListener);
+
+    /**
+     * Called by a process which wishes to register itself to receive interprocess communications.
+     * @param messageReceiver the process to register.
+     */
+    void registerMessageReceiver(MessageReceiver messageReceiver);
+
+    /**
+     * Called by a process which wishes to no longer receive interprocess communications.
+     * @param messageReceiver the process to unregister
+     */
+    void unregisterMessageReceiver(MessageReceiver messageReceiver);
+
+    /**
+     * Send a message.
+     * @param recipient the process which should receive the message.
+     * @param message the message to send.
+     */
+    void sendMessage(NetworkPeerIdentifier recipient, Message message);
+
+    /**
+     * Send a message.
+     * @param recipients the processes which should receive the message.
+     * @param message the message to send.
+     */
+    void sendMessage(Collection<NetworkPeerIdentifier> recipients, Message message);
+
+    /**
+     * Broadcast a message to all other registered processes. Processes do not receive their own
+     * broadcasts.
+     * @param message the message to broadcast.
+     */
+    void broadcastMessage(Message message);
+
+    /**
+     * Handler for the local service receiving a message.
+     * @param message the received message.
+     */
+    void receiveMessage(Message message);
 }

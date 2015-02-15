@@ -44,6 +44,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteOrder;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,8 +57,10 @@ import ca.mcmaster.capstone.monitoralgorithm.Event;
 import ca.mcmaster.capstone.monitoralgorithm.Token;
 import ca.mcmaster.capstone.networking.structures.DeviceInfo;
 import ca.mcmaster.capstone.networking.structures.DeviceLocation;
+import ca.mcmaster.capstone.networking.structures.Message;
 import ca.mcmaster.capstone.networking.structures.NetworkPeerIdentifier;
 import ca.mcmaster.capstone.networking.structures.PayloadObject;
+import ca.mcmaster.capstone.networking.util.MessageReceiver;
 import ca.mcmaster.capstone.networking.util.MonitorSatisfactionStateListener;
 import ca.mcmaster.capstone.networking.util.NetworkLayer;
 import ca.mcmaster.capstone.networking.util.NpiUpdateCallbackReceiver;
@@ -103,6 +106,8 @@ public final class CapstoneService extends Service implements NetworkLayer {
     private final Set<PeerUpdateCallbackReceiver<NetworkPeerIdentifier>> peerUpdateCallbackReceivers =
             Collections.synchronizedSet(new HashSet<>());
     private final Set<NpiUpdateCallbackReceiver> npiUpdateCallbackReceivers =
+            Collections.synchronizedSet(new HashSet<>());
+    private final Set<MessageReceiver> messageReceivers =
             Collections.synchronizedSet(new HashSet<>());
     private final BlockingQueue<Event> incomingEventQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Token> tokenQueue = new LinkedBlockingQueue<>();
@@ -441,6 +446,14 @@ public final class CapstoneService extends Service implements NetworkLayer {
         this.npiUpdateCallbackReceivers.remove(npiUpdateCallbackReceiver);
     }
 
+    @Override public void registerMessageReceiver(@NonNull final MessageReceiver messageReceiver) {
+        messageReceivers.add(messageReceiver);
+    }
+
+    @Override public void unregisterMessageReceiver(@NonNull final MessageReceiver messageReceiver) {
+        messageReceivers.remove(messageReceiver);
+    }
+
     void sendHandshakeToPeer(@NonNull final NetworkPeerIdentifier nsdPeer) {
         final Set<NetworkPeerIdentifier> peersPlusSelf = new HashSet<>();
         peersPlusSelf.addAll(nsdPeers);
@@ -585,6 +598,45 @@ public final class CapstoneService extends Service implements NetworkLayer {
     public Event receiveEvent() throws InterruptedException {
         logv("receiveEvent");
         return this.incomingEventQueue.take();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void receiveMessage(@NonNull final Message message) {
+        for (final MessageReceiver receiver : messageReceivers) {
+            receiver.receiveMessage(message);
+        }
+    }
+
+    @Override
+    public void sendMessage(@NonNull final NetworkPeerIdentifier recipient, @NonNull final Message message) {
+        if (recipient.equals(getLocalNetworkPeerIdentifier())) {
+            return;
+        }
+        final Response.Listener<JSONObject> successListener = j -> {};
+        final Response.ErrorListener errorListener = error -> {
+            logv("Volley POST info error: " + error);
+            logd("sendMessage --");
+            logd("Recipient: " + recipient);
+            logd("Message: " + message);
+        };
+        final CapstoneServer.RequestMethod requestMethod = CapstoneServer.RequestMethod.SEND_MESSAGE;
+
+        postDataToPeer(recipient, message, successListener, errorListener, requestMethod);
+    }
+
+    @Override
+    public void sendMessage(@NonNull final Collection<NetworkPeerIdentifier> recipients, @NonNull final Message message) {
+        for (final NetworkPeerIdentifier peer : recipients) {
+            sendMessage(peer, message);
+        }
+    }
+
+    @Override
+    public void broadcastMessage(@NonNull final Message message) {
+        sendMessage(getKnownPeers(), message);
     }
 
     void addSelfIdentifiedPeer(@NonNull final NetworkPeerIdentifier networkPeerIdentifier) {
