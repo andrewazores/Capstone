@@ -98,7 +98,7 @@ public class CubeActivity extends MonitorableProcess {
     @Override
     public void receiveMessage(@NonNull final Message message) {
         super.receiveMessage(message);
-        // TODO: generate an event?
+        sendEvent(flat);
     }
 
     private class GravitySensorEventListener implements SensorEventListener {
@@ -165,8 +165,7 @@ public class CubeActivity extends MonitorableProcess {
         }
 
         @Override
-        public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
-        }
+        public void onAccuracyChanged(final Sensor sensor, final int accuracy) {}
     }
 
     private static float[] normalize(float[] gravity) {
