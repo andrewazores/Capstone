@@ -170,7 +170,7 @@ public class VisionActivity extends Activity implements VisionStatusListener, Mo
 
             VisionActivity.this.localPeerIdentifier = initializer.getLocalPID();
             //FIXME: this is for testing out simple test case. More work is needed for more complex variableGlobalText arrangements
-            for (Map.Entry<String, NetworkPeerIdentifier> virtualID : initializer.getVirtualIdentifiers().entrySet()) {
+            for (final Map.Entry<String, NetworkPeerIdentifier> virtualID : initializer.getVirtualIdentifiers().entrySet()) {
                 if (virtualID.getValue().equals(localPeerIdentifier)) {
                     VisionActivity.this.variableName = virtualID.getKey();
                     break;
