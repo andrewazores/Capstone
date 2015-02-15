@@ -248,16 +248,14 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
     }
 
     public static float dotProduct(float[] v1, float[] v2){
-        float dot = 0;
-
         if (v1.length != v2.length) {
             throw new IllegalArgumentException("Vector dimensionality mismatch");
         }
 
+        float dot = 0;
         for (int i = 0; i < v1.length; ++i) {
             dot += v1[i] * v2[i];
         }
-
         return dot;
     }
 
