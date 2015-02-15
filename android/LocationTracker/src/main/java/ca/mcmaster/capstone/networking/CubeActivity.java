@@ -20,6 +20,7 @@ import lombok.NonNull;
 public class CubeActivity extends MonitorableProcess {
 
     public static final String LOG_TAG = "CubeActivity";
+    public static final int HEARTBEAT_INTERVAL = 500;
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
@@ -99,10 +100,6 @@ public class CubeActivity extends MonitorableProcess {
     public void receiveMessage(@NonNull final Message message) {
         super.receiveMessage(message);
         // TODO: generate an event?
-        Log.d(LOG_TAG, "Message received: " + message);
-//        serviceConnection.getService().broadcastMessage(
-//                new Message(localPeerIdentifier, messageVectorClock, "SPAM")
-//        );
     }
 
     private class GravitySensorEventListener implements SensorEventListener {
