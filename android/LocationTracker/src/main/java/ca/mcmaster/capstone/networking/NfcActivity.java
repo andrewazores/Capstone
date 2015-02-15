@@ -47,7 +47,7 @@ public class NfcActivity extends MonitorableProcess {
     protected PendingIntent nfcPendingIntent;
     private Map<String, List<NfcTagIDs>> destinations = new HashMap<>();
     private Boolean satisfaction = null;
-    
+
     @Override
     public void onMonitorSatisfied() {
         satisfaction = true;
