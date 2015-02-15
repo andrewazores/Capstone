@@ -148,11 +148,11 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
 
             final float[] z_axis = new float[] {0, 0, 1};
 
-            float[] target_dir = normalise( gravity );
-            float rot_angle = (float) Math.acos( dot_product(target_dir,z_axis) );
+            float[] target_dir = normalize(gravity);
+            float rot_angle = (float) Math.acos( dotProduct(target_dir, z_axis) );
 
             if (Math.abs(rot_angle) > Double.MIN_VALUE) {
-                renderer.axis = normalise(cross_product(target_dir, z_axis));
+                renderer.axis = normalize(crossProduct(target_dir, z_axis));
                 renderer.angle = rot_angle;
             }
 
@@ -214,7 +214,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         }
 
         public boolean checkCondition(float[] gravity) {
-            float dot = dot_product(gravity, new float[] {0, 0, 1});
+            float dot = dotProduct(gravity, new float[]{0, 0, 1});
 
             return dot < 0.5;
         }
@@ -224,7 +224,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         }
     }
 
-    private static float[] normalise(float[] gravity) {
+    private static float[] normalize(float[] gravity) {
         float sum = 0;
         for (float f : gravity) {
             sum += f*f;
@@ -237,7 +237,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         return result;
     }
 
-    public static float[] cross_product(float[] v1, float[] v2){
+    public static float[] crossProduct(float[] v1, float[] v2){
         float[] cross =  new float[3];
 
         cross[0] = (v1[1] * v2[2]) - (v1[2] * v2[1]);
@@ -247,7 +247,7 @@ public class CubeActivity extends Activity implements MonitorSatisfactionStateLi
         return cross;
     }
 
-    public static float dot_product(float[] v1, float[] v2){
+    public static float dotProduct(float[] v1, float[] v2){
         float dot = 0;
 
         if (v1.length != v2.length) {
