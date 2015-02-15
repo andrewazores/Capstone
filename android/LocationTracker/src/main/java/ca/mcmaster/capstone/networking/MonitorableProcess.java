@@ -12,6 +12,7 @@ import android.widget.Toast;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import ca.mcmaster.capstone.initializer.Initializer;
@@ -27,8 +28,7 @@ import lombok.NonNull;
 
 public abstract class MonitorableProcess extends Activity implements MonitorSatisfactionStateListener, MessageReceiver {
 
-    protected final String LOG_TAG = "MonitorableProcess";
-    protected final int HEARTBEAT_INTERVAL = 500;
+    protected static final int HEARTBEAT_INTERVAL = 500;
 
     protected final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     protected final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
@@ -36,22 +36,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
     protected String variableName;
     protected int eventCounter = 0;
     protected VectorClock messageVectorClock;
-    protected final Heartbeat heartbeat = new Heartbeat();
-
-    private class Heartbeat implements Runnable {
-        @Override
-        public void run() {
-            while (true) {
-                networkServiceConnection.getService().broadcastMessage(
-                        new Message(localPeerIdentifier, messageVectorClock, "SPAM"));
-                try {
-                    Thread.sleep(HEARTBEAT_INTERVAL);
-                } catch (InterruptedException e) {
-                    Log.e(LOG_TAG, e.getLocalizedMessage());
-                }
-            }
-        }
-    }
+    protected final ScheduledExecutorService heartbeatWorker = Executors.newSingleThreadScheduledExecutor();
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -62,7 +47,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         final Intent initializerServiceIntent = new Intent(this, Initializer.class);
         getApplicationContext().bindService(initializerServiceIntent, initializerServiceConnection, BIND_AUTO_CREATE);
 
-        Executors.newSingleThreadExecutor().submit(heartbeat);
+        heartbeatWorker.scheduleAtFixedRate(this::broadcastHeartbeat, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -70,6 +55,13 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         super.onDestroy();
         getApplicationContext().unbindService(networkServiceConnection);
         getApplicationContext().unbindService(initializerServiceConnection);
+    }
+
+    protected void broadcastHeartbeat() {
+        waitForNetworkLayer();
+        networkServiceConnection.getService().broadcastMessage(
+                new Message(localPeerIdentifier, messageVectorClock, "ticktock")
+        );
     }
 
     protected void sendEvent(final double value) {
