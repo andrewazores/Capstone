@@ -223,9 +223,9 @@ public class Monitor extends Service {
 
     private static void send(@NonNull final Token token, @NonNull final NetworkPeerIdentifier pid) {
         if (pid.equals(token.getOwner())) {
-            Log.d(LOG_TAG, "Sending a token back home. To: " + pid.toString());
+            Log.d(LOG_TAG, "Sending a token back home. Token: " + token.toString());
         } else {
-            Log.d(LOG_TAG, "Sending a token. To: " + pid.toString());
+            Log.d(LOG_TAG, "Sending a token. Token: " + token.toString());
         }
         networkServiceConnection.getNetworkLayer().sendTokenToPeer(pid, token);
     }
@@ -300,7 +300,7 @@ public class Monitor extends Service {
      * @param event The event to be evaluated.
      */
     public void processEvent(@NonNull final GlobalView gv, @NonNull final Event event) {
-        Log.d(LOG_TAG, "Entering processEvent");
+        Log.d(LOG_TAG, "Entering processEvent, Event: " + event.toString());
         gv.updateWithEvent(event);
         gv.setCurrentState(automaton.advance(gv));
         handleMonitorStateChange(gv);
