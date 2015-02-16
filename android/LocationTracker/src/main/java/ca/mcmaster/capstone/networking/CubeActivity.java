@@ -182,6 +182,7 @@ public class CubeActivity extends MonitorableProcess {
                 } else {
                     flat = 0.0;
                 }
+                messageVectorClock.incrementProcess(localPeerIdentifier);
                 sendEvent(flat, Event.EventType.INTERNAL);
             }
         }
