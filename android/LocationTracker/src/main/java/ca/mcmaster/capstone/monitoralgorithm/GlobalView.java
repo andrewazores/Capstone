@@ -18,6 +18,7 @@ import lombok.ToString;
 /* Class to represent the local view of the global state.*/
 @ToString
 public class GlobalView {
+    // FIXME: Storing these like this is needlessly error prone. Should probably be a set.
     private final Map<NetworkPeerIdentifier, ProcessState> states = new HashMap<>();
     @NonNull private VectorClock cut;
     @NonNull private AutomatonState currentState;
@@ -193,7 +194,7 @@ public class GlobalView {
             }
             updatedCut = updatedCut.merge(token.getCut());
             @NonNull final ProcessState targetState = token.getTargetProcessState();
-            updatedStates.put(token.getOwner(), targetState);
+            updatedStates.put(targetState.getId(), targetState);
         }
         this.cut = updatedCut;
         this.states.putAll(updatedStates);
