@@ -1,6 +1,9 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import android.util.Log;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +20,8 @@ import lombok.ToString;
 /* Class to represent an automaton transition.*/
 @EqualsAndHashCode @ToString
 public class AutomatonTransition {
+    public static String LOG_TAG = "AutomatonTransition";
+
     @NonNull @Getter private AutomatonState from;
     @NonNull @Getter private AutomatonState to;
     private List<Conjunct> conjuncts = new ArrayList<>();
@@ -35,8 +40,9 @@ public class AutomatonTransition {
      * Computes the evaluation of the transition based on the evaluation of each conjunct.
      *
      * @return The evaluation of the transition based on its conjuncts.
+     * @throws EvaluationException
      */
-    public Conjunct.Evaluation evaluate(@NonNull final Collection<ProcessState> processStates) {
+    public Conjunct.Evaluation evaluate(@NonNull final Collection<ProcessState> processStates) throws EvaluationException {
         final Map<Conjunct, Conjunct.Evaluation> evaluations = new HashMap<>();
         for (final ProcessState state : processStates) {
             for (final Conjunct conjunct : this.conjuncts) {
@@ -45,6 +51,11 @@ public class AutomatonTransition {
                 }
             }
         }
+
+        if (evaluations.isEmpty()) {
+            throw new EvaluationException("No conjuncts were evaluated with this Collection of states: " + processStates.toString());
+        }
+
         if (evaluations.values().contains(Conjunct.Evaluation.FALSE)) {
             return Conjunct.Evaluation.FALSE;
         } else if (evaluations.values().contains(Conjunct.Evaluation.NONE)) {
@@ -94,6 +105,19 @@ public class AutomatonTransition {
             states.put(targetProcessState.getId(), targetProcessState);
         }
 
-        return this.evaluate(states.values()) == Conjunct.Evaluation.TRUE;
+        boolean evaluation = false;
+        try {
+            evaluation = this.evaluate(states.values()) == Conjunct.Evaluation.TRUE;
+        } catch (EvaluationException e) {
+            Log.e(LOG_TAG, e.getLocalizedMessage());
+        }
+
+        return evaluation;
+    }
+
+    public class EvaluationException extends Exception {
+        public EvaluationException(@NonNull final String message) {
+            super("Failed to evaluate: " + message);
+        }
     }
 }

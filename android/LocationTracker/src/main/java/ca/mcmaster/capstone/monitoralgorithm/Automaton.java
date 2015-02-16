@@ -95,7 +95,13 @@ public class Automaton {
     public AutomatonState advance(@NonNull final GlobalView gv) {
         for (final AutomatonTransition transition : transitions) {
             if (transition.getFrom().equals(gv.getCurrentState()) && !transition.getFrom().equals(transition.getTo())) {
-                if (transition.evaluate(gv.getStates().values()) == Conjunct.Evaluation.TRUE) {
+                boolean evaluation = false;
+                try {
+                    evaluation = transition.evaluate(gv.getStates().values()) == Conjunct.Evaluation.TRUE;
+                } catch (AutomatonTransition.EvaluationException e) {
+                    Log.e(LOG_TAG, e.getLocalizedMessage());
+                }
+                if (evaluation) {
                     Log.d(LOG_TAG, "Advanced to state: " + transition.getTo().getStateName());
                     return transition.getTo();
                 }
