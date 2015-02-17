@@ -110,6 +110,8 @@ public class CubeActivity extends MonitorableProcess {
         if (variableName.equals("x1")) {
             startHeartbeat(this::broadcastHeartbeat);
         }
+        messageVectorClock.incrementProcess(localPeerIdentifier);
+        sendEvent(flat, Event.EventType.INTERNAL);
     }
 
     @Override

@@ -335,6 +335,8 @@ public class Monitor extends Service {
                     .targetProcessState(gv.getStates().get(monitorID)).build());
         }
         waitingTokens.clear();
+        TokenSender.bulkSendTokens();
+        monitorJob.cancel(false);
     }
 
     /*
