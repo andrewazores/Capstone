@@ -16,7 +16,9 @@ public class VectorClock {
     private final Map<NetworkPeerIdentifier, Integer> consistentCut = new HashMap<>();
 
     public VectorClock(@NonNull final VectorClock vc) {
-        this.consistentCut.putAll(vc.consistentCut);
+        for (Map.Entry<NetworkPeerIdentifier, Integer> entry : vc.consistentCut.entrySet()) {
+            this.consistentCut.put(entry.getKey(), new Integer(entry.getValue()));
+        }
     }
 
     /*
