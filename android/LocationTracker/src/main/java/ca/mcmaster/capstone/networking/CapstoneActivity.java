@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -15,10 +16,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import ca.mcmaster.capstone.R;
 import ca.mcmaster.capstone.initializer.Initializer;
@@ -48,6 +53,8 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
     private Intent networkServiceIntent;
     private Intent monitorServiceIntent;
     private Intent initializerServiceIntent;
+    private Future<?> logJob = null;
+    private Process logging = null;
 
     private NetworkPeerIdentifier networkPeerIdentifier = null;
 
@@ -109,6 +116,30 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
            final Intent intent = new Intent(CapstoneActivity.this, VisionActivity.class);
             startActivity(intent);
         });
+
+        logJob = Executors.newSingleThreadExecutor().submit(() -> saveLogcatToFile());
+    }
+
+    @Override
+    public void onDestroy() {
+        if (logJob != null) {
+            if (logging != null) {
+                logging.destroy();
+            }
+            logJob.cancel(false);
+        }
+    }
+
+    public void saveLogcatToFile() {
+        Log.d(LOG_TAG, "Starting logging");
+        final String fileName = "Logs/logcat_" + System.currentTimeMillis() + ".log";
+        final File outputFile = new File(Environment.getExternalStorageDirectory(), fileName);
+        try {
+            String[] commands = {"sh",  "-c", "logcat -v time  > " + outputFile.getAbsolutePath()};
+            logging = java.lang.Runtime.getRuntime().exec(commands);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Error executing logcat: " + e.getLocalizedMessage());
+        }
     }
 
     private void getPeerUpdate(final NetworkPeerIdentifier peer) {
