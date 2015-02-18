@@ -16,7 +16,9 @@ public class Valuation {
     }
 
     public Valuation(@NonNull final Valuation valuation) {
-        this.valuation.putAll(valuation.valuation);
+        for (Map.Entry<String, Double> entry : valuation.valuation.entrySet()) {
+            this.valuation.put(entry.getKey(), new Double(entry.getValue()));
+        }
     }
 
     public Double add(@NonNull final String variableName, @NonNull final Double value) {
