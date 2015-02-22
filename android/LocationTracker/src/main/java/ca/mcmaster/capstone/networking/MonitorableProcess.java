@@ -29,7 +29,7 @@ import lombok.NonNull;
 
 public abstract class MonitorableProcess extends Activity implements MonitorSatisfactionStateListener, MessageReceiver {
 
-    protected static final int HEARTBEAT_INTERVAL = 500;
+    protected static final int HEARTBEAT_INTERVAL = 3000;
 
     protected final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     protected final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
