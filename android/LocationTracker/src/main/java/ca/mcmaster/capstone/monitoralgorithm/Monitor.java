@@ -51,22 +51,26 @@ public class Monitor extends Service {
         private static final List<Token> tokensToSendOut = new ArrayList<>();
         private static final List<Token> tokensToSendHome = new ArrayList<>();
 
-        private static void bulkTokenSendOut(final List<Token> tokens) {
+        public static synchronized List<Token> getTokensToSendOut() {
+            return new ArrayList<>(tokensToSendOut);
+        }
+
+        private static synchronized void bulkTokenSendOut(final List<Token> tokens) {
             Log.d(LOG_TAG, "Queued a bunch of tokens to send out.");
             tokensToSendOut.addAll(tokens);
         }
 
-        private static void sendTokenOut(final Token token) {
+        private static synchronized void sendTokenOut(final Token token) {
             Log.d(LOG_TAG, "Queued a token to send out.");
             tokensToSendOut.add(token);
         }
 
-        private static void sendTokenHome(final Token token) {
+        private static synchronized void sendTokenHome(final Token token) {
             Log.d(LOG_TAG, "Queued a token to send home.");
             tokensToSendHome.add(token);
         }
 
-        private static void bulkSendTokens() {
+        private static synchronized void bulkSendTokens() {
             for (Iterator<Token> it = tokensToSendOut.iterator(); it.hasNext(); ) {
                 final Token token = it.next();
                 send(token, token.getDestination());
