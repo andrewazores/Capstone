@@ -56,17 +56,17 @@ public class Monitor extends Service {
         }
 
         private static synchronized void bulkTokenSendOut(final List<Token> tokens) {
-            Log.d(LOG_TAG, "Queued a bunch of tokens to send out.");
+            Log.d(LOG_TAG, "Queued the following tokens to send out: " + tokens.toString());
             tokensToSendOut.addAll(tokens);
         }
 
         private static synchronized void sendTokenOut(final Token token) {
-            Log.d(LOG_TAG, "Queued a token to send out.");
+            Log.d(LOG_TAG, "Queued the following token to send out." + token.toString());
             tokensToSendOut.add(token);
         }
 
         private static synchronized void sendTokenHome(final Token token) {
-            Log.d(LOG_TAG, "Queued a token to send home.");
+            Log.d(LOG_TAG, "Queued the following token to send home: " + token.toString());
             tokensToSendHome.add(token);
         }
 
@@ -256,7 +256,7 @@ public class Monitor extends Service {
      * @param event The event to be processed.
      */
     public void receiveEvent(@NonNull final Event event) {
-        Log.d(LOG_TAG, "Entering receiveEvent");
+        Log.d(LOG_TAG, "Entering receiveEvent. Event: " + event.toString());
         synchronized (history) {
             history.put(event.getEid(), event);
         }
@@ -283,7 +283,7 @@ public class Monitor extends Service {
             }
         }
         TokenSender.bulkSendTokens();
-        Log.d(LOG_TAG, "Exiting receiveEvent");
+        Log.d(LOG_TAG, "Exiting receiveEvent.");
     }
 
     private Set<GlobalView> mergeSimilarGlobalViews(@NonNull final Collection<GlobalView> gv) {
@@ -362,7 +362,7 @@ public class Monitor extends Service {
      * @param event The event to find concurrent events for.
      */
     private void checkOutgoingTransitions(@NonNull final GlobalView gv, @NonNull final Event event) {
-        Log.d(LOG_TAG, "Entering checkOutgoingTransitions");
+        Log.d(LOG_TAG, "Entering checkOutgoingTransitions. \n    globalView: " + gv.toString() + "\n    event: " + event.toString());
         final Map<NetworkPeerIdentifier, Set<AutomatonTransition>> consult = new HashMap<>();
         for (final AutomatonTransition trans : automaton.getTransitions()) {
             final Set<Conjunct> forbiddingConjuncts = new HashSet<>();
@@ -381,6 +381,7 @@ public class Monitor extends Service {
                     participating.retainAll(inconsistent);
                     // union
                     forbidding.addAll(participating);
+                    Log.d(LOG_TAG, "Need to send tokens to: " + forbidding.toString());
                     for (final NetworkPeerIdentifier process : forbidding) {
                         gv.addPendingTransition(trans);
                         if (consult.get(process) == null) {
@@ -441,7 +442,7 @@ public class Monitor extends Service {
      * @param token The token being received.
      */
     public void receiveToken(@NonNull final Token token) {
-        Log.d(LOG_TAG, "Entering receiveToken. Token from: " + token.getOwner());
+        Log.d(LOG_TAG, "Entering receiveToken. Token: " + token.toString());
         if (token.getOwner().equals(monitorID)) {
             final List<GlobalView> globalViews = getGlobalView(token);
             for (final GlobalView globalView : globalViews) {
@@ -470,7 +471,9 @@ public class Monitor extends Service {
                         globalView.getPendingTransitions().remove(trans);
                         synchronized (GV) {
                             GV.add(gvn1);
+                            Log.d(LOG_TAG, "gvn1: " + gvn1.toString());
                             GV.add(gvn2);
+                            Log.d(LOG_TAG, "gvn2: " + gvn1.toString());
                         }
                         handleMonitorStateChange(gvn1);
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
@@ -529,13 +532,13 @@ public class Monitor extends Service {
      * @param event The event to update token with.
      */
     public void processToken(@NonNull final Token token, @NonNull final Event event) {
-        Log.d(LOG_TAG, "Entering processToken");
+        Log.d(LOG_TAG, "Entering processToken.\n    token: " + token.toString() + "\n    event: " + event.toString());
         final VectorClock.Comparison comp = token.getCut().compareToClock(event.getVC());
         if (comp == VectorClock.Comparison.CONCURRENT || comp == VectorClock.Comparison.EQUAL) {
             evaluateToken(token, event);
         } else if (comp == VectorClock.Comparison.BIGGER) {
             synchronized (waitingTokens) {
-                Log.d(LOG_TAG, "Waiting for next event");
+                Log.d(LOG_TAG, "Waiting for next event.");
                 waitingTokens.add(token.waitForNextEvent());
             }
         } else {
@@ -559,7 +562,7 @@ public class Monitor extends Service {
      * @param event The event to use to evaluate the token.
      */
     public void evaluateToken(@NonNull final Token token, @NonNull final Event event) {
-        Log.d(LOG_TAG, "Entering evaluateToken");
+        Log.d(LOG_TAG, "Entering evaluateToken.\n    token: " + token.toString() + "\n    event: " + event.toString());
         token.evaluateConjuncts(event);
         if (token.anyConjunctSatisfied()) {
             final Token newToken = new Token.Builder(token).cut(event.getVC()).targetProcessState(event.getState()).build();
