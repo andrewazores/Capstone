@@ -486,9 +486,9 @@ public class Monitor extends Service {
                         }
                     } else {
                         globalView.setTokens(new ArrayList<>());
-                        Event pendingEvent = globalView.getPendingEvents().remove();
-                        if (pendingEvent != null) {
-                            processEvent(globalView, pendingEvent);
+                        while (!globalView.getPendingEvents().isEmpty()) {
+                            Log.d(LOG_TAG, "Processing pending event");
+                            processEvent(globalView, globalView.getPendingEvents().remove());
                         }
                     }
                 } else {
