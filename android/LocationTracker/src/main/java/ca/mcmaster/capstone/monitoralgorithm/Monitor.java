@@ -388,17 +388,18 @@ public class Monitor extends Service {
             }
         }
 
-        final List<Token> pendingSend = new ArrayList<>();
+        final List<Token> pendingSend = TokenSender.getTokensToSendOut();
         for (final Map.Entry<NetworkPeerIdentifier, Set<AutomatonTransition>> entry : consult.entrySet()) {
             Token.Builder builder = new Token.Builder(monitorID, entry.getKey());
-            for (Token token : pendingSend) {
+            for (Iterator<Token> it = pendingSend.iterator(); it.hasNext(); ) {
+                final Token token = it.next();
                 VectorClock.Comparison comparison = token.getCut().compareToClock(event.getVC());
                 if (token.getDestination().equals(entry.getKey())
                         && comparison == VectorClock.Comparison.EQUAL
                         && token.getTargetEventId() == gv.getCut().process(entry.getKey()) + 1) {
                     //Modify one of the pending tokens
                     builder = new Token.Builder(token);
-                    pendingSend.remove(token);
+                    it.remove();
                     break;
                 }
             }
