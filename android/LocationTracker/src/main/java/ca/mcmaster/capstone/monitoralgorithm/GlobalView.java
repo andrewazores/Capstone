@@ -31,6 +31,9 @@ public class GlobalView {
 
     public GlobalView(@NonNull final GlobalView gv) {
         this.states.putAll(gv.states);
+        for (Map.Entry<NetworkPeerIdentifier, ProcessState> entry : gv.states.entrySet()) {
+            this.states.put(entry.getKey(), new ProcessState(entry.getValue()));
+        }
         this.cut = new VectorClock(gv.cut);
         this.currentState = new AutomatonState(gv.currentState);
         this.pendingEvents.addAll(gv.pendingEvents);
