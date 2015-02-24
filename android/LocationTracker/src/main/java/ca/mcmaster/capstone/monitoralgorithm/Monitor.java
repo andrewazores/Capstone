@@ -48,14 +48,14 @@ public class Monitor extends Service {
 
     /* Class to abstract the bulk sending of tokens. */
     private static class TokenSender {
-        private static final List<Token> tokensToSendOut = new ArrayList<>();
-        private static final List<Token> tokensToSendHome = new ArrayList<>();
+        private static final Set<Token> tokensToSendOut = new HashSet<>();
+        private static final Set<Token> tokensToSendHome = new HashSet<>();
 
-        public static synchronized List<Token> getTokensToSendOut() {
-            return new ArrayList<>(tokensToSendOut);
+        public static synchronized Set<Token> getTokensToSendOut() {
+            return new HashSet(tokensToSendOut);
         }
 
-        private static synchronized void bulkTokenSendOut(final List<Token> tokens) {
+        private static synchronized void bulkTokenSendOut(final Set<Token> tokens) {
             Log.d(LOG_TAG, "Queued the following tokens to send out: " + tokens.toString());
             tokensToSendOut.addAll(tokens);
         }
@@ -397,7 +397,7 @@ public class Monitor extends Service {
             }
         }
 
-        final List<Token> pendingSend = TokenSender.getTokensToSendOut();
+        final Set<Token> pendingSend = TokenSender.getTokensToSendOut();
         for (final Map.Entry<NetworkPeerIdentifier, Set<AutomatonTransition>> entry : consult.entrySet()) {
             Token.Builder builder = new Token.Builder(monitorID, entry.getKey());
             for (Iterator<Token> it = pendingSend.iterator(); it.hasNext(); ) {
@@ -433,7 +433,7 @@ public class Monitor extends Service {
                     .build();
             pendingSend.add(token);
         }
-        gv.addTokens(pendingSend);
+        gv.addTokens(new ArrayList(pendingSend));
         TokenSender.bulkTokenSendOut(pendingSend);
         Log.d(LOG_TAG, "Exiting checkOutgoingTransitions");
     }
