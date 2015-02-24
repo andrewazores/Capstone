@@ -385,7 +385,6 @@ public class Monitor extends Service {
                     participating.retainAll(inconsistent);
                     // union
                     forbidding.addAll(participating);
-                    Log.d(LOG_TAG, "Need to send tokens to: " + forbidding.toString());
                     for (final NetworkPeerIdentifier process : forbidding) {
                         gv.addPendingTransition(trans);
                         if (consult.get(process) == null) {
@@ -399,13 +398,15 @@ public class Monitor extends Service {
 
         final Set<Token> pendingSend = TokenSender.getTokensToSendOut();
         for (final Map.Entry<NetworkPeerIdentifier, Set<AutomatonTransition>> entry : consult.entrySet()) {
-            Token.Builder builder = new Token.Builder(monitorID, entry.getKey());
+            final NetworkPeerIdentifier destination = entry.getKey();
+            Log.d(LOG_TAG, "Need to send a token to: " + destination + "\n    to gather information about these transitions: " + entry.getValue());
+            Token.Builder builder = new Token.Builder(monitorID, destination);
             for (Iterator<Token> it = pendingSend.iterator(); it.hasNext(); ) {
                 final Token token = it.next();
                 VectorClock.Comparison comparison = token.getCut().compareToClock(event.getVC());
-                if (token.getDestination().equals(entry.getKey())
+                if (token.getDestination().equals(destination)
                         && comparison == VectorClock.Comparison.EQUAL
-                        && token.getTargetEventId() == gv.getCut().process(entry.getKey()) + 1) {
+                        && token.getTargetEventId() == gv.getCut().process(destination) + 1) {
                     //Modify one of the pending tokens
                     builder = new Token.Builder(token);
                     it.remove();
@@ -417,7 +418,7 @@ public class Monitor extends Service {
             final Set<Conjunct> conjuncts = new HashSet<>();
             for (AutomatonTransition transition : entry.getValue()) {
                 for (Conjunct conjunct : transition.getConjuncts()) {
-                    if (conjunct.getOwnerProcess().equals(entry.getKey())) {
+                    if (conjunct.getOwnerProcess().equals(destination)) {
                         conjuncts.add(conjunct);
                     }
                 }
@@ -428,7 +429,7 @@ public class Monitor extends Service {
             for (final Conjunct conjunct : conjuncts) {
                 forToken.put(conjunct, Conjunct.Evaluation.NONE);
             }
-            final Token token = builder.targetEventId(gv.getCut().process(entry.getKey()) + 1)
+            final Token token = builder.targetEventId(gv.getCut().process(destination) + 1)
                     .cut(event.getVC()).conjuncts(forToken).automatonTransitions(entry.getValue())
                     .build();
             pendingSend.add(token);
