@@ -18,6 +18,7 @@ import lombok.ToString;
 /* Class to represent the local view of the global state.*/
 @ToString
 public class GlobalView {
+    // FIXME: Storing these like this is needlessly error prone. Should probably be a set.
     private final Map<NetworkPeerIdentifier, ProcessState> states = new HashMap<>();
     @NonNull private VectorClock cut;
     @NonNull private AutomatonState currentState;
@@ -30,6 +31,9 @@ public class GlobalView {
 
     public GlobalView(@NonNull final GlobalView gv) {
         this.states.putAll(gv.states);
+        for (Map.Entry<NetworkPeerIdentifier, ProcessState> entry : gv.states.entrySet()) {
+            this.states.put(entry.getKey(), new ProcessState(entry.getValue()));
+        }
         this.cut = new VectorClock(gv.cut);
         this.currentState = new AutomatonState(gv.currentState);
         this.pendingEvents.addAll(gv.pendingEvents);
@@ -193,7 +197,7 @@ public class GlobalView {
             }
             updatedCut = updatedCut.merge(token.getCut());
             @NonNull final ProcessState targetState = token.getTargetProcessState();
-            updatedStates.put(token.getOwner(), targetState);
+            updatedStates.put(targetState.getId(), targetState);
         }
         this.cut = updatedCut;
         this.states.putAll(updatedStates);

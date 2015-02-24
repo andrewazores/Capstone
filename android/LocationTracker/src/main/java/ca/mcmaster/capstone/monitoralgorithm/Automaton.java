@@ -102,7 +102,7 @@ public class Automaton {
                     Log.e(LOG_TAG, e.getLocalizedMessage());
                 }
                 if (evaluation) {
-                    Log.d(LOG_TAG, "Advanced to state: " + transition.getTo().getStateName());
+                    Log.d(LOG_TAG, "Advanced along transition: " + transition.toString());
                     return transition.getTo();
                 }
             }

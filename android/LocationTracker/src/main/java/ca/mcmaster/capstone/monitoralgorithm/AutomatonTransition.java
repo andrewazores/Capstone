@@ -22,9 +22,9 @@ import lombok.ToString;
 public class AutomatonTransition {
     public static String LOG_TAG = "AutomatonTransition";
 
-    @NonNull @Getter private AutomatonState from;
-    @NonNull @Getter private AutomatonState to;
-    private List<Conjunct> conjuncts = new ArrayList<>();
+    @NonNull @Getter private final AutomatonState from;
+    @NonNull @Getter private final AutomatonState to;
+    private final List<Conjunct> conjuncts = new ArrayList<>();
 
     public AutomatonTransition(@NonNull final AutomatonState from, @NonNull final AutomatonState to, @NonNull final List<Conjunct> conjuncts) {
         this.from = from;

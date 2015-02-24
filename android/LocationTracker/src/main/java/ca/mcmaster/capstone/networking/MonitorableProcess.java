@@ -29,7 +29,7 @@ import lombok.NonNull;
 
 public abstract class MonitorableProcess extends Activity implements MonitorSatisfactionStateListener, MessageReceiver {
 
-    protected static final int HEARTBEAT_INTERVAL = 500;
+    protected static final int HEARTBEAT_INTERVAL = 3000;
 
     protected final NetworkServiceConnection networkServiceConnection = new NetworkServiceConnection();
     protected final InitializerServiceConnection initializerServiceConnection = new InitializerServiceConnection();
@@ -69,6 +69,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
 
     protected void broadcastHeartbeat() {
         waitForNetworkLayer();
+        messageVectorClock.incrementProcess(localPeerIdentifier);
         networkServiceConnection.getService().broadcastMessage(
                 new Message(localPeerIdentifier, messageVectorClock, "ticktock")
         );
@@ -79,9 +80,9 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
         final Valuation valuation = new Valuation(new HashMap<String, Double>() {{
             put(MonitorableProcess.this.variableName, value);
         }});
-        final int logicalTime = messageVectorClock.incrementProcess(localPeerIdentifier);
-        final Event e = new Event(logicalTime, localPeerIdentifier, type, valuation, messageVectorClock);
-        if (messageVectorClock.process(localPeerIdentifier) != 0) {
+        int eid = messageVectorClock.process(localPeerIdentifier);
+        final Event e = new Event(eid, localPeerIdentifier, type, valuation, messageVectorClock);
+        if (eid != 0) {
             showToast("Event has left the building");
             networkServiceConnection.getService().sendEventToMonitor(e);
         }
@@ -101,6 +102,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
 
     @Override
     public void receiveMessage(@NonNull final Message message) {
+        messageVectorClock.incrementProcess(localPeerIdentifier);
         messageVectorClock = messageVectorClock.merge(message.getVectorClock());
         onReceiveMessage(message);
     }

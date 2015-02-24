@@ -1,5 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import android.util.Log;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,6 +18,8 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Token {
     public static class Builder {
+        public final static String LOG_TAG = "Token.Builder";
+
         private final int uniqueLocalIdentifier;
         private final NetworkPeerIdentifier owner;
         private final NetworkPeerIdentifier destination;
@@ -75,7 +79,13 @@ public class Token {
         }
 
         public Builder conjuncts(@NonNull final Map<Conjunct, Conjunct.Evaluation> conjuncts) {
-            this.conjuncts.putAll(conjuncts);
+            for (Map.Entry<Conjunct, Conjunct.Evaluation> entry : conjuncts.entrySet()) {
+                if (!entry.getKey().getOwnerProcess().equals(this.destination)) {
+                    Log.e(LOG_TAG, "Tried to add a conjunct not owned by this token's destination.");
+                } else {
+                    this.conjuncts.put(entry.getKey(), entry.getValue());
+                }
+            }
             return this;
         }
 
