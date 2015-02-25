@@ -55,13 +55,27 @@ public class Monitor extends Service {
             return new HashSet(tokensToSendOut);
         }
 
+        private static void removeOldCopyOfOutgoingToken(Token token) {
+            for (Token localToken : Collections.unmodifiableSet(tokensToSendOut)) {
+                if (token.getUniqueLocalIdentifier() == localToken.getUniqueLocalIdentifier()
+                        && token.getOwner().equals(localToken.getOwner())) {
+                    // Then token is a modified version of localToken. localToken must be replaced with token.
+                    tokensToSendOut.remove(localToken);
+                }
+            }
+        }
+
         private static synchronized void bulkTokenSendOut(final Set<Token> tokens) {
             Log.d(LOG_TAG, "Queued the following tokens to send out: " + tokens.toString());
+            for (Token token : tokens) {
+                removeOldCopyOfOutgoingToken(token);
+            }
             tokensToSendOut.addAll(tokens);
         }
 
         private static synchronized void sendTokenOut(final Token token) {
             Log.d(LOG_TAG, "Queued the following token to send out." + token.toString());
+            removeOldCopyOfOutgoingToken(token);
             tokensToSendOut.add(token);
         }
 
