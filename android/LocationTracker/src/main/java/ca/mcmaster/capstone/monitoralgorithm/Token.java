@@ -15,7 +15,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 /* Class to represent the computation slicing tokens.*/
-@EqualsAndHashCode
 public class Token {
     public static class Builder {
         public final static String LOG_TAG = "Token.Builder";
@@ -188,5 +187,25 @@ public class Token {
                 ", returned=" + returned +
                 ", sent=" + sent +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Token token = (Token) o;
+
+        if (uniqueLocalIdentifier != token.uniqueLocalIdentifier) return false;
+        if (!owner.equals(token.owner)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = uniqueLocalIdentifier;
+        result = 31 * result + owner.hashCode();
+        return result;
     }
 }
