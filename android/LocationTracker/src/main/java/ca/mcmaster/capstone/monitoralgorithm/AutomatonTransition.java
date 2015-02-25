@@ -112,6 +112,7 @@ public class AutomatonTransition {
             Log.e(LOG_TAG, e.getLocalizedMessage());
         }
 
+        Log.d(LOG_TAG, "Transition: " + this + "\nevaluates to: " + evaluation);
         return evaluation;
     }
 

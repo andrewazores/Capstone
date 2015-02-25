@@ -1,5 +1,7 @@
 package ca.mcmaster.capstone.monitoralgorithm;
 
+import android.util.Log;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +20,8 @@ import lombok.ToString;
 /* Class to represent the local view of the global state.*/
 @ToString
 public class GlobalView {
+    private static final String LOG_TAG = "GlobalView";
+
     // FIXME: Storing these like this is needlessly error prone. Should probably be a set.
     private final Map<NetworkPeerIdentifier, ProcessState> states = new HashMap<>();
     @NonNull private VectorClock cut;
@@ -238,6 +242,7 @@ public class GlobalView {
             for (ProcessState state2 : statesToCheck) {
                 if (!state1.equals(state2)) {
                     VectorClock.Comparison comp = state1.getVC().compareToClock(state2.getVC());
+                    Log.d(LOG_TAG, "Comparing: " + state1.getVC() + "\nto           " + state2.getVC() + "\nreturned: " + comp);
                     if (comp != VectorClock.Comparison.CONCURRENT
                             && comp != VectorClock.Comparison.EQUAL) {
                         return false;
