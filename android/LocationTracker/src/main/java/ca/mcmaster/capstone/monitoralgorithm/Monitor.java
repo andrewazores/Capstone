@@ -459,7 +459,7 @@ public class Monitor extends Service {
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
                     for (Token tok : tokens) {
                         if (!tok.isReturned()) {
-                            Log.d(LOG_TAG, "Not all tokens for this transition have been returned.");
+                            Log.d(LOG_TAG, "Not all tokens for this transition have been returned. Could not find: " + tok);
                             return;
                         }
                     }
