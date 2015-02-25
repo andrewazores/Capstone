@@ -98,6 +98,7 @@ public class GlobalView {
 
     public void removePendingTransition(AutomatonTransition trans) {
         pendingTransitions.remove(trans);
+        removeTokensForTransition(trans);
     }
 
     /*
@@ -165,6 +166,24 @@ public class GlobalView {
             }
         }
         return ret;
+    }
+
+    /*
+     * Removes all tokens in the global view that are associated with a particular transition.
+     *
+     * @param transition The transition to match tokens against.
+     */
+    public void removeTokensForTransition(@NonNull final AutomatonTransition transition) {
+        final List<Conjunct> transConjuncts = transition.getConjuncts();
+        for (final Iterator<Token> it = this.tokens.iterator(); it.hasNext(); ) {
+            final Token token = it.next();
+            for (final Conjunct conjunct : token.getConjuncts()) {
+                if (transConjuncts.contains(conjunct)) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
     }
 
     /*

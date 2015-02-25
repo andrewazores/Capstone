@@ -467,13 +467,13 @@ public class Monitor extends Service {
                         hasEnabled |= true;
                         Log.d(LOG_TAG, "The transition is enabled and the global view is consistent.");
                         globalView.reduceStateFromTokens(tokens);
+                        globalView.removePendingTransition(trans);
                         final GlobalView gvn1 = new GlobalView(globalView);
                         final GlobalView gvn2 = new GlobalView(globalView);
                         gvn1.setCurrentState(trans.getTo());
                         gvn2.setCurrentState(trans.getTo());
                         gvn1.setTokens(new ArrayList<>());
                         gvn2.setTokens(new ArrayList<>());
-                        globalView.getPendingTransitions().remove(trans);
                         synchronized (GV) {
                             GV.add(gvn1);
                             Log.d(LOG_TAG, "gvn1: " + gvn1.toString());
@@ -505,7 +505,9 @@ public class Monitor extends Service {
                     }
                 } else {
                     final Token maxConjuncts = globalView.getTokenWithMostConjuncts();
-                    TokenSender.sendTokenOut(maxConjuncts);
+                    if (maxConjuncts != null) {
+                        TokenSender.sendTokenOut(maxConjuncts);
+                    }
                 }
             }
         } else {
