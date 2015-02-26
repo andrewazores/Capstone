@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -98,7 +99,17 @@ public class GlobalView {
 
     public void removePendingTransition(AutomatonTransition trans) {
         pendingTransitions.remove(trans);
-        removeTokensForTransition(trans);
+        // Remove the transition from all tokens
+        final Set<Token> iterationSet = Collections.unmodifiableSet(this.tokens);
+        for (final Token token : iterationSet) {
+            final Set<AutomatonTransition> transitions = token.getAutomatonTransitions();
+            transitions.remove(trans);
+            this.tokens.remove(token);
+            // If the set of transitions is empty then this token is useless so don't bother re-adding it.
+            if (!transitions.isEmpty()) {
+                this.tokens.add(new Token.Builder(token).automatonTransitions(transitions).build());
+            }
+        }
     }
 
     /*
@@ -166,24 +177,6 @@ public class GlobalView {
             }
         }
         return ret;
-    }
-
-    /*
-     * Removes all tokens in the global view that are associated with a particular transition.
-     *
-     * @param transition The transition to match tokens against.
-     */
-    public void removeTokensForTransition(@NonNull final AutomatonTransition transition) {
-        final List<Conjunct> transConjuncts = transition.getConjuncts();
-        for (final Iterator<Token> it = this.tokens.iterator(); it.hasNext(); ) {
-            final Token token = it.next();
-            for (final Conjunct conjunct : token.getConjuncts()) {
-                if (transConjuncts.contains(conjunct)) {
-                    it.remove();
-                    break;
-                }
-            }
-        }
     }
 
     /*
