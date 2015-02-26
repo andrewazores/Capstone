@@ -487,7 +487,7 @@ public class Monitor extends Service {
                             processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
                         }
                     } else {
-                        Log.d("moonitor", "Removing a pending transition from the global view.");
+                        Log.d(LOG_TAG, "Removing a pending transition from the global view.");
                         globalView.removePendingTransition(trans);
                         globalView.removeTokensForTransition(trans);
                     }
