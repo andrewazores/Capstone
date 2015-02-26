@@ -73,6 +73,7 @@ public class Token {
         }
 
         public Builder automatonTransitions(@NonNull final Set<AutomatonTransition> transitions) {
+            this.automatonTransitions.clear();
             this.automatonTransitions.addAll(transitions);
             return this;
         }
