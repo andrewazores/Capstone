@@ -344,6 +344,7 @@ public class Monitor extends Service {
 
         // Send all waiting tokens home with the local state
         synchronized (waitingTokens) {
+            Log.d(LOG_TAG, "Size of waiting tokens: " + waitingTokens.size());
             for (Token token : waitingTokens) {
                 TokenSender.sendTokenHome(new Token.Builder(token).cut(token.getCut().merge(gv.getCut()))
                         .targetProcessState(gv.getStates().get(monitorID)).build());
@@ -352,7 +353,7 @@ public class Monitor extends Service {
         }
         TokenSender.bulkSendTokens();
         cancelled = true;
-        workQueue.shutdownNow();
+        workQueue.shutdown();
         monitorJob.cancel(false);
         tokenPollJob.cancel(false);
         eventPollJob.cancel(false);
