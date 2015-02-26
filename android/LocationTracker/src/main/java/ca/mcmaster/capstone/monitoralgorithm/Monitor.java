@@ -458,7 +458,7 @@ public class Monitor extends Service {
                 Set<AutomatonTransition> iterationTransitions = Collections.unmodifiableSet(token.getAutomatonTransitions());
                 for (final AutomatonTransition trans : iterationTransitions) {
                     Log.d(LOG_TAG, "Checking if transition is enabled: " + trans.toString());
-                    if (globalView.areAllTokensReturned(trans)) {
+                    if (!globalView.areAllTokensReturned(trans)) {
                         continue;
                     }
                     // Get other tokens for same transition
