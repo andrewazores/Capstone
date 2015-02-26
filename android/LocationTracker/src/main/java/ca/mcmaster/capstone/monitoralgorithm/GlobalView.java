@@ -112,6 +112,16 @@ public class GlobalView {
         }
     }
 
+    public boolean areAllTokensReturned(AutomatonTransition transition) {
+        for (Token tok : tokens) {
+            if (!tok.isReturned()) {
+                Log.d(LOG_TAG, "Not all tokens for this transition have been returned. Could not find: " + tok);
+                return false;
+            }
+        }
+        return true;
+    }
+
     /*
      * Finds token in the list of sent tokens and updates it with the
      * information collected at the target process.
