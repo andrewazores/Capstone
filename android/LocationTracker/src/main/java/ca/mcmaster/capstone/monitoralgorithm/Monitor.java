@@ -466,6 +466,7 @@ public class Monitor extends Service {
                         Log.d(LOG_TAG, "The transition is enabled and the global view is consistent.");
                         globalView.reduceStateFromTokens(tokens);
                         globalView.removePendingTransition(trans);
+                        globalView.removeTokensForTransition(trans);
                         final GlobalView gvn1 = new GlobalView(globalView);
                         final GlobalView gvn2 = new GlobalView(globalView);
                         gvn1.setCurrentState(trans.getTo());
@@ -486,6 +487,7 @@ public class Monitor extends Service {
                     } else {
                         Log.d("moonitor", "Removing a pending transition from the global view.");
                         globalView.removePendingTransition(trans);
+                        globalView.removeTokensForTransition(trans);
                     }
                 }
                 if (globalView.getPendingTransitions().isEmpty()) {

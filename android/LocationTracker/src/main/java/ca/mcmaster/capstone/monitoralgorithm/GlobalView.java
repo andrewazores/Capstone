@@ -99,11 +99,19 @@ public class GlobalView {
 
     public void removePendingTransition(AutomatonTransition trans) {
         pendingTransitions.remove(trans);
-        // Remove the transition from all tokens
+    }
+
+    /*
+     * This method removes tokens that contain transition and replace them with a token that does not
+     * contain that transition. If the new token would have no transitions, it is not added.
+     *
+     * @param transition The transition to look for.
+     */
+    public void removeTokensForTransition(AutomatonTransition transition) {
         final Set<Token> iterationSet = Collections.unmodifiableSet(this.tokens);
         for (final Token token : iterationSet) {
             final Set<AutomatonTransition> transitions = token.getAutomatonTransitions();
-            transitions.remove(trans);
+            transitions.remove(transition);
             this.tokens.remove(token);
             // If the set of transitions is empty then this token is useless so don't bother re-adding it.
             if (!transitions.isEmpty()) {
