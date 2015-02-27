@@ -127,9 +127,9 @@ public class GlobalView {
      * @return True if all tokens that contain transition have been returned from their destination. False otherwise.
      */
     public boolean areAllTokensReturned(AutomatonTransition transition) {
-        for (Token tok : tokens) {
-            if (!tok.isReturned()) {
-                Log.d(LOG_TAG, "Not all tokens for this transition have been returned. Could not find: " + tok);
+        for (Token token : tokens) {
+            if (token.getAutomatonTransitions().contains(transition) && !token.isReturned()) {
+                Log.d(LOG_TAG, "Not all tokens for this transition have been returned. Could not find: " + token);
                 return false;
             }
         }
