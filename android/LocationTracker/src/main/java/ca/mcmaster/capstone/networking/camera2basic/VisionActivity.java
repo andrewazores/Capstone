@@ -51,7 +51,10 @@ public class VisionActivity extends MonitorableProcess implements VisionStatusLi
     public void onNetworkServiceDisconnection() {}
 
     @Override
-    public void onInitializerServiceConnection() {}
+    public void onInitializerServiceConnection() {
+        messageVectorClock.incrementProcess(localPeerIdentifier);
+        sendEvent(0, Event.EventType.INTERNAL);
+    }
 
     @Override
     public void onInitializerServiceDisconnection() {}
@@ -61,7 +64,7 @@ public class VisionActivity extends MonitorableProcess implements VisionStatusLi
         log("Found a circle");
         showToast("Found a circle at " + circle.getCentre() + " with radius " + circle.getRadius());
         messageVectorClock.incrementProcess(localPeerIdentifier);
-        sendEvent(1, Event.EventType.INTERNAL);
+        sendEvent( 1, Event.EventType.INTERNAL);
     }
 
     @Override
