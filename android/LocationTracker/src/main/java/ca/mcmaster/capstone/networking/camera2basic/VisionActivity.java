@@ -60,6 +60,7 @@ public class VisionActivity extends MonitorableProcess implements VisionStatusLi
     public void onCircleFound(@NonNull final Circle circle) {
         log("Found a circle");
         showToast("Found a circle at " + circle.getCentre() + " with radius " + circle.getRadius());
+        messageVectorClock.incrementProcess(localPeerIdentifier);
         sendEvent(1, Event.EventType.INTERNAL);
     }
 
@@ -67,6 +68,7 @@ public class VisionActivity extends MonitorableProcess implements VisionStatusLi
     public void onCircleLost(@NonNull final Circle circle) {
         log("Lost a circle");
         showToast("Lost a circle at " + circle.getCentre() + " with radius " + circle.getRadius());
+        messageVectorClock.incrementProcess(localPeerIdentifier);
         sendEvent(0, Event.EventType.INTERNAL);
     }
 
