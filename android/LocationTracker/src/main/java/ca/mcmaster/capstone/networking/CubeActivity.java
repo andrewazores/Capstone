@@ -107,9 +107,7 @@ public class CubeActivity extends MonitorableProcess {
     @Override
     public void onInitializerServiceConnection() {
         setLabelText("indeterminate");
-        if (variableName.equals("x1")) {
-            startHeartbeat(this::broadcastHeartbeat);
-        }
+        //startHeartbeat(this::broadcastHeartbeat);
         messageVectorClock.incrementProcess(localPeerIdentifier);
         sendEvent(flat, Event.EventType.INTERNAL);
     }
@@ -126,7 +124,7 @@ public class CubeActivity extends MonitorableProcess {
     @Override
     public final void broadcastHeartbeat() {
         super.broadcastHeartbeat();
-        sendEvent(flat, Event.EventType.SEND);
+        //sendEvent(flat, Event.EventType.SEND);
     }
 
     private class GravitySensorEventListener implements SensorEventListener {

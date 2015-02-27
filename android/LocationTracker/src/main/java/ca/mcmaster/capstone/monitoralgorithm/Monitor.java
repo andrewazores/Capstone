@@ -352,11 +352,6 @@ public class Monitor extends Service {
             waitingTokens.clear();
         }
         TokenSender.bulkSendTokens();
-        cancelled = true;
-        workQueue.shutdown();
-        monitorJob.cancel(false);
-        tokenPollJob.cancel(false);
-        eventPollJob.cancel(false);
     }
 
     /*

@@ -69,7 +69,7 @@ public abstract class MonitorableProcess extends Activity implements MonitorSati
 
     protected void broadcastHeartbeat() {
         waitForNetworkLayer();
-        messageVectorClock.incrementProcess(localPeerIdentifier);
+        //messageVectorClock.incrementProcess(localPeerIdentifier);
         networkServiceConnection.getService().broadcastMessage(
                 new Message(localPeerIdentifier, messageVectorClock, "ticktock")
         );
