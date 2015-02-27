@@ -239,8 +239,8 @@ public class Camera2BasicFragment extends Fragment {
                 20, //Minimum distance between the centers of the detected circles
                 48, //Higher threshold for canny edge detector
                 48, //Threshold at the center detection stage
-                20, //min radius
-                200 //max radius
+                (int) (Math.min(mTextureView.getWidth(), mTextureView.getHeight()) / Math.pow(CAMERA_CV_SCALING_FACTOR, 2)), //min radius
+                Math.max(mTextureView.getWidth(), mTextureView.getHeight()) //max radius
         );
 
         final int numCircles = circles.total();
@@ -270,10 +270,10 @@ public class Camera2BasicFragment extends Fragment {
         image.close();
     }
 
-    private static boolean probablySameCircle(final Circle left, final Circle right) {
+    private boolean probablySameCircle(final Circle left, final Circle right) {
         // TODO: take into account radii as well
-        final boolean centreXmatch = Math.abs(left.getCentre().getX() - right.getCentre().getX()) < 200;
-        final boolean centreYmatch = Math.abs(left.getCentre().getY() - right.getCentre().getY()) < 200;
+        final boolean centreXmatch = Math.abs(left.getCentre().getX() - right.getCentre().getX()) < Math.min(mTextureView.getWidth(), mTextureView.getHeight());
+        final boolean centreYmatch = Math.abs(left.getCentre().getY() - right.getCentre().getY()) < Math.min(mTextureView.getWidth(), mTextureView.getHeight());
         final boolean centreMatch = centreXmatch && centreYmatch;
         return centreMatch;
     };
