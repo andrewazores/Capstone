@@ -108,7 +108,7 @@ public class GlobalView {
      * @param transition The transition to look for.
      */
     public void removeTokensForTransition(AutomatonTransition transition) {
-        final Set<Token> iterationSet = Collections.unmodifiableSet(this.tokens);
+        final Set<Token> iterationSet = Collections.unmodifiableSet(new HashSet<>(this.tokens));
         for (final Token token : iterationSet) {
             final Set<AutomatonTransition> transitions = token.getAutomatonTransitions();
             transitions.remove(transition);
