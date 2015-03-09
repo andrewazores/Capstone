@@ -14,7 +14,7 @@ for line in "${lines[@]}"; do
     done
 done
 echo $largest;
-if [ $1 != "" ]; then
+if [ -n "${1:+x}" ]; then
     adb pull /mnt/sdcard/Logs/logcat_$largest.log $1;
 else
     adb pull /mnt/sdcard/Logs/logcat_$largest.log .;
