@@ -257,9 +257,10 @@ public class GlobalView {
         Log.d(LOG_TAG, "Checking the consistency of " + statesToCheck);
 
         // Compare the vector clock of each states
-        // FIXME: stop double checking earlier pairs of states.
-        for (ProcessState state1 : statesToCheck) {
-            for (ProcessState state2 : statesToCheck) {
+        for (Iterator <ProcessState> it1 = statesToCheck.iterator(); it1.hasNext(); ) {
+            ProcessState state1 = it1.next();
+            for (Iterator <ProcessState> it2 = it1; it2.hasNext(); ) {
+                ProcessState state2 = it2.next();
                 if (!state1.equals(state2)) {
                     VectorClock.Comparison comp = state1.getVC().compareToClock(state2.getVC());
                     Log.d(LOG_TAG, "Comparing: " + state1 + "\nto         " + state2 + "\nreturned: " + comp);
