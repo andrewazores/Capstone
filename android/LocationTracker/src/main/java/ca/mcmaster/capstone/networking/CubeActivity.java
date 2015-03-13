@@ -107,9 +107,7 @@ public class CubeActivity extends MonitorableProcess {
     @Override
     public void onInitializerServiceConnection() {
         setLabelText("indeterminate");
-        if (variableName.equals("x1")) {
-            startHeartbeat(this::broadcastHeartbeat);
-        }
+        startHeartbeat(this::broadcastHeartbeat);
         messageVectorClock.incrementProcess(localPeerIdentifier);
         sendEvent(flat, Event.EventType.INTERNAL);
     }
