@@ -450,31 +450,23 @@ public class Monitor extends Service {
     public void receiveToken(@NonNull final Token token) {
         Log.d(LOG_TAG, "Entering receiveToken. Token: " + token.toString());
         if (token.getOwner().equals(monitorID)) {
-            final List<GlobalView> globalViews = getGlobalView(token);
-            for (final GlobalView globalView : globalViews) {
-                globalView.updateWithToken(token);
-                boolean hasEnabled = false;
-                for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
+            final GlobalView globalView = getGlobalView(token);
+            globalView.updateWithToken(token);
+            for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
+                if (globalView.areAllTokensReturned(trans)) {
                     Log.d(LOG_TAG, "Checking if transition is enabled: " + trans.toString());
-                    // Get other tokens for same transition
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
-                    for (Token tok : tokens) {
-                        if (!tok.isReturned()) {
-                            Log.d(LOG_TAG, "Not all tokens for this transition have been returned. Could not find: " + tok);
-                            return;
-                        }
-                    }
                     if (trans.enabled(globalView, tokens) && globalView.consistent(trans)) {
-                        hasEnabled |= true;
                         Log.d(LOG_TAG, "The transition is enabled and the global view is consistent.");
                         globalView.reduceStateFromTokens(tokens);
                         globalView.removePendingTransition(trans);
+                        globalView.removeTokensForTransition(trans);
                         final GlobalView gvn1 = new GlobalView(globalView);
                         final GlobalView gvn2 = new GlobalView(globalView);
                         gvn1.setCurrentState(trans.getTo());
                         gvn2.setCurrentState(trans.getTo());
-                        gvn1.setTokens(new ArrayList<>());
-                        gvn2.setTokens(new ArrayList<>());
+                        gvn1.clearTokens();
+                        gvn2.clearTokens();
                         synchronized (GV) {
                             GV.add(gvn1);
                             Log.d(LOG_TAG, "gvn1: " + gvn1.toString());
@@ -484,30 +476,18 @@ public class Monitor extends Service {
                         handleMonitorStateChange(gvn1);
                         processEvent(gvn1, gvn1.getPendingEvents().remove());
                         synchronized (history) {
+                            //TODO: gvn2 should be deleted if processing this event does not result in a transition
                             processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
                         }
-                    } else {
-                        Log.d("moonitor", "Removing a pending transition from the global view.");
-                        globalView.removePendingTransition(trans);
-                    }
-                }
-                if (globalView.getPendingTransitions().isEmpty()) {
-                    if (hasEnabled) {
                         synchronized (GV) {
-                            Log.d(LOG_TAG, "Removing a global view.");
                             GV.remove(globalView);
                         }
                     } else {
-                        globalView.setTokens(new ArrayList<>());
-                        while (!globalView.getPendingEvents().isEmpty()) {
-                            Log.d(LOG_TAG, "Processing pending event");
+                        Log.d(LOG_TAG, "No transition was enabled. Processing next pending event.");
+                        globalView.clearTokens();
+                        if (!globalView.getPendingEvents().isEmpty()) {
                             processEvent(globalView, globalView.getPendingEvents().remove());
                         }
-                    }
-                } else {
-                    final Token maxConjuncts = globalView.getTokenWithMostConjuncts();
-                    if (maxConjuncts != null) {
-                        TokenSender.sendTokenOut(maxConjuncts);
                     }
                 }
             }
