@@ -9,9 +9,11 @@ for file in "${files[@]}"; do
 
     for line in "${lines[@]}"; do
         echo $line;
-        var=$(echo $(echo $line | cut -d':' -f4) | cut -c1-3);
+        var=$(echo $(echo $line | cut -d':' -f4) | cut -c2-3);
         name=$(echo $(echo $line | cut -d':' -f5) | cut -d',' -f1);
-        echo "var: $(echo $var | tr -d [:space:]), name: $name";
+        # remove leading space from build serial
+        name=$(echo $name | tr -d [:space:]);
+        echo "var: $var, name: $name";
         sed -i "s/$name/$var/" "$file"
     done
 done
