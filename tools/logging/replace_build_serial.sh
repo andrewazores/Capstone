@@ -16,4 +16,8 @@ for file in "${files[@]}"; do
         echo "var: $var, name: $name";
         sed -i "s/$name/$var/" "$file"
     done
+
+    line=$(grep "I am x[0-9]!" $file);
+    pid=$(echo $(echo $line | cut -d':' -f4) | cut -c7-8);
+    mv $file $pid.log;
 done
