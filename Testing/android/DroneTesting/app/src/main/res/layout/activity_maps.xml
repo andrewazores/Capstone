@@ -1,7 +1,23 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="capstone.dronetesting.FlightActivity"
+    android:name="com.google.android.gms.maps.SupportMapFragment"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <fragment
           android:layout_width="match_parent"
           android:layout_height="match_parent"
-          android:id="@+id/map"
-          tools:context="capstone.dronetesting.FlightActivity"
-          android:name="com.google.android.gms.maps.SupportMapFragment"/>
+          android:id="@+id/map"/>
+
+    <fragment
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:name="capstone.dronetesting.CopterFlightActionsFragment"
+        android:id="@+id/fragment"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="90dp" />
+
+</RelativeLayout>
