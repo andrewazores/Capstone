@@ -112,6 +112,22 @@ public class GlobalView {
     }
 
     /*
+     * This method checks if all tokens that contain transition have been returned from their destination.
+     *
+     * @param transition The transition to look for.
+     * @return True if all tokens that contain transition have been returned from their destination. False otherwise.
+     */
+    public boolean areAllTokensReturned(AutomatonTransition transition) {
+        for (Token token : tokens) {
+            if (token.getAutomatonTransitions().contains(transition) && !token.isReturned()) {
+                Log.d(LOG_TAG, "Not all tokens for this transition have been returned. Could not find: " + token);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /*
      * Finds token in the list of sent tokens and updates it with the
      * information collected at the target process.
      *
