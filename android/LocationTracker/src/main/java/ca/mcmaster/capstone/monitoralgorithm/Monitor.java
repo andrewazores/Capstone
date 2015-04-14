@@ -477,7 +477,6 @@ public class Monitor extends Service {
                     }
                     // Whether the transition is enabled or not it no longer needs to be considered so remove it and any tokens with no more transitions
                     globalView.removePendingTransition(trans);
-                    globalView.removeTokensForTransition(trans);
                 }
             }
             if (globalView.getPendingTransitions().isEmpty()) {
