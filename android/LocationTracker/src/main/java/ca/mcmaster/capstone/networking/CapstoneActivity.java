@@ -135,7 +135,7 @@ public class CapstoneActivity extends Activity implements NpiUpdateCallbackRecei
         final String fileName = "Logs/logcat_" + System.currentTimeMillis() + ".log";
         final File outputFile = new File(Environment.getExternalStorageDirectory(), fileName);
         try {
-            String[] commands = {"sh",  "-c", "logcat -v time  > " + outputFile.getAbsolutePath()};
+            String[] commands = {"sh",  "-c", "logcat -c; logcat -v time  > " + outputFile.getAbsolutePath()};
             logging = java.lang.Runtime.getRuntime().exec(commands);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error executing logcat: " + e.getLocalizedMessage());
