@@ -452,15 +452,15 @@ public class Monitor extends Service {
         if (token.getOwner().equals(monitorID)) {
             final GlobalView globalView = getGlobalView(token);
             globalView.updateWithToken(token);
+            boolean hasEnabled = false;
             for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
+                Log.d(LOG_TAG, "Checking if transition is enabled: " + trans.toString());
                 if (globalView.areAllTokensReturned(trans)) {
-                    Log.d(LOG_TAG, "Checking if transition is enabled: " + trans.toString());
                     final List<Token> tokens = globalView.getTokensForTransition(trans);
                     if (trans.enabled(globalView, tokens) && globalView.consistent(trans)) {
+                        hasEnabled = true;
                         Log.d(LOG_TAG, "The transition is enabled and the global view is consistent.");
                         globalView.reduceStateFromTokens(tokens);
-                        globalView.removePendingTransition(trans);
-                        globalView.removeTokensForTransition(trans);
                         final GlobalView gvn1 = new GlobalView(globalView);
                         final GlobalView gvn2 = new GlobalView(globalView);
                         gvn1.setCurrentState(trans.getTo());
@@ -479,16 +479,20 @@ public class Monitor extends Service {
                             //TODO: gvn2 should be deleted if processing this event does not result in a transition
                             processEvent(gvn2, history.get(gvn2.getCut().process(monitorID)));
                         }
-                        synchronized (GV) {
-                            GV.remove(globalView);
-                        }
-                    } else {
-                        Log.d(LOG_TAG, "No transition was enabled. Processing next pending event.");
-                        globalView.clearTokens();
-                        if (!globalView.getPendingEvents().isEmpty()) {
-                            processEvent(globalView, globalView.getPendingEvents().remove());
-                        }
                     }
+                    // Whether the transition is enabled or not it no longer needs to be considered so remove it and any tokens with no more transitions
+                    globalView.removePendingTransition(trans);
+                    globalView.removeTokensForTransition(trans);
+                }
+            }
+            if (globalView.getPendingTransitions().isEmpty()) {
+                if (hasEnabled) {
+                    synchronized (GV) {
+                        GV.remove(globalView);
+                    }
+                } else {
+                    globalView.clearTokens();
+                    processEvent(globalView, globalView.getPendingEvents().remove());
                 }
             }
         } else {
