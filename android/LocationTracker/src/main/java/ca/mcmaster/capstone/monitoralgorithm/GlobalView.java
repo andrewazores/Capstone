@@ -99,7 +99,7 @@ public class GlobalView {
     public void removePendingTransition(final AutomatonTransition trans) {
         pendingTransitions.remove(trans);
         // Remove the transition from all tokens
-        final Set<Token> iterationSet = Collections.unmodifiableSet(this.tokens);
+        final Set<Token> iterationSet = Collections.unmodifiableSet(new HashSet(this.tokens));
         for (final Token token : iterationSet) {
             final Set<AutomatonTransition> transitions = token.getAutomatonTransitions();
             transitions.remove(trans);
