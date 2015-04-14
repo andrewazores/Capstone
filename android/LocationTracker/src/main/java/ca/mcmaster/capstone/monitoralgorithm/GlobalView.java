@@ -36,7 +36,7 @@ public class GlobalView {
 
     public GlobalView(@NonNull final GlobalView gv) {
         this.states.putAll(gv.states);
-        for (Map.Entry<NetworkPeerIdentifier, ProcessState> entry : gv.states.entrySet()) {
+        for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : gv.states.entrySet()) {
             this.states.put(entry.getKey(), new ProcessState(entry.getValue()));
         }
         this.cut = new VectorClock(gv.cut);
@@ -92,11 +92,11 @@ public class GlobalView {
         return new ArrayList<>(pendingTransitions);
     }
 
-    public void addPendingTransition(AutomatonTransition trans) {
+    public void addPendingTransition(final AutomatonTransition trans) {
         pendingTransitions.add(trans);
     }
 
-    public void removePendingTransition(AutomatonTransition trans) {
+    public void removePendingTransition(final AutomatonTransition trans) {
         pendingTransitions.remove(trans);
         // Remove the transition from all tokens
         final Set<Token> iterationSet = Collections.unmodifiableSet(this.tokens);
@@ -119,7 +119,7 @@ public class GlobalView {
      */
     public void updateWithToken(@NonNull final Token token) {
         Token updatedToken = null;
-        for (Iterator<Token> it = this.tokens.iterator(); it.hasNext();) {
+        for (final Iterator<Token> it = this.tokens.iterator(); it.hasNext();) {
             Token tokenInGV = it.next();
             if (tokenInGV.getUniqueLocalIdentifier() == token.getUniqueLocalIdentifier()) {
                 updatedToken = new Token.Builder(tokenInGV).cut(token.getCut())
@@ -168,7 +168,7 @@ public class GlobalView {
      *
      * @return A set of process ids, for inconsistent processes.
      */
-    public Set<NetworkPeerIdentifier> getInconsistentProcesses(NetworkPeerIdentifier localProcessID) {
+    public Set<NetworkPeerIdentifier> getInconsistentProcesses(@NonNull final NetworkPeerIdentifier localProcessID) {
         final Set<NetworkPeerIdentifier> ret = new HashSet<>();
         final ProcessState localState = this.states.get(localProcessID);
         for (final Map.Entry<NetworkPeerIdentifier, ProcessState> entry : this.states.entrySet()) {
@@ -190,7 +190,7 @@ public class GlobalView {
     public void reduceStateFromTokens(final List<Token> tokens) throws IllegalArgumentException {
         VectorClock updatedCut = new VectorClock(this.cut);
         final Map<NetworkPeerIdentifier, ProcessState> updatedStates = new HashMap<>(this.states);
-        for (Token token : tokens) {
+        for (final Token token : tokens) {
             if (!token.isReturned()) {
                 throw new IllegalArgumentException("All tokens must be returned before the state can be reduced from them.");
             }
@@ -212,12 +212,12 @@ public class GlobalView {
      * @return   true if all vector clock comparisons return EQUAL or CONCURRENT
      */
     public boolean consistent(@NonNull final AutomatonTransition trans) {
-        Set<NetworkPeerIdentifier> participatingProcesses = trans.getParticipatingProcesses();
-        Set<ProcessState> statesToCheck = new HashSet<>();
+        final Set<NetworkPeerIdentifier> participatingProcesses = trans.getParticipatingProcesses();
+        final Set<ProcessState> statesToCheck = new HashSet<>();
 
         // Filter the states for the ones needed for this transition and use the state from any tokens
         // that have returned from the processes in question instead of the old state.
-        for (NetworkPeerIdentifier process : participatingProcesses) {
+        for (final NetworkPeerIdentifier process : participatingProcesses) {
             final ProcessState state = this.states.get(process);
             boolean useTokenState = false;
             Token newestTokenSeen = null;
@@ -240,12 +240,12 @@ public class GlobalView {
         Log.d(LOG_TAG, "Checking the consistency of " + statesToCheck);
 
         // Compare the vector clock of each states
-        for (Iterator <ProcessState> it1 = statesToCheck.iterator(); it1.hasNext(); ) {
-            ProcessState state1 = it1.next();
-            for (Iterator <ProcessState> it2 = it1; it2.hasNext(); ) {
-                ProcessState state2 = it2.next();
+        for (final Iterator <ProcessState> it1 = statesToCheck.iterator(); it1.hasNext(); ) {
+            final ProcessState state1 = it1.next();
+            for (final Iterator <ProcessState> it2 = it1; it2.hasNext(); ) {
+                final ProcessState state2 = it2.next();
                 if (!state1.equals(state2)) {
-                    VectorClock.Comparison comp = state1.getVC().compareToClock(state2.getVC());
+                    final VectorClock.Comparison comp = state1.getVC().compareToClock(state2.getVC());
                     Log.d(LOG_TAG, "Comparing: " + state1 + "\nto         " + state2 + "\nreturned: " + comp);
                     if (comp != VectorClock.Comparison.CONCURRENT
                             && comp != VectorClock.Comparison.EQUAL) {
