@@ -166,13 +166,9 @@ public class GlobalView {
      */
     public List<Token> getTokensForTransition(@NonNull final AutomatonTransition transition) {
         final List<Token> ret = new ArrayList<>();
-        final List<Conjunct> transConjuncts = transition.getConjuncts();
         for (final Token token : this.tokens) {
-            for (final Conjunct conjunct : token.getConjuncts()) {
-                if (transConjuncts.contains(conjunct)) {
-                    ret.add(token);
-                    break;
-                }
+            if (token.getAutomatonTransitions().contains(transition)) {
+                ret.add(token);
             }
         }
         return ret;
