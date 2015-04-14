@@ -143,22 +143,6 @@ public class GlobalView {
     }
 
     /*
-     * Finds the token that has the most conjuncts requested to be evaluated.
-     *
-     * @return A reference to The token with the most conjuncts requested to be evaluated, or null if
-     *         there are no tokens in this global view.
-     */
-    public Token getTokenWithMostConjuncts() {
-        Token ret = null;
-        for (final Token token : this.tokens) {
-            if (ret == null || token.getConjuncts().size() > ret.getConjuncts().size()) {
-                ret = token;
-            }
-        }
-        return ret;
-    }
-
-    /*
      * Gets all tokens in the global view that are associated with a particular transition.
      *
      * @param transition The transition to match tokens against.
