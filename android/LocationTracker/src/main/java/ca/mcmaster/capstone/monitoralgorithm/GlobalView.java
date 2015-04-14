@@ -74,9 +74,8 @@ public class GlobalView {
         return new HashSet<>(tokens);
     }
 
-    public void setTokens(@NonNull final List<Token> tokens) {
+    public void clearTokens() {
         this.tokens.clear();
-        this.tokens.addAll(tokens);
     }
 
     public void addTokens(@NonNull final List<Token> tokens) {
