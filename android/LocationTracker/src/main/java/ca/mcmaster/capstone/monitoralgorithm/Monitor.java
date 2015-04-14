@@ -572,23 +572,20 @@ public class Monitor extends Service {
     }
 
     /*
-     * Returns a list of global views that contain a copy of token.
+     * Returns the global view that contains token.
      *
      * @param token The token to search for.
-     * @return A list of GlobalViews that have a copy of token.
+     * @return A globalView
      */
-    private List<GlobalView> getGlobalView(@NonNull final Token token) {
-        final List<GlobalView> ret = new ArrayList<>();
+    private GlobalView getGlobalView(@NonNull final Token token) {
         synchronized (GV) {
             for (final GlobalView gv : GV) {
                 for (final Token t : gv.getTokens()) {
-                    if (token.getUniqueLocalIdentifier() == t.getUniqueLocalIdentifier()) {
-                        ret.add(gv);
-                        break;
+                    if (t.equals(token)) {
+                        return gv;
                     }
                 }
             }
         }
-        return ret;
     }
 }
