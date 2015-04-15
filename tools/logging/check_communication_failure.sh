@@ -5,15 +5,11 @@ lines=($(ls -1 *.log));
 
 for file in "${lines[@]}"; do
     echo $file;
-    tokensSent=$(grep "Sending a token\." $file)
-    uIDs=($(egrep -o "uniqueLocalIdentifier=[0-9]+" <<< "$tokensSent"));
-    owners=($(egrep -o "owner={serviceName='x[0-9]'" <<< "$tokensSent"));
-    destinations=($(egrep -o "destination={serviceName='x[0-9]'" <<< "$tokensSent"));
-    for ((i = 0; i < ${#uIDs[@]}; i++)); do
-        id=${uIDs[i]};
-        owner=${owners[i]};
-        destination=$(echo ${destinations[i]} | cut -c27-28);
-        fileToCheck=$destination.log;
+    tokensSent=($(grep "Sending a token\." $file))
+    for ((i = 0; i < ${#tokensSent[@]}; i++)); do
+        id=$(egrep -o "uniqueLocalIdentifier=[0-9]+" <<< "${tokensSent[i]}");
+        owner=$(egrep -o "owner={serviceName='x[0-9]'" <<< "${tokensSent[i]}");
+        fileToCheck=$(echo $(egrep -o "destination={serviceName='x[0-9]'" <<< "${tokensSent[i]}") | cut -c27-28).log;
         pattern="receiveTokenInternal: Token{$id, $owner"
         receiveToken="Entering receiveToken. Token: Token{$id, $owner"
         if grep -q $pattern $fileToCheck; then
