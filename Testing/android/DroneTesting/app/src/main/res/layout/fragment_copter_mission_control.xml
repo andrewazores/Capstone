@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <LinearLayout
+    <android.support.v7.widget.CardView
         android:id="@+id/mc_disconnected_buttons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -15,13 +15,13 @@
 
         <Button
             android:id="@+id/mc_connectBtn"
-            android:text="Connect"
+            android:text="@string/menu_connect"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"/>
 
-    </LinearLayout>
+    </android.support.v7.widget.CardView>
 
-    <LinearLayout
+    <android.support.v7.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
@@ -35,20 +35,20 @@
 
             <Button
                 android:id="@+id/mc_armBtn"
-                android:text="Arm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:text="@string/mission_control_arm"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
 
             <Button
                 android:id="@+id/mc_dronieBtn"
-                android:text="Dronie"
+                android:text="@string/mission_control_dronie"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content" />
+                android:layout_width="wrap_content"/>
 
         </LinearLayout>
-    </LinearLayout>
+    </android.support.v7.widget.CardView>
 
-    <LinearLayout
+    <android.support.v7.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="visible"
@@ -63,27 +63,27 @@
 
             <Button
                 android:id="@+id/mc_disarmBtn"
-                android:text="Disarm"
+                android:text="@string/mission_control_disarm"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content" />
+                android:layout_width="wrap_content"/>
 
             <Button
                 android:id="@+id/mc_takeoff"
-                android:text="Takeoff"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content" />
+                android:text="@string/mission_control_takeoff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
             <Button
                 android:id="@+id/mc_TakeoffInAutoBtn"
-                android:text="Auto"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content" />
+                android:text="@string/mission_control_auto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
         </LinearLayout>
-    </LinearLayout>
+    </android.support.v7.widget.CardView>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
+    <android.support.v7.widget.CardView
+        android:layout_width="20sp"
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:id="@+id/mc_in_flight_buttons"
@@ -99,13 +99,13 @@
                 android:layout_width="75dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="Home"/>
+                android:text="@string/mission_control_home"/>
 
             <Button
                 android:id="@+id/mc_land"
                 android:layout_width="75dp"
                 android:layout_height="match_parent"
-                android:text="Land"
+                android:text="@string/mission_control_land"
                 android:layout_weight="1"
                 tools:ignore="ContentDescription"/>
 
@@ -113,7 +113,7 @@
                 android:id="@+id/mc_pause"
                 android:layout_width="75dp"
                 android:layout_height="match_parent"
-                android:text="Pause"
+                android:text="@string/mission_control_pause"
                 android:layout_weight="1"
                 tools:ignore="ContentDescription"/>
 
@@ -122,17 +122,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Auto"
+                android:text="@string/mission_control_auto"
                 tools:ignore="ContentDescription"/>
 
             <Button
                 android:id="@+id/mc_follow"
                 android:layout_width="75dp"
                 android:layout_height="match_parent"
-                android:text="Follow"
+                android:text="@string/mission_control_follow"
                 android:layout_weight="1"
                 tools:ignore="ContentDescription"/>
 
         </LinearLayout>
-    </LinearLayout>
+    </android.support.v7.widget.CardView>
 </FrameLayout>

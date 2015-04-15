@@ -69,46 +69,6 @@ public class CopterFlightActionsFragment extends Fragment implements View.OnClic
                 case AttributeEvent.STATE_VEHICLE_MODE:
                     updateFlightModeButtons();
                     break;
-
-                case AttributeEvent.FOLLOW_START:
-                case AttributeEvent.FOLLOW_STOP:
-                case AttributeEvent.FOLLOW_UPDATE:
-                    updateFlightModeButtons();
-                    updateFollowButton();
-
-                    if ((AttributeEvent.FOLLOW_START.equals(action)
-                            || AttributeEvent.FOLLOW_STOP.equals(action))) {
-                        final FollowState followState = mDrone.getAttribute(AttributeType.FOLLOW_STATE);
-                        if (followState != null) {
-                            String eventLabel = null;
-                            switch (followState.getState()) {
-                                case FollowState.STATE_START:
-                                    eventLabel = "FollowMe enabled";
-                                    break;
-
-                                case FollowState.STATE_RUNNING:
-                                    eventLabel = "FollowMe running";
-                                    break;
-
-                                case FollowState.STATE_END:
-                                    eventLabel = "FollowMe disabled";
-                                    break;
-
-                                case FollowState.STATE_INVALID:
-                                    eventLabel = "FollowMe error: invalid state";
-                                    break;
-
-                                case FollowState.STATE_DRONE_DISCONNECTED:
-                                    eventLabel = "FollowMe error: drone not connected";
-                                    break;
-
-                                case FollowState.STATE_DRONE_NOT_ARMED:
-                                    eventLabel = "FollowMe error: drone not armed";
-                                    break;
-                            }
-                        }
-                    }
-                    break;
             }
         }
     };
@@ -118,7 +78,6 @@ public class CopterFlightActionsFragment extends Fragment implements View.OnClic
     private View mArmedButtons;
     private View mInFlightButtons;
 
-    private Button followBtn;
     private Button homeBtn;
     private Button landBtn;
     private Button pauseBtn;
@@ -174,11 +133,12 @@ public class CopterFlightActionsFragment extends Fragment implements View.OnClic
         final Button takeoffInAuto = (Button) view.findViewById(R.id.mc_TakeoffInAutoBtn);
         takeoffInAuto.setOnClickListener(this);
 
-        followBtn = (Button) view.findViewById(R.id.mc_follow);
-        followBtn.setOnClickListener(this);
 
         final Button dronieBtn = (Button) view.findViewById(R.id.mc_dronieBtn);
         dronieBtn.setOnClickListener(this);
+
+        setupButtonsByFlightState();
+        updateFlightModeButtons();
     }
 
 //    @Override
@@ -187,7 +147,6 @@ public class CopterFlightActionsFragment extends Fragment implements View.OnClic
 //
 //        setupButtonsByFlightState();
 //        updateFlightModeButtons();
-//        updateFollowButton();
 //
 //        getBroadcastManager().registerReceiver(eventReceiver, eventFilter);
 //    }
@@ -258,45 +217,14 @@ public class CopterFlightActionsFragment extends Fragment implements View.OnClic
     }
 
     private void getTakeOffInAutoConfirmation() {
-//        YesNoWithPrefsDialog ynd = YesNoWithPrefsDialog.newInstance(getActivity()
-//                        .getApplicationContext(), getString(R.string.dialog_confirm_take_off_in_auto_title),
-//                getString(R.string.dialog_confirm_take_off_in_auto_msg), new YesNoDialog.Listener() {
-//                    @Override
-//                    public void onYes() {
-//                        Drone drone = getDrone();
-//                        drone.doGuidedTakeoff(TAKEOFF_ALTITUDE);
-//                        drone.changeVehicleMode(VehicleMode.COPTER_AUTO);
-//                    }
-//
-//                    @Override
-//                    public void onNo() {
-//                    }
-//                }, getString(R.string.pref_warn_on_takeoff_in_auto_key));
-//
-//        if(ynd != null){
-//            ynd.show(getChildFragmentManager(), "Confirm take off in auto");
-//        }
+        Drone drone = mDrone;
+        drone.doGuidedTakeoff(TAKEOFF_ALTITUDE);
+        drone.changeVehicleMode(VehicleMode.COPTER_AUTO);
     }
 
     private void getArmingConfirmation() {
-//        YesNoWithPrefsDialog ynd = YesNoWithPrefsDialog.newInstance(getActivity().getApplicationContext(),
-//                getString(R.string.dialog_confirm_arming_title),
-//                getString(R.string.dialog_confirm_arming_msg), new YesNoDialog.Listener() {
-//                    @Override
-//                    public void onYes() {
-//                        getDrone().arm(true);
-//                    }
-//
-//                    @Override
-//                    public void onNo() {}
-//                }, getString(R.string.pref_warn_on_arm_key));
-//
-//        if(ynd != null) {
-//            ynd.show(getChildFragmentManager(), "Confirm arming");
-//        }
+        mDrone.arm(true);
     }
-
-
 
     private void updateFlightModeButtons() {
         resetFlightModeButtons();
@@ -340,28 +268,6 @@ public class CopterFlightActionsFragment extends Fragment implements View.OnClic
         landBtn.setActivated(false);
         pauseBtn.setActivated(false);
         autoBtn.setActivated(false);
-    }
-
-    private void updateFollowButton() {
-        FollowState followState = mDrone.getAttribute(AttributeType.FOLLOW_STATE);
-        if(followState == null)
-            return;
-
-        switch (followState.getState()) {
-            case FollowState.STATE_START:
-                followBtn.setBackgroundColor(Color.RED);
-                break;
-
-            case FollowState.STATE_RUNNING:
-                followBtn.setActivated(true);
-//                followBtn.setBackgroundResource(R.drawable.flight_action_row_bg_selector);
-                break;
-
-            default:
-                followBtn.setActivated(false);
-//                followBtn.setBackgroundResource(R.drawable.flight_action_row_bg_selector);
-                break;
-        }
     }
 
     private void resetButtonsContainerVisibility() {
