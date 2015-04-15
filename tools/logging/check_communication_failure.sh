@@ -5,9 +5,10 @@ lines=($(ls -1 *.log));
 
 for file in "${lines[@]}"; do
     echo $file;
-    uIDs=($(grep "Sending a token\." $file | egrep -o "uniqueLocalIdentifier=[0-9]+"));
-    owners=($(grep "Sending a token\." $file | egrep -o "owner={serviceName='x[0-9]'"));
-    destinations=($(grep "Sending a token\." $file | egrep -o "destination={serviceName='x[0-9]'"));
+    tokensSent=$(grep "Sending a token\." $file)
+    uIDs=($(egrep -o "uniqueLocalIdentifier=[0-9]+" <<< "$tokensSent"));
+    owners=($(egrep -o "owner={serviceName='x[0-9]'" <<< "$tokensSent"));
+    destinations=($(egrep -o "destination={serviceName='x[0-9]'" <<< "$tokensSent"));
     for ((i = 0; i < ${#uIDs[@]}; i++)); do
         id=${uIDs[i]};
         owner=${owners[i]};
