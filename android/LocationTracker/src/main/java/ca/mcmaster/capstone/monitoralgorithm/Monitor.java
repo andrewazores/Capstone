@@ -445,7 +445,7 @@ public class Monitor extends Service {
     public void receiveToken(@NonNull final Token token) {
         Log.d(LOG_TAG, "Entering receiveToken. Token: " + token.toString());
         if (token.getOwner().equals(monitorID)) {
-            final GlobalView globalView = getGlobalView(token);
+            @NonNull final GlobalView globalView = getGlobalView(token);
             globalView.updateWithToken(token);
             boolean hasEnabled = false;
             for (final AutomatonTransition trans : token.getAutomatonTransitions()) {
@@ -586,5 +586,6 @@ public class Monitor extends Service {
                 }
             }
         }
+        return null;
     }
 }
