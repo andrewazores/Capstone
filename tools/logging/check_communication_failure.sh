@@ -9,10 +9,12 @@ for file in "${lines[@]}"; do
     for ((i = 0; i < ${#tokensSent[@]}; i++)); do
         id=$(egrep -o "uniqueLocalIdentifier=[0-9]+" <<< "${tokensSent[i]}");
         owner=$(egrep -o "owner={serviceName='x[0-9]'" <<< "${tokensSent[i]}");
-        fileToCheck=$(echo $(egrep -o "destination={serviceName='x[0-9]'" <<< "${tokensSent[i]}") | cut -c27-28).log;
-        pattern="receiveTokenInternal: Token{$id, $owner"
+        destination=$(egrep -o "destination={serviceName='x[0-9]'" <<< "${tokensSent[i]}");
+        echo "Sending token{$id, $owner} to $destination}";
+        fileToCheck=$(echo $destination | cut -c27-28).log;
+        receiveInternal="receiveTokenInternal: Token{$id, $owner"
         receiveToken="Entering receiveToken. Token: Token{$id, $owner"
-        if grep -q $pattern $fileToCheck; then
+        if grep -q $receiveInternal $fileToCheck; then
             echo "Token received internally.";
         else
             echo "Token not received internally.";
@@ -20,7 +22,7 @@ for file in "${lines[@]}"; do
         if grep -q $receiveToken $fileToCheck; then
             echo "Token received.";
         else
-            echo "Token{$id, $owner} not received on $fileToCheck.";
+            echo "Token not received.";
         fi
 
     done
