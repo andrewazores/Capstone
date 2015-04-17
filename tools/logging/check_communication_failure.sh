@@ -24,6 +24,26 @@ for file in "${lines[@]}"; do
         else
             echo "Token not received.";
         fi
-
+        tokenSentHome=$(grep "Sending a token back home\. Token: Token{$id, $owner" $fileToCheck)
+        if [[ $tokenSentHome ]]; then
+            echo "Sending a token home. Token{$id, $owner} to $destination}";
+            fileToCheck=$(echo $owner | cut -c21-22).log;
+            echo $fileToCheck
+            receiveInternal="receiveTokenInternal: Token{$id, $owner"
+            receiveToken="Entering receiveToken. Token: Token{$id, $owner"
+            if grep -q $receiveInternal $fileToCheck; then
+                echo "Token received internally.";
+            else
+                echo "Token not received internally.";
+            fi
+            if grep -q $receiveToken $fileToCheck; then
+                echo "Token received.";
+            else
+                echo "Token not received.";
+            fi
+        else
+            echo "Token was not sent home!"
+        fi
+        echo -e "\n"
     done
 done
